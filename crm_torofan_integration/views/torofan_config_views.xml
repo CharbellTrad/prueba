@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Vista de lista/árbol -->
+    <record id="view_torofan_config_list" model="ir.ui.view">
+        <field name="name">torofan.config.list</field>
+        <field name="model">torofan.config</field>
+        <field name="arch" type="xml">
+            <list string="Torofan">
+                <field name="name"/>
+                <field name="loyalty_program_id"/>
+                <field name="program_company_name"/>
+                <field name="program_discount_display"/>
+                <field name="program_currency"/>
+                <field name="access_token" password="True"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Vista de formulario de configuración -->
+    <record id="view_torofan_config_form" model="ir.ui.view">
+        <field name="name">torofan.config.form</field>
+        <field name="model">torofan.config</field>
+        <field name="arch" type="xml">
+            <form string="Configuración Torofan">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name" class="oe_edit_only"/>
+                        <h1 style="margin-bottom: 16px;">
+                            <field name="name" placeholder="Nombre de la configuración..."/>
+                        </h1>
+                    </div>
+                    
+                    <!-- Sección de Autenticación -->
+                    <group string="Autenticación y Endpoint">
+                        <group colspan="2">
+                            <label for="access_token"/>
+                            <div class="o_row">
+                                <field name="access_token" 
+                                       readonly="1"
+                                       widget="CopyClipboardChar"
+                                       class="oe_inline"
+                                       nolabel="1"/>
+                                <button name="action_generate_token" 
+                                        string="Generar Nuevo Token" 
+                                        type="object" 
+                                        class="btn-primary"
+                                        icon="fa-refresh"
+                                        confirm="¿Estás seguro de regenerar el token? El token anterior dejará de funcionar."/>
+                            </div>
+                            <label for="webhook_url" string="URL del Endpoint"/>
+                            <field name="webhook_url" 
+                                   widget="CopyClipboardChar"
+                                   readonly="1"
+                                   nolabel="1"/>
+                        </group>
+                    </group>
+                    
+                    <!-- Program Status Alert -->
+                    <field name="program_status_alert" nolabel="1" colspan="2"/>
+                    
+                    <!-- Sección de Cupones - ancho completo -->
+                    <group string="Configuración de Cupones" colspan="2">
+                        <!-- Left Column: Editable Configuration -->
+                        <group>
+                            <field name="loyalty_program_id" 
+                                   options="{'no_create': True}"/>
+                            
+                            <label for="coupon_validity_value" string="Validez del Cupón" invisible="not loyalty_program_id"/>
+                            <div class="o_row" invisible="not loyalty_program_id">
+                                <field name="coupon_validity_value" class="oe_inline" style="width: 50px !important;"/>
+                                <field name="coupon_validity_unit" 
+                                       class="oe_inline" 
+                                       style="width: 100px !important;"
+                                       required="coupon_validity_value &gt; 0"/>
+                            </div>
+
+                        </group>
+
+                        <!-- Right Column: Read-only Program Info -->
+                        <group>
+                            <field name="program_type"
+                                   invisible="not loyalty_program_id"/>
+                            <field name="program_discount_percentage" 
+                                   widget="percentage"
+                                   invisible="not loyalty_program_id"/>
+                            <field name="program_minimum_amount"
+                                   widget="monetary"
+                                   invisible="not loyalty_program_id"/>
+                            <field name="program_currency"
+                                   invisible="not loyalty_program_id"/>
+                            <field name="program_limit_usage"
+                                   invisible="not loyalty_program_id"/>
+                            <field name="program_date_from"
+                                   invisible="not loyalty_program_id"/>
+                            <field name="program_date_to"
+                                   invisible="not loyalty_program_id"/>
+                            <field name="program_company_name"
+                                   invisible="not loyalty_program_id"/>
+                            <field name="program_available_on"
+                                   invisible="not loyalty_program_id"/>
+                        </group>
+                        
+                        <group colspan="2">
+                            <div class="alert alert-info" role="alert" invisible="loyalty_program_id">
+                                <p style="margin: 0;">
+                                    <i class="fa fa-info-circle"/> 
+                                    <strong>Sin programa seleccionado:</strong> Solo se crearán oportunidades en el CRM,
+                                    sin generar cupones.
+                                </p>
+                            </div>
+                            <div class="alert alert-success" role="alert" invisible="not loyalty_program_id">
+                                <p style="margin: 0;">
+                                    <i class="fa fa-check-circle"/> 
+                                    Los parámetros a la derecha se obtienen automáticamente del programa de lealtad.
+                                    Para modificarlos, edita el programa en <strong>Ventas &gt; Descuentos y programas de lealtad</strong>.
+                                </p>
+                            </div>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Acción de ventana -->
+    <record id="action_torofan_config" model="ir.actions.act_window">
+        <field name="name">Configuración Torofan</field>
+        <field name="res_model">torofan.config</field>
+        <field name="view_mode">list,form</field>
+        <field name="target">current</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Crea tu primera configuración de Torofan
+            </p>
+            <p>
+                Configura la integración con la aplicación Torofan para automatizar
+                la creación de oportunidades CRM y cupones de descuento.
+            </p>
+        </field>
+    </record>
+
+    <!-- Menú -->
+    <menuitem id="menu_torofan_config"
+              name="Torofan"
+              parent="sale.sale_menu_root"
+              action="action_torofan_config"
+              sequence="90"/>
+
+</odoo>

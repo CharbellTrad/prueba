@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Plantilla de Email de Bienvenida -->
+    <record id="mail_template_torofan_welcome" model="mail.template">
+        <field name="name">Torofan: Email de Bienvenida</field>
+        <field name="model_id" ref="crm.model_crm_lead"/>
+        <field name="email_to">{{ object.email_from }}</field>
+        <field name="body_html" type="html">
+            <t t-set="config" t-value="object.env['torofan.config'].sudo().search([], limit=1)"/>
+            <t t-set="company_name" t-value="config.program_company_name if config and config.program_company_name else 'Torofan Store'"/>
+            <t t-set="discount" t-value="int(config.program_discount_percentage * 100) if config and config.program_discount_percentage else 0"/>
+            <t t-set="minimum" t-value="config.program_minimum_amount if config and config.program_minimum_amount else 0.0"/>
+            <t t-set="coupon" t-value="object.torofan_coupon_id"/>
+            <t t-set="base_url" t-value="object.get_base_url()"/>
+            
+            <div style="margin: 0; padding: 0; background-color: #f4f6f9; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">
+                <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f4f6f9; padding: 40px 0;">
+                    <tr>
+                        <td align="center">
+                            <!-- Main Card -->
+                            <table border="0" cellpadding="0" cellspacing="0" width="600" style="background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+                                
+                                <!-- Header Banner -->
+                                <tr>
+                                    <td style="background-color: #2c3e50; padding: 30px; text-align: center;">
+                                        <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 600; letter-spacing: 0.5px;">¡Bienvenido a la familia!</h1>
+                                    </td>
+                                </tr>
+                                
+                                <!-- Content Body -->
+                                <tr>
+                                    <td style="padding: 40px 40px 20px 40px; text-align: center;">
+                                        <h2 style="color: #333333; margin: 0 0 10px 0; font-size: 22px; font-weight: normal;">
+                                            Hola, <strong style="color: #2c3e50;"><t t-out="object.contact_name or 'Usuario'">Usuario</t></strong>
+                                        </h2>
+                                        
+                                        <p style="color: #666666; font-size: 16px; line-height: 1.6; margin: 0 0 30px 0;">
+                                            Gracias por unirte a nosotros. Como muestra de agradecimiento, aquí tienes un regalo especial de parte de <strong><t t-out="company_name">Torofan Store</t></strong>.
+                                        </p>
+                                        
+                                        <!-- Discount Badge -->
+                                        <t t-if="coupon">
+                                            <div style="margin-bottom: 30px;">
+                                                <div style="display: inline-block; background-color: #e3f2fd; color: #1565c0; padding: 12px 24px; border-radius: 50px; font-size: 20px; font-weight: bold;">
+                                                    <t t-out="discount">10</t>% DE DESCUENTO
+                                                </div>
+                                                <p style="color: #888888; font-size: 14px; margin-top: 10px; margin-bottom: 0;">en tu próxima compra</p>
+                                            </div>
+                                        </t>
+                                        
+                                        <!-- Coupon Box -->
+                                        <t t-if="coupon">
+                                            <div style="background-color: #ffffff; border: 2px dashed #cbd5e0; border-radius: 8px; padding: 25px; margin: 0 0 25px 0;">
+                                                <p style="color: #718096; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 10px 0;">Tu código personal</p>
+                                                <p style="color: #2d3748; font-size: 32px; font-weight: 700; margin: 0; letter-spacing: 2px; font-family: monospace;">
+                                                    <t t-out="coupon.code">CODE-123</t>
+                                                </p>
+                                            </div>
+                                        </t>
+                                        
+                                        <!-- Validity Details -->
+                                        <table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 30px;">
+                                            <tr>
+                                                <td align="center" style="color: #718096; font-size: 14px; line-height: 1.5;">
+                                                    <t t-if="coupon and coupon.expiration_date">
+                                                        <span>Válido hasta: <strong><t t-out="format_date(coupon.expiration_date)">01/01/2026</t></strong></span>
+                                                        <br/>
+                                                    </t>
+                                                    <t t-if="minimum > 0">
+                                                        <span>Compra mínima: <strong>$ <t t-out="'{:,.2f}'.format(minimum)">0.00</t></strong></span>
+                                                    </t>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                        
+                                        <!-- Barcode -->
+                                        <t t-if="coupon">
+                                            <div style="margin: 0 0 30px 0;">
+                                                <img t-att-src="'https://bwipjs-api.metafloor.com/?bcid=code128&amp;text=%s&amp;scale=2&amp;height=10&amp;incltext=N&amp;' % coupon.code" 
+                                                     alt="Código de barras" 
+                                                     style="max-width: 100%; height: 60px; object-fit: contain;"/>
+                                            </div>
+                                        </t>
+                                        
+                                        <!-- CTA Button -->
+                                        <!-- <a href="#" style="display: inline-block; background-color: #2c3e50; color: #ffffff; padding: 15px 35px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 16px;">Ir a la Tienda</a> -->
+                                    </td>
+                                </tr>
+                                
+                                <!-- Footer -->
+                                <tr>
+                                    <td style="background-color: #f8f9fa; padding: 20px; text-align: center; border-top: 1px solid #e9ecef;">
+                                        <p style="color: #adb5bd; font-size: 12px; margin: 0;">
+                                            Enviado por Torofan | <t t-out="company_name">Torofan Store</t>
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+                            
+                            <!-- Unsubscribe/Legal -->
+                            <table border="0" cellpadding="0" cellspacing="0" width="600" style="margin-top: 20px;">
+                                <tr>
+                                    <td align="center" style="color: #99aab5; font-size: 12px;">
+                                        <p>&#169; 2026 Torofan Integration. Todos los derechos reservados.</p>
+                                    </td>
+                                </tr>
+                            </table>
+                            
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </field>
+    </record>
+
+</odoo>

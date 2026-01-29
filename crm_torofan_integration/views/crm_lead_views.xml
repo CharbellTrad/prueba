@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    
+    <!-- Vista de formulario CRM heredada -->
+    <record id="view_crm_lead_form_torofan" model="ir.ui.view">
+        <field name="name">crm.lead.form.torofan</field>
+        <field name="model">crm.lead</field>
+        <field name="inherit_id" ref="crm.crm_lead_view_form"/>
+        <field name="arch" type="xml">
+            
+            <!-- Agregar campo después de las etiquetas -->
+            <xpath expr="//field[@name='tag_ids']" position="after">
+                <!-- Campo con texto y badge condicional -->
+                <field name="from_torofan" 
+                       widget="boolean"
+                       readonly="1"
+                       string="Creado desde Torofan"/>
+                
+                <!-- Campo cupón visible solo cuando existe -->
+                <field name="torofan_coupon_id" 
+                       readonly="1"
+                       invisible="not from_torofan"
+                       string="Cupón Generado"/>
+            </xpath>
+            
+        </field>
+    </record>
+
+</odoo>
