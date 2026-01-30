@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Report X Template - Corte de Caja X -->
+    <template id="report_pos_x_document">
+        <t t-call="web.external_layout">
+            <t t-set="all_values" t-value="doc._get_report_x_values()"/>
+            
+            <t t-foreach="all_values" t-as="values">
+                <div class="page" t-att-style="'page-break-after: always;' if not values_last else ''">
+                    <t t-if="values.get('error')">
+                        <div class="alert alert-warning">
+                            <t t-out="values.get('error')"/>
+                        </div>
+                    </t>
+                    <t t-else="">
+                        <!-- Centered Title -->
+                        <h2 class="text-center mb-4" style="color: #1a5276;"><strong>CORTE DE CAJA X</strong></h2>
+                        
+                        <!-- Two-column Header Information -->
+                        <div class="row mb-3">
+                            <div class="col-6">
+                                <p class="mb-1"><strong>Id Corte X:</strong> <t t-out="values.get('folio')"/></p>
+                                <p class="mb-1"><t t-out="values.get('company').street or ''"/></p>
+                                <p class="mb-1"><strong>Tel:</strong> <t t-out="values.get('company').phone or ''"/></p>
+                                <p class="mb-1"><strong>Correo:</strong> <t t-out="values.get('company').email or ''"/></p>
+                            </div>
+                            <div class="col-6 text-end">
+                                <p class="mb-1"><strong>Fecha de corte:</strong> <t t-out="values.get('date')"/> <t t-if="values.get('session').stop_at"><t t-out="values.get('session').stop_at.astimezone(values.get('user_tz')).strftime('%I:%M%p')"/></t></p>
+                                <p class="mb-1"><strong>Sucursal:</strong> <t t-out="values.get('config').name"/></p>
+                                <p class="mb-1"><strong>Direccion Sucursal:</strong> <t t-out="values.get('company').street2 or ''"/></p>
+                            </div>
+                        </div>
+                        
+                        <hr/>
+                        
+                        <!-- Terminal Info -->
+                        <p><strong>Terminal:</strong> <t t-out="values.get('config').name"/></p>
+                        
+                        <!-- INGRESADO Section -->
+                        <h4><strong>INGRESADO</strong></h4>
+                        <table class="table table-sm table-borderless">
+                            <thead>
+                                <tr style="border-bottom: 1px solid #dee2e6;">
+                                    <th colspan="2">FORMA DE PAGO</th>
+                                    <th class="text-end">MONTO</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="values.get('payment_summary', [])" t-as="payment">
+                                    <tr>
+                                        <td><t t-out="payment.get('code')"/></td>
+                                        <td><t t-out="payment.get('name')"/></td>
+                                        <td class="text-end">
+                                            <t t-out="'${:,.2f}'.format(payment.get('amount', 0))"/>
+                                        </td>
+                                    </tr>
+                                </t>
+                                <tr style="border-top: 1px solid #dee2e6;">
+                                    <td colspan="2" class="text-end"><strong>Total corte ciego:</strong></td>
+                                    <td class="text-end"><strong><t t-out="'${:,.2f}'.format(values.get('total_corte_ciego', 0))"/></strong></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        
+                        <!-- MOVIMIENTOS Section -->
+                        <h4><strong>MOVIMIENTOS</strong></h4>
+                        <p><strong>Usuario:</strong> <t t-out="values.get('user').id"/> <t t-out="values.get('user').name"/></p>
+                        
+                        <!-- APERTURA DE CAJA -->
+                        <h5><strong>APERTURA DE CAJA</strong></h5>
+                        <table class="table table-sm table-borderless">
+                            <tbody>
+                                <t t-foreach="values.get('apertura_summary', [])" t-as="apertura">
+                                    <tr>
+                                        <td><t t-out="apertura.get('code')"/></td>
+                                        <td><t t-out="apertura.get('name')"/></td>
+                                        <td class="text-end">
+                                            <t t-out="'${:,.2f}'.format(apertura.get('amount', 0))"/>
+                                        </td>
+                                    </tr>
+                                </t>
+                                <tr style="border-top: 1px solid #dee2e6;">
+                                    <td colspan="2" class="text-end"><strong>Subtotal:</strong></td>
+                                    <td class="text-end"><strong><t t-out="'${:,.2f}'.format(values.get('apertura_subtotal', 0))"/></strong></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        
+                        <!-- VENTA -->
+                        <h5><strong>VENTA</strong></h5>
+                        <table class="table table-sm table-borderless">
+                            <tbody>
+                                <t t-foreach="values.get('venta_summary', [])" t-as="venta">
+                                    <tr>
+                                        <td><t t-out="venta.get('code')"/></td>
+                                        <td><t t-out="venta.get('name')"/></td>
+                                        <td class="text-end">
+                                            <t t-out="'${:,.2f}'.format(venta.get('amount', 0))"/>
+                                        </td>
+                                    </tr>
+                                </t>
+                                <tr style="border-top: 1px solid #dee2e6;">
+                                    <td colspan="2" class="text-end"><strong>Subtotal:</strong></td>
+                                    <td class="text-end"><strong><t t-out="'${:,.2f}'.format(values.get('venta_subtotal', 0))"/></strong></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        
+                        <!-- SALIDA DE DINERO -->
+                        <h5><strong>ENTRADA/SALIDA DE DINERO</strong></h5>
+                        <table class="table table-sm table-borderless">
+                            <tbody>
+                                <t t-foreach="values.get('salida_summary', [])" t-as="salida">
+                                    <tr>
+                                        <td><t t-out="salida.get('code')"/></td>
+                                        <td><t t-out="salida.get('name')"/></td>
+                                        <td class="text-end">
+                                            <t t-out="'${:,.2f}'.format(salida.get('amount', 0))"/>
+                                        </td>
+                                    </tr>
+                                </t>
+                                <tr style="border-top: 1px solid #dee2e6;">
+                                    <td colspan="2" class="text-end"><strong>Subtotal:</strong></td>
+                                    <td class="text-end"><strong><t t-out="'${:,.2f}'.format(values.get('salida_subtotal', 0))"/></strong></td>
+                                </tr>
+                                <tr>
+                                    <td colspan="2" class="text-end"><strong>Total usuario:</strong></td>
+                                    <td class="text-end"><strong><t t-out="'${:,.2f}'.format(values.get('total_usuario', 0))"/></strong></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        
+                        <!-- Summary Totals -->
+                        <table class="table table-sm table-borderless">
+                            <tbody>
+                                <tr>
+                                    <td class="text-end"><strong>Total estación de trabajo:</strong></td>
+                                    <td class="text-end"><strong><t t-out="'${:,.2f}'.format(values.get('total_estacion', 0))"/></strong></td>
+                                </tr>
+                                <tr>
+                                    <td class="text-end"><strong>Diferencia:</strong></td>
+                                    <td class="text-end"><strong><t t-out="'${:,.2f}'.format(values.get('diferencia', 0))"/></strong></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        
+                        <!-- <div style="page-break-before: always;"/> Removed forced break to avoid blank pages -->
+                        <br/>
+                        
+                        <!-- DETALLE DE FORMAS DE PAGO -->
+                        <h4><strong>DETALLE DE FORMAS DE PAGO</strong></h4>
+                        
+                        <t t-foreach="values.get('payment_details', [])" t-as="method_detail">
+                            <h5><strong><t t-out="method_detail.get('name')"/></strong></h5>
+                            <table class="table table-sm table-borderless">
+                                <tbody>
+                                    <t t-foreach="method_detail.get('transactions', [])" t-as="trans">
+                                        <tr>
+                                            <td style="width: 15%;"><t t-out="trans.get('type')"/></td>
+                                            <td style="width: 60%;">
+                                                <t t-if="trans.get('type') not in ['Apertura de caja', 'Salida de dinero']">
+                                                    <t t-out="trans.get('partner_name')"/><br/>
+                                                </t>
+                                                <small><t t-out="trans.get('order_name')"/></small>
+                                            </td>
+                                            <td class="text-end" style="width: 25%;">
+                                                <t t-out="'${:,.2f}'.format(trans.get('amount', 0))"/>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                    <tr style="border-top: 1px solid #dee2e6;">
+                                        <td colspan="2" class="text-end"><strong><t t-out="method_detail.get('name')"/></strong></td>
+                                        <td class="text-end"><strong><t t-out="'${:,.2f}'.format(method_detail.get('total', 0))"/></strong></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </t>
+                    </t>
+                </div>
+            </t>
+        </t>
+    </template>
+
+    <template id="report_pos_x">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="pos_report_x_z.report_pos_x_document"/>
+            </t>
+        </t>
+    </template>
+
+    <!-- Report Action Definition -->
+    <record id="action_report_pos_x" model="ir.actions.report">
+        <field name="name">Reporte X - Corte de Caja</field>
+        <field name="model">pos.report.xz</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">pos_report_x_z.report_pos_x</field>
+        <field name="report_file">pos_report_x_z.report_pos_x</field>
+        <field name="print_report_name">'Reporte_X_%s_%s' % (object.config_id.name, object.date)</field>
+        <field name="binding_model_id" ref="model_pos_report_xz"/>
+        <field name="binding_type">report</field>
+    </record>
+
+</odoo>
