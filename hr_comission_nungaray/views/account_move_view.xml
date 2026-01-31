@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    
+    <record id="account_move_view_form_inherit_hr_comission" model="ir.ui.view">
+        <field name="name">account.move.view.form.inherit.hr.comission</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page name="comission" string="Comisiones" invisible="true">
+                    <group colspan="2">
+                        <group string="Comisionador">
+                            <field name="comissioner_id" options="{'no_create':True, 'no_create_edit':True}"/>
+                        </group>
+                        <group string="Comisión">
+                            <field name="comission_location"/>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+   
+
+    <record id="account_move_line_view_tree_report_nungaray" model="ir.ui.view">
+        <field name="name">account.move.line.view.tree</field>
+        <field name="model">account.move.line</field>
+        <field name="arch" type="xml">
+            <list edit="0" create="0" delete="0" >
+                <field name="currency_id" column_invisible="1"/>
+                <field name="invoice_name" string="Factura"/>
+                <field name="invoice_date"/>
+                <field name="partner_id"/>
+                <field name="product_id"/>
+                <field name="quantity"/>
+                <field name="product_uom_id" string="UoM" groups="uom.group_uom"/>
+                <field name="discount"/>
+                <field name="price_unit" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                <field name="price_subtotal" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                <field name="comissioner_id" string="Vendedor"/>
+                <field name="comission_location" string="Sucursal"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="account_move_line_search_report_nungaray" model="ir.ui.view">
+        <field name="name">account.move.line.search</field>
+        <field name="model">account.move.line</field>
+        <field name="arch" type="xml">
+            <search string="Buscar líneas de factura">
+                <field name="invoice_date" filter_domain="[]"/>
+
+                <group expand="1" string="Agrupar por">
+                    <filter name="group_by_year" string="Año" context="{'group_by':'invoice_date:year'}"/>
+                    <filter name="group_by_month" string="Mes" context="{'group_by':'invoice_date:month'}"/>
+                    <filter name="group_by_seller" string="Vendedor" context="{'group_by':'comissioner_id'}"/>
+                    <filter name="group_by_product" string="Producto" context="{'group_by':'product_id'}"/>
+                    <filter name="group_by_invoice" string="Factura" context="{'group_by':'invoice_name'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="account_move_line_action_report" model="ir.actions.act_window">
+        <field name="name">Reporte de líneas de factura</field>
+        <field name="res_model">account.move.line</field>
+        <field name="view_mode">list</field>
+        <field name="domain">[('display_type', '=', 'product'),('move_id.move_type', '=', 'out_invoice'), ('move_id.state','=', 'posted')]</field>
+        <field name="context">{'search_default_group_by_year': 1, 'search_default_group_by_month': 1, 'search_default_group_by_seller': 1}</field>
+        <field name="view_ids" eval="[(5, 0, 0), 
+            (0, 0, {'view_mode': 'list', 'view_id': ref('account_move_line_view_tree_report_nungaray')})
+        ]"/>
+        <field name="search_view_id" ref="account_move_line_search_report_nungaray"/>
+
+    </record>
+
+
+    <menuitem id="account_move_line_menu_act" name="Reporte de líneas de factura" parent="account.menu_finance_reports" action="account_move_line_action_report" sequence="110"/>
+
+    
+</odoo>
+
