@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Report Z Template - Cierre de Caja Z -->
+    <template id="report_pos_z_document">
+        <t t-call="web.external_layout">
+            <t t-set="o" t-value="doc"/>
+            <t t-set="values" t-value="doc._get_report_z_values()"/>
+            
+            <t t-if="values.get('error')">
+                <div class="page">
+                    <div class="alert alert-warning">
+                        <t t-out="values.get('error')"/>
+                    </div>
+                </div>
+            </t>
+            <t t-else="">
+                <div class="page">
+                    <!-- Centered Title -->
+                    <h2 class="text-center mb-4" style="color: #1a5276;"><strong>CIERRE DE CAJA Z</strong></h2>
+                    
+                    <!-- Grouped Header Information -->
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <p class="mb-1"><strong><t t-out="values.get('company').name"/></strong></p>
+                            <p class="mb-1"><t t-out="values.get('company').street or ''"/></p>
+                            <p class="mb-1"><strong>Tel:</strong> <t t-out="values.get('company').phone or ''"/></p>
+                            <p class="mb-1"><strong>Correo:</strong> <t t-out="values.get('company').email or ''"/></p>
+                            <p class="mb-1"><strong>Fecha de cierre:</strong> <t t-out="values.get('date')"/></p>
+                        </div>
+                        <div class="col-6">
+                            <p class="mb-1"><strong>FOLIO:</strong> <t t-out="values.get('folio')"/></p>
+                            <p class="mb-1"><strong>Sucursal:</strong> <t t-out="values.get('pos_names') or ''"/></p>
+                            <p class="mb-1"><strong>Direccion:</strong> <t t-out="values.get('company').street2 or ''"/></p>
+                        </div>
+                    </div>
+                    
+                    <hr/>
+                    
+                    <!-- MOVIMIENTOS EN CAJAS -->
+                    <h4><strong>MOVIMIENTOS EN CAJAS</strong></h4>
+                    
+                    <t t-foreach="values.get('stations', [])" t-as="station">
+                        <!-- Station Header -->
+                        <p><strong>Estación de trabajo: <t t-out="station.get('name')"/></strong></p>
+                        
+                        <!-- Station Movements -->
+                        <t t-foreach="station.get('movements', [])" t-as="movement">
+                            <p><strong><t t-out="movement.get('type')"/></strong></p>
+                            <table class="table table-sm table-borderless">
+                                <tbody>
+                                    <t t-foreach="movement.get('payments', [])" t-as="payment">
+                                        <tr>
+                                            <td style="width: 10%;"><t t-out="payment.get('code')"/></td>
+                                            <td style="width: 60%;"><t t-out="payment.get('name')"/></td>
+                                            <td class="text-end" style="width: 30%;">
+                                                <t t-out="'${:,.2f}'.format(payment.get('amount', 0))"/>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                    <tr style="border-top: 1px solid #dee2e6;">
+                                        <td colspan="2" class="text-end"><strong>Total concepto:</strong></td>
+                                        <td class="text-end"><strong><t t-out="'${:,.2f}'.format(movement.get('total', 0))"/></strong></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </t>
+                        
+                        <!-- Station Total -->
+                        <table class="table table-sm table-borderless">
+                            <tbody>
+                                <tr style="border-top: 1px solid #dee2e6;">
+                                    <td class="text-end"><strong>Total estación:</strong></td>
+                                    <td class="text-end" style="width: 30%;"><strong><t t-out="'${:,.2f}'.format(station.get('total_estacion', 0))"/></strong></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        
+                        <hr/>
+                    </t>
+                    
+                    <!-- GRAN TOTAL -->
+                    <table class="table table-sm table-borderless">
+                        <tbody>
+                            <tr>
+                                <td class="text-end"><h4><strong>GRAN TOTAL:</strong></h4></td>
+                                <td class="text-end" style="width: 30%;"><h4><strong><t t-out="'${:,.2f}'.format(values.get('gran_total', 0))"/></strong></h4></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                </div>
+            </t>
+        </t>
+    </template>
+
+    <template id="report_pos_z">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="pos_report_x_z.report_pos_z_document"/>
+            </t>
+        </t>
+    </template>
+
+    <!-- Report Action Definition -->
+    <record id="action_report_pos_z" model="ir.actions.report">
+        <field name="name">Reporte Z - Cierre Diario</field>
+        <field name="model">pos.report.xz</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">pos_report_x_z.report_pos_z</field>
+        <field name="report_file">pos_report_x_z.report_pos_z</field>
+        <field name="print_report_name">'Reporte_Z_%s' % object.date</field>
+        <field name="binding_model_id" ref="model_pos_report_xz"/>
+        <field name="binding_type">report</field>
+    </record>
+
+</odoo>

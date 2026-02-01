@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Menu Item under Point of Sale -->
+    <menuitem id="menu_pos_report_xz"
+              name="Reportes X y Z"
+              parent="point_of_sale.menu_point_rep"
+              action="action_pos_report_xz_wizard"
+              sequence="100"/>
+
+</odoo>

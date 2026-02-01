@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-inherit="point_of_sale.Navbar" t-inherit-mode="extension">
+        <xpath expr="//DropdownItem[contains(., 'Close Register')]" position="before">
+            <DropdownItem onSelected="() => this.printReportX()">
+                Reporte X
+            </DropdownItem>
+        </xpath>
+    </t>
+</templates>

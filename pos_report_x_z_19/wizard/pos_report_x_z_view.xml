@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Wizard Form View -->
+    <record id="pos_report_xz_form_view" model="ir.ui.view">
+        <field name="name">pos.report.xz.form</field>
+        <field name="model">pos.report.xz</field>
+        <field name="arch" type="xml">
+            <form string="Reportes X y Z de POS">
+                <group>
+                    <group>
+                        <field name="date"/>
+                        <field name="type" widget="radio"/>
+                        <field name="report_scope" widget="radio"/>
+                    </group>
+                    <group>
+                        <field name="config_id" 
+                               invisible="type != 'x'"
+                               required="type == 'x'"
+                               options="{'no_create': True, 'no_open': True}"/>
+                        <field name="config_ids" 
+                               widget="many2many_tags"
+                               invisible="type != 'z'"
+                               options="{'no_create': True, 'no_open': True}"/>
+                        <field name="company_id" invisible="1"/>
+                    </group>
+                </group>
+                <footer>
+                    <button name="action_generate_report" 
+                            string="Generar Reporte" 
+                            type="object" 
+                            class="btn-primary"/>
+                    <button string="Cancelar" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Wizard Action -->
+    <record id="action_pos_report_xz_wizard" model="ir.actions.act_window">
+        <field name="name">Reportes X y Z</field>
+        <field name="res_model">pos.report.xz</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="context">{'default_date': context_today()}</field>
+    </record>
+
+</odoo>
