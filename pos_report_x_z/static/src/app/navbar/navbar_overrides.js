@@ -19,12 +19,13 @@ patch(Navbar.prototype, {
 
     async changeShift() {
         const currentShift = this.pos.workShift;
-        const nextShift = currentShift === 'morning' ? 'afternoon' : 'morning';
+        // Increment shift number
+        const nextShift = currentShift + 1;
         const nextShiftName = this.pos.getWorkShiftName(nextShift);
 
         const confirmed = await makeAwaitable(this.dialog, ShiftChangePopup, {
             title: "Cambio de Turno",
-            body: `¿Estás seguro de que quieres cambiar al turno de "${nextShiftName}"?`,
+            body: `¿Estás seguro de que quieres cambiar al "${nextShiftName}"?`,
             confirmLabel: `Cambiar a ${nextShiftName}`,
         });
 
@@ -44,15 +45,28 @@ patch(Navbar.prototype, {
     },
 
     async printReportX() {
+        // Fetch available shifts for this session/config from backend
+        let availableShifts = [];
+        try {
+            availableShifts = await this.orm.call("pos.report.xz", "get_available_shifts", [
+                this.pos.config.id,
+                this.pos.session.id
+            ]);
+        } catch (error) {
+            console.error("Failed to fetch available shifts:", error);
+            // Fallback to current shift if RPC fails
+            availableShifts = [{ id: this.pos.workShift, label: `Turno ${this.pos.workShift}`, item: this.pos.workShift }];
+        }
+
+        // Add Consolidated Option
+        availableShifts.push({ id: 0, label: "Todos los Turnos (Consolidado)", item: 0 });
+
         const selectedShift = await makeAwaitable(this.dialog, SelectionPopup, {
             title: "Seleccione el Turno para el Reporte",
-            list: [
-                { id: 'morning', label: "Mañana", item: 'morning' },
-                { id: 'afternoon', label: "Tarde", item: 'afternoon' },
-            ],
+            list: availableShifts,
         });
 
-        if (!selectedShift) return;
+        if (selectedShift === undefined || selectedShift === null) return;
 
         try {
             const result = await this.orm.call("pos.report.xz", "generate_report_from_pos", [

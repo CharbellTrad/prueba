@@ -88,26 +88,13 @@
                     <hr style="border-top: 2px solid #000; margin: 8px 0;"/>
                     
                     <!-- ============================================ -->
-                    <!-- SECCIONES POR TURNO -->
+                    <!-- ESTACIONES -->
                     <!-- ============================================ -->
-                    <t t-foreach="values.get('shifts', [])" t-as="shift">
+                    <t t-foreach="values.get('stations', [])" t-as="station">
                         
-                        <!-- ============================================ -->
-                        <!-- ESTACIONES DENTRO DEL TURNO -->
-                        <!-- ============================================ -->
-                        <t t-foreach="shift.get('stations', [])" t-as="station">
-                            
-                            <!-- Contenedor: Turno + Primera Estación juntos -->
-                            <div style="page-break-inside: avoid;">
-                                
-                                <!-- Encabezado del turno -->
-                                <t t-if="station_index == 0">
-                                    <div class="mt-2 mb-2" style="background-color: #000; color: white; padding: 6px 12px;">
-                                        <h6 class="mb-0" style="font-weight: bold; text-transform: uppercase;">
-                                            <t t-out="'TURNO DE ' + shift.get('title', '').upper()"/>
-                                        </h6>
-                                    </div>
-                                </t>
+                        <!-- Contenedor: Estación -->
+                        <div style="page-break-inside: avoid;">
+                        <!-- (Removed Shift Header) -->
                             
                                 <!-- Encabezado de la estación -->
                                 <div class="row mt-2 mb-1" style="background-color: #e8e8e8; border-left: 5px solid #000; padding: 6px; page-break-inside: avoid; page-break-after: avoid;">
@@ -210,7 +197,7 @@
                                     </table>
                                 </div>
                                 
-                                <!-- ===== MOVIMIENTOS DE EFECTIVO - Tabla completa ===== -->
+                                <!-- ===== MOVIMIENTOS DE EFECTIVO - Tabla Resumida ===== -->
                                 <t t-if="station.get('movements')">
                                     <div class="ms-3 mt-1" style="page-break-inside: avoid;">
                                         <h6 style="font-weight: bold; border-bottom: 2px solid #000; padding-bottom: 2px; margin-bottom: 3px; font-size: 0.9rem; page-break-after: avoid;">
@@ -224,19 +211,49 @@
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                <t t-foreach="station.get('movements', [])" t-as="move">
-                                                    <tr>
-                                                        <td style="border: 1px solid #000; padding: 4px;">
-                                                            <strong><t t-out="move.get('type')"/></strong>
-                                                            <br/>
-                                                            <small style="color: #666;"><t t-out="move.get('note')"/></small>
-                                                        </td>
+                                                 <!-- Apertura First -->
+                                                <t t-set="apertura_moves" t-value="[m for m in station.get('movements') if m.get('type') == 'Apertura de caja']"/>
+                                                <t t-if="apertura_moves">
+                                                     <tr>
+                                                        <td style="border: 1px solid #000; padding: 4px;">Apertura de caja</td>
                                                         <td class="text-end" style="border: 1px solid #000; padding: 4px;">
-                                                            <t t-out="'${:,.2f}'.format(move.get('amount', 0))"/>
+                                                            <t t-out="'${:,.2f}'.format(sum(m.get('amount') for m in apertura_moves))"/>
+                                                        </td>
+                                                    </tr>
+                                                </t>
+
+                                                <!-- Entrada de dinero -->
+                                                <t t-set="entrada_moves" t-value="[m for m in station.get('movements') if m.get('type') == 'Entrada de dinero']"/>
+                                                <t t-if="entrada_moves">
+                                                     <tr>
+                                                        <td style="border: 1px solid #000; padding: 4px;">Entrada de dinero</td>
+                                                        <td class="text-end" style="border: 1px solid #000; padding: 4px;">
+                                                            <t t-out="'${:,.2f}'.format(sum(m.get('amount') for m in entrada_moves))"/>
+                                                        </td>
+                                                    </tr>
+                                                </t>
+
+                                                 <!-- Salida de dinero -->
+                                                <t t-set="salida_moves" t-value="[m for m in station.get('movements') if m.get('type') == 'Salida de dinero']"/>
+                                                <t t-if="salida_moves">
+                                                     <tr>
+                                                        <td style="border: 1px solid #000; padding: 4px;">Salida de dinero</td>
+                                                        <td class="text-end" style="border: 1px solid #000; padding: 4px;">
+                                                            <t t-out="'${:,.2f}'.format(sum(m.get('amount') for m in salida_moves))"/>
                                                         </td>
                                                     </tr>
                                                 </t>
                                             </tbody>
+                                            <!-- Total Movimientos Footer -->
+                                            <tfoot>
+                                                <tr style="background-color: #e8e8e8; font-weight: bold; border-top: 2px solid #000;">
+                                                    <td style="border: 1px solid #000; padding: 4px;">TOTAL MOVIMIENTOS</td>
+                                                    <td class="text-end" style="border: 1px solid #000; padding: 4px;">
+                                                        <t t-set="total_moves" t-value="sum(m.get('amount') for m in station.get('movements'))"/>
+                                                        <t t-out="'${:,.2f}'.format(total_moves)"/>
+                                                    </td>
+                                                </tr>
+                                            </tfoot>
                                         </table>
                                     </div>
                                 </t>
@@ -258,11 +275,10 @@
                                 </div>
                             
                                 
-                            </div> <!-- Fin contenedor turno+estación -->
                             
-                        </t> <!-- Fin: Estaciones -->
+                        </div> <!-- Fin contenedor estación -->
                         
-                    </t> <!-- Fin: Turnos -->
+                    </t> <!-- Fin: Estaciones -->
                     
                     <!-- ============================================ -->
                     <!-- GRAN TOTAL FINAL -->
@@ -279,6 +295,47 @@
                             </strong>
                         </div>
                     </div>
+
+                    <!-- ============================================ -->
+                    <!-- DETALLE POR TURNOS -->
+                    <!-- ============================================ -->
+                    <t t-if="values.get('shift_breakdown')">
+                            <div style="page-break-inside: avoid; margin-top: 15px;">
+                            <h6 style="font-weight: bold; border-bottom: 2px solid #000; padding-bottom: 2px; margin-bottom: 3px; font-size: 0.9rem;">
+                                DETALLE POR TURNOS
+                            </h6>
+                            <table class="table table-sm table-bordered" style="width: 100%; border: 1px solid #000; font-size: 0.8rem;">
+                                <thead style="background-color: #f0f0f0;">
+                                    <tr>
+                                        <th style="border: 1px solid #000; padding: 4px;">Turno</th>
+                                        <th class="text-end" style="border: 1px solid #000; padding: 4px;">Apertura de Caja</th>
+                                        <th class="text-end" style="border: 1px solid #000; padding: 4px;">Entradas/Salidas</th>
+                                        <th class="text-end" style="border: 1px solid #000; padding: 4px;">Ventas</th>
+                                        <th class="text-end" style="border: 1px solid #000; padding: 4px;">Ventas %</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-foreach="values.get('shift_breakdown', [])" t-as="sb">
+                                        <tr t-att-style="'font-weight: bold; background-color: #e8e8e8;' if sb.get('shift') == 'TOTALES' else ''">
+                                            <td style="border: 1px solid #000; padding: 4px;"><t t-out="sb.get('shift')"/></td>
+                                            <td class="text-end" style="border: 1px solid #000; padding: 4px;">
+                                                <t t-out="'${:,.2f}'.format(sb.get('apertura', 0))"/>
+                                            </td>
+                                            <td class="text-end" style="border: 1px solid #000; padding: 4px;">
+                                                    <t t-out="'${:,.2f}'.format(sb.get('io', 0))"/>
+                                            </td>
+                                            <td class="text-end" style="border: 1px solid #000; padding: 4px;">
+                                                    <t t-out="'${:,.2f}'.format(sb.get('sales', 0))"/>
+                                            </td>
+                                            <td class="text-end" style="border: 1px solid #000; padding: 4px;">
+                                                    <t t-out="'{:,.2f}%'.format(sb.get('pct', 0))"/>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                </tbody>
+                            </table>
+                        </div>
+                    </t>
                 </div>
             </t>
         </t>

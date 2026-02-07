@@ -1,6 +1,6 @@
 {
     'name': 'POS Report X and Z',
-    'version': '1.0',
+    'version': '1.1',
     'category': 'Point of Sale',
     'summary': 'Generate X and Z reports for Point of Sale',
     'description': """

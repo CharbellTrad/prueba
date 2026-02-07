@@ -4,7 +4,7 @@
         <xpath expr="//div[hasclass('status-buttons')]/Dropdown" position="before">
             <div class="d-flex align-items-center me-2 px-3 py-1 rounded shadow-sm bg-white text-primary border text-nowrap" style="align-self: center; justify-content: center;">
                 <i class="fa fa-clock-o me-2"/>
-                <strong>Turno de <t t-esc="currentShiftName"/></strong>
+                <strong><t t-esc="currentShiftName"/></strong>
             </div>
         </xpath>
 

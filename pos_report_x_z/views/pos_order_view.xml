@@ -17,7 +17,7 @@
         <field name="inherit_id" ref="point_of_sale.view_pos_order_tree"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='config_id']" position="after">
-                <field name="x_work_shift" optional="show" widget="badge" decoration-info="x_work_shift == 'morning'" decoration-warning="x_work_shift == 'afternoon'"/>
+                <field name="x_work_shift" optional="show" widget="badge"/>
             </xpath>
         </field>
     </record>
