@@ -22,6 +22,8 @@
         'report/pos_report_x.xml',
         'report/pos_report_z.xml',
         'views/menu_views.xml',
+        'views/pos_order_view.xml',
+        'views/pos_config_kanban.xml',
     ],
     'assets': {
         'point_of_sale._assets_pos': [

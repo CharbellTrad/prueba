@@ -1,187 +1,384 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-
-    <!-- Report X Template - Corte de Caja X -->
+    <!-- ============================================ -->
+    <!-- PLANTILLA PRINCIPAL DEL DOCUMENTO -->
+    <!-- ============================================ -->
     <template id="report_pos_x_document">
         <t t-call="web.external_layout">
             <t t-set="all_values" t-value="doc._get_report_x_values()"/>
             
             <t t-foreach="all_values" t-as="values">
                 <div class="page" t-att-style="'page-break-after: always;' if not values_last else ''">
+                    
+                    <!-- Manejo de errores -->
                     <t t-if="values.get('error')">
-                        <div class="alert alert-warning">
-                            <t t-out="values.get('error')"/>
+                        <div class="alert alert-warning" role="alert">
+                            <strong>Error:</strong> <t t-out="values.get('error')"/>
                         </div>
                     </t>
+                    
+                    <!-- Contenido principal del reporte -->
                     <t t-else="">
-                        <!-- Centered Title -->
-                        <h2 class="text-center mb-4" style="color: #1a5276;"><strong>CORTE DE CAJA X</strong></h2>
                         
-                        <!-- Two-column Header Information -->
-                        <div class="row mb-3">
+                        <!-- ============================================ -->
+                        <!-- ENCABEZADO DEL REPORTE -->
+                        <!-- ============================================ -->
+                        <h3 class="text-center mb-2" style="font-weight: bold; border-bottom: 3px solid #000; padding-bottom: 6px; font-size: 1.3rem;">
+                            CORTE DE CAJA X
+                        </h3>
+                        
+                        <!-- Información del reporte -->
+                        <div class="row mb-2">
+                            <!-- Columna izquierda -->
                             <div class="col-6">
-                                <p class="mb-1"><strong>Id Corte X:</strong> <t t-out="values.get('folio')"/></p>
-                                <p class="mb-1"><t t-out="values.get('company').street or ''"/></p>
-                                <p class="mb-1"><strong>Tel:</strong> <t t-out="values.get('company').phone or ''"/></p>
-                                <p class="mb-1"><strong>Correo:</strong> <t t-out="values.get('company').email or ''"/></p>
+                                <table class="table-borderless" style="font-size: 0.8rem; width: 100%;">
+                                    <tr>
+                                        <td style="width: 40%; padding: 1px 0;"><strong>ID Corte X:</strong></td>
+                                        <td style="padding: 1px 0;"><t t-out="values.get('folio')"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 1px 0;"><strong>Dirección:</strong></td>
+                                        <td style="padding: 1px 0;"><t t-out="values.get('company').street or 'N/A'"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 1px 0;"><strong>Teléfono:</strong></td>
+                                        <td style="padding: 1px 0;"><t t-out="values.get('company').phone or 'N/A'"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 1px 0;"><strong>Email:</strong></td>
+                                        <td style="padding: 1px 0;"><t t-out="values.get('company').email or 'N/A'"/></td>
+                                    </tr>
+                                </table>
                             </div>
-                            <div class="col-6 text-end">
-                                <p class="mb-1"><strong>Fecha de corte:</strong> <t t-out="values.get('date')"/> <t t-if="values.get('session').stop_at"><t t-out="values.get('session').stop_at.astimezone(values.get('user_tz')).strftime('%I:%M%p')"/></t></p>
-                                <p class="mb-1"><strong>Sucursal:</strong> <t t-out="values.get('config').name"/></p>
-                                <p class="mb-1"><strong>Direccion Sucursal:</strong> <t t-out="values.get('company').street2 or ''"/></p>
+                            
+                            <!-- Columna derecha -->
+                            <div class="col-6">
+                                <table class="table-borderless" style="font-size: 0.8rem; width: 100%;">
+                                    <tr>
+                                        <td style="width: 50%; padding: 1px 0;"><strong>Fecha Emisión:</strong></td>
+                                        <td style="padding: 1px 0;"><t t-out="values.get('current_time').strftime('%d/%m/%Y %I:%M %p')"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 1px 0;"><strong>Fecha de Corte:</strong></td>
+                                        <td style="padding: 1px 0;"><t t-out="values.get('date').strftime('%d/%m/%Y')"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 1px 0;"><strong>Sucursal:</strong></td>
+                                        <td style="padding: 1px 0;"><t t-out="values.get('config').name"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 1px 0;"><strong>Ubicación:</strong></td>
+                                        <td style="padding: 1px 0;"><t t-out="values.get('company').street2 or 'N/A'"/></td>
+                                    </tr>
+                                </table>
                             </div>
                         </div>
                         
-                        <hr/>
+                        <hr style="border-top: 2px solid #000; margin: 8px 0;"/>
                         
-                        <!-- Terminal Info -->
-                        <p><strong>Terminal:</strong> <t t-out="values.get('config').name"/></p>
-                        
-                        <!-- INGRESADO Section -->
-                        <h4><strong>INGRESADO</strong></h4>
-                        <table class="table table-sm table-borderless">
-                            <thead>
-                                <tr style="border-bottom: 1px solid #dee2e6;">
-                                    <th colspan="2">FORMA DE PAGO</th>
-                                    <th class="text-end">MONTO</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <t t-foreach="values.get('payment_summary', [])" t-as="payment">
-                                    <tr>
-                                        <td><t t-out="payment.get('code')"/></td>
-                                        <td><t t-out="payment.get('name')"/></td>
-                                        <td class="text-end">
-                                            <t t-out="'${:,.2f}'.format(payment.get('amount', 0))"/>
-                                        </td>
-                                    </tr>
+                        <!-- ============================================ -->
+                        <!-- INFORMACIÓN DE TERMINAL -->
+                        <!-- ============================================ -->
+                        <div style="page-break-inside: avoid;">
+                            <div style="background-color: #e8e8e8; padding: 6px; border-left: 5px solid #000; margin-bottom: 8px;">
+                                <strong style="font-size: 0.95rem;">Terminal: <t t-out="values.get('config').name"/></strong>
+                                <t t-if="values.get('wizard').shift">
+                                    <span style="font-size: 0.85rem;">
+                                        (<t t-out="dict(values.get('wizard')._fields['shift'].selection).get(values.get('wizard').shift)"/>)
+                                    </span>
                                 </t>
-                                <tr style="border-top: 1px solid #dee2e6;">
-                                    <td colspan="2" class="text-end"><strong>Total corte ciego:</strong></td>
-                                    <td class="text-end"><strong><t t-out="'${:,.2f}'.format(values.get('total_corte_ciego', 0))"/></strong></td>
-                                </tr>
-                            </tbody>
-                        </table>
+                            </div>
+                        </div>
                         
-                        <!-- MOVIMIENTOS Section -->
-                        <h4><strong>MOVIMIENTOS</strong></h4>
-                        <p><strong>Usuario:</strong> <t t-out="values.get('user').id"/> <t t-out="values.get('user').name"/></p>
-                        
-                        <!-- APERTURA DE CAJA -->
-                        <h5><strong>APERTURA DE CAJA</strong></h5>
-                        <table class="table table-sm table-borderless">
-                            <tbody>
-                                <t t-foreach="values.get('apertura_summary', [])" t-as="apertura">
-                                    <tr>
-                                        <td><t t-out="apertura.get('code')"/></td>
-                                        <td><t t-out="apertura.get('name')"/></td>
-                                        <td class="text-end">
-                                            <t t-out="'${:,.2f}'.format(apertura.get('amount', 0))"/>
-                                        </td>
-                                    </tr>
+                        <!-- ============================================ -->
+                        <!-- SECCIÓN DE MOVIMIENTOS -->
+                        <!-- ============================================ -->
+                        <div style="page-break-inside: avoid;">
+                            <div class="mt-2 mb-2" style="background-color: #000; color: white; padding: 6px 12px;">
+                                <h6 class="mb-0" style="font-weight: bold;">MOVIMIENTOS</h6>
+                            </div>
+                            
+                            <div style="background-color: #f0f0f0; padding: 6px; margin-bottom: 8px;">
+                                <strong style="font-size: 0.85rem;">Usuarios: </strong>
+                                <span style="font-size: 0.8rem;"><t t-out="values.get('users_list')"/></span>
+                                <t t-if="values.get('wizard').shift">
+                                    <span style="font-size: 0.8rem;">
+                                        (<t t-out="dict(values.get('wizard')._fields['shift'].selection).get(values.get('wizard').shift)"/>)
+                                    </span>
                                 </t>
-                                <tr style="border-top: 1px solid #dee2e6;">
-                                    <td colspan="2" class="text-end"><strong>Subtotal:</strong></td>
-                                    <td class="text-end"><strong><t t-out="'${:,.2f}'.format(values.get('apertura_subtotal', 0))"/></strong></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        
-                        <!-- VENTA -->
-                        <h5><strong>VENTA</strong></h5>
-                        <table class="table table-sm table-borderless">
-                            <tbody>
-                                <t t-foreach="values.get('venta_summary', [])" t-as="venta">
-                                    <tr>
-                                        <td><t t-out="venta.get('code')"/></td>
-                                        <td><t t-out="venta.get('name')"/></td>
-                                        <td class="text-end">
-                                            <t t-out="'${:,.2f}'.format(venta.get('amount', 0))"/>
-                                        </td>
-                                    </tr>
-                                </t>
-                                <tr style="border-top: 1px solid #dee2e6;">
-                                    <td colspan="2" class="text-end"><strong>Subtotal:</strong></td>
-                                    <td class="text-end"><strong><t t-out="'${:,.2f}'.format(values.get('venta_subtotal', 0))"/></strong></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        
-                        <!-- SALIDA DE DINERO -->
-                        <h5><strong>ENTRADA/SALIDA DE DINERO</strong></h5>
-                        <table class="table table-sm table-borderless">
-                            <tbody>
-                                <t t-foreach="values.get('salida_summary', [])" t-as="salida">
-                                    <tr>
-                                        <td><t t-out="salida.get('code')"/></td>
-                                        <td><t t-out="salida.get('name')"/></td>
-                                        <td class="text-end">
-                                            <t t-out="'${:,.2f}'.format(salida.get('amount', 0))"/>
-                                        </td>
-                                    </tr>
-                                </t>
-                                <tr style="border-top: 1px solid #dee2e6;">
-                                    <td colspan="2" class="text-end"><strong>Subtotal:</strong></td>
-                                    <td class="text-end"><strong><t t-out="'${:,.2f}'.format(values.get('salida_subtotal', 0))"/></strong></td>
-                                </tr>
-                                <tr>
-                                    <td colspan="2" class="text-end"><strong>Total usuario:</strong></td>
-                                    <td class="text-end"><strong><t t-out="'${:,.2f}'.format(values.get('total_usuario', 0))"/></strong></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        
-                        <!-- Summary Totals -->
-                        <table class="table table-sm table-borderless">
-                            <tbody>
-                                <tr>
-                                    <td class="text-end"><strong>Total estación de trabajo:</strong></td>
-                                    <td class="text-end"><strong><t t-out="'${:,.2f}'.format(values.get('total_estacion', 0))"/></strong></td>
-                                </tr>
-                                <tr>
-                                    <td class="text-end"><strong>Diferencia:</strong></td>
-                                    <td class="text-end"><strong><t t-out="'${:,.2f}'.format(values.get('diferencia', 0))"/></strong></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        
-                        <!-- <div style="page-break-before: always;"/> Removed forced break to avoid blank pages -->
-                        <br/>
-                        
-                        <!-- DETALLE DE FORMAS DE PAGO -->
-                        <h4><strong>DETALLE DE FORMAS DE PAGO</strong></h4>
-                        
-                        <t t-foreach="values.get('payment_details', [])" t-as="method_detail">
-                            <h5><strong><t t-out="method_detail.get('name')"/></strong></h5>
-                            <table class="table table-sm table-borderless">
-                                <tbody>
-                                    <t t-foreach="method_detail.get('transactions', [])" t-as="trans">
+                            </div>
+                            
+                            <!-- ===== RESUMEN DE ÓRDENES ===== -->
+                            <div class="ms-3 mt-1" style="page-break-inside: avoid;">
+                                <h6 style="font-weight: bold; border-bottom: 2px solid #000; padding-bottom: 2px; margin-bottom: 3px; font-size: 0.9rem; page-break-after: avoid;">
+                                    RESUMEN DE ÓRDENES
+                                </h6>
+                                <table class="table table-sm table-bordered" style="margin-top: 3px; margin-bottom: 3px; width: 100%; border: 1px solid #000; font-size: 0.85rem;">
+                                    <thead style="background-color: #f0f0f0;">
                                         <tr>
-                                            <td style="width: 15%;"><t t-out="trans.get('type')"/></td>
-                                            <td style="width: 60%;">
-                                                <t t-if="trans.get('type') not in ['Apertura de caja', 'Salida de dinero']">
-                                                    <t t-out="trans.get('partner_name')"/><br/>
-                                                </t>
-                                                <small><t t-out="trans.get('order_name')"/></small>
-                                            </td>
-                                            <td class="text-end" style="width: 25%;">
-                                                <t t-out="'${:,.2f}'.format(trans.get('amount', 0))"/>
+                                            <th style="border: 1px solid #000; padding: 4px; width: 70%;">Concepto</th>
+                                            <th class="text-end" style="border: 1px solid #000; padding: 4px; width: 30%;">Cantidad</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td style="border: 1px solid #000; padding: 4px;">Órdenes Vigentes</td>
+                                            <td class="text-end" style="border: 1px solid #000; padding: 4px;">
+                                                <strong><t t-out="values.get('order_summary', {}).get('vigentes', 0)"/></strong>
                                             </td>
                                         </tr>
-                                    </t>
-                                    <tr style="border-top: 1px solid #dee2e6;">
-                                        <td colspan="2" class="text-end"><strong><t t-out="method_detail.get('name')"/></strong></td>
-                                        <td class="text-end"><strong><t t-out="'${:,.2f}'.format(method_detail.get('total', 0))"/></strong></td>
+                                        <tr>
+                                            <td style="border: 1px solid #000; padding: 4px;">Órdenes Canceladas</td>
+                                            <td class="text-end" style="border: 1px solid #000; padding: 4px;">
+                                                <strong><t t-out="values.get('order_summary', {}).get('canceladas', 0)"/></strong>
+                                            </td>
+                                        </tr>
+                                        <tr style="background-color: #e8e8e8; font-weight: bold;">
+                                            <td style="border: 1px solid #000; padding: 4px;">TOTAL DE ÓRDENES</td>
+                                            <td class="text-end" style="border: 1px solid #000; padding: 4px;">
+                                                <strong><t t-out="values.get('order_summary', {}).get('totales', 0)"/></strong>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <!-- ===== APERTURA DE CAJA ===== -->
+                            <div class="ms-3 mt-1" style="page-break-inside: avoid;">
+                                <h6 style="font-weight: bold; border-bottom: 2px solid #000; padding-bottom: 2px; margin-bottom: 3px; font-size: 0.9rem; page-break-after: avoid;">
+                                    APERTURA DE CAJA
+                                </h6>
+                                <table class="table table-sm table-bordered" style="margin-top: 3px; margin-bottom: 3px; width: 100%; border: 1px solid #000; font-size: 0.85rem;">
+                                    <thead style="background-color: #f0f0f0;">
+                                        <tr>
+                                            <th style="border: 1px solid #000; padding: 4px; width: 15%;">Código</th>
+                                            <th style="border: 1px solid #000; padding: 4px; width: 55%;">Concepto</th>
+                                            <th class="text-end" style="border: 1px solid #000; padding: 4px; width: 30%;">Monto</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-if="values.get('apertura_summary')">
+                                            <t t-foreach="values.get('apertura_summary', [])" t-as="apertura">
+                                                <tr>
+                                                    <td style="border: 1px solid #000; padding: 4px;"><t t-out="apertura.get('code')"/></td>
+                                                    <td style="border: 1px solid #000; padding: 4px;"><t t-out="apertura.get('name')"/></td>
+                                                    <td class="text-end" style="border: 1px solid #000; padding: 4px;">
+                                                        <t t-out="'${:,.2f}'.format(apertura.get('amount', 0))"/>
+                                                    </td>
+                                                </tr>
+                                            </t>
+                                        </t>
+                                        <t t-else="">
+                                            <tr>
+                                                <td style="border: 1px solid #000; padding: 4px;">EF</td>
+                                                <td style="border: 1px solid #000; padding: 4px;">Efectivo</td>
+                                                <td class="text-end" style="border: 1px solid #000; padding: 4px;">$0.00</td>
+                                            </tr>
+                                        </t>
+                                        <tr style="background-color: #e8e8e8; font-weight: bold;">
+                                            <td colspan="2" class="text-end" style="border: 1px solid #000; padding: 4px;">SUBTOTAL:</td>
+                                            <td class="text-end" style="border: 1px solid #000; padding: 4px;">
+                                                <t t-out="'${:,.2f}'.format(values.get('apertura_subtotal', 0))"/>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <!-- ===== VENTA ===== -->
+                            <div class="ms-3 mt-1" style="page-break-inside: avoid;">
+                                <h6 style="font-weight: bold; border-bottom: 2px solid #000; padding-bottom: 2px; margin-bottom: 3px; font-size: 0.9rem; page-break-after: avoid;">
+                                    VENTA
+                                </h6>
+                                <table class="table table-sm table-bordered" style="margin-top: 3px; margin-bottom: 3px; width: 100%; border: 1px solid #000; font-size: 0.85rem;">
+                                    <thead style="background-color: #f0f0f0;">
+                                        <tr>
+                                            <th style="border: 1px solid #000; padding: 4px; width: 15%;">Código</th>
+                                            <th style="border: 1px solid #000; padding: 4px; width: 55%;">Concepto</th>
+                                            <th class="text-end" style="border: 1px solid #000; padding: 4px; width: 30%;">Monto</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-foreach="values.get('venta_summary', [])" t-as="venta">
+                                            <!-- Línea principal -->
+                                            <tr>
+                                                <td style="border: 1px solid #000; padding: 4px;"><t t-out="venta.get('code')"/></td>
+                                                <td style="border: 1px solid #000; padding: 4px;"><t t-out="venta.get('name')"/></td>
+                                                <td class="text-end" style="border: 1px solid #000; padding: 4px;">
+                                                    <t t-out="'${:,.2f}'.format(venta.get('amount', 0) - venta.get('amount_from_usd', 0))"/>
+                                                </td>
+                                            </tr>
+                                            
+                                            <!-- Línea USD si existe -->
+                                            <t t-if="venta.get('amount_from_usd', 0) > 0">
+                                                <tr style="background-color: #f9f9f9;">
+                                                    <td style="border: 1px solid #000; padding: 4px;"></td>
+                                                    <td style="border: 1px solid #000; padding: 4px 4px 4px 15px;">
+                                                        <em><t t-out="venta.get('name')"/> (USD)</em>
+                                                        <small>
+                                                            (<t t-out="'{:,.2f}'.format(venta.get('usd_amount', 0))"/> USD)
+                                                        </small>
+                                                    </td>
+                                                    <td class="text-end" style="border: 1px solid #000; padding: 4px;">
+                                                        <t t-out="'${:,.2f}'.format(venta.get('amount_from_usd', 0))"/>
+                                                    </td>
+                                                </tr>
+                                            </t>
+                                        </t>
+                                        
+                                        <!-- Subtotal -->
+                                        <tr style="background-color: #e8e8e8; font-weight: bold;">
+                                            <td colspan="2" class="text-end" style="border: 1px solid #000; padding: 4px;">SUBTOTAL VENTA:</td>
+                                            <td class="text-end" style="border: 1px solid #000; padding: 4px;">
+                                                <t t-out="'${:,.2f}'.format(values.get('venta_subtotal', 0))"/>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <!-- ===== SALIDAS DE DINERO ===== -->
+                            <div class="ms-3 mt-1" style="page-break-inside: avoid;">
+                                <h6 style="font-weight: bold; border-bottom: 2px solid #000; padding-bottom: 2px; margin-bottom: 3px; font-size: 0.9rem; page-break-after: avoid;">
+                                    SALIDAS DE DINERO
+                                </h6>
+                                <table class="table table-sm table-bordered" style="margin-top: 3px; margin-bottom: 3px; width: 100%; border: 1px solid #000; font-size: 0.85rem;">
+                                    <thead style="background-color: #f0f0f0;">
+                                        <tr>
+                                            <th style="border: 1px solid #000; padding: 4px; width: 15%;">Código</th>
+                                            <th style="border: 1px solid #000; padding: 4px; width: 55%;">Concepto</th>
+                                            <th class="text-end" style="border: 1px solid #000; padding: 4px; width: 30%;">Monto</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-if="values.get('salida_summary')">
+                                            <t t-foreach="values.get('salida_summary', [])" t-as="salida">
+                                                <tr>
+                                                    <td style="border: 1px solid #000; padding: 4px;"><t t-out="salida.get('code')"/></td>
+                                                    <td style="border: 1px solid #000; padding: 4px;"><t t-out="salida.get('name')"/></td>
+                                                    <td class="text-end" style="border: 1px solid #000; padding: 4px;">
+                                                        <t t-out="'${:,.2f}'.format(salida.get('amount', 0))"/>
+                                                    </td>
+                                                </tr>
+                                            </t>
+                                        </t>
+                                        <t t-else="">
+                                            <tr>
+                                                <td style="border: 1px solid #000; padding: 4px;">-</td>
+                                                <td style="border: 1px solid #000; padding: 4px;">Sin movimientos</td>
+                                                <td class="text-end" style="border: 1px solid #000; padding: 4px;">$0.00</td>
+                                            </tr>
+                                        </t>
+                                        <tr style="background-color: #e8e8e8; font-weight: bold;">
+                                            <td colspan="2" class="text-end" style="border: 1px solid #000; padding: 4px;">SUBTOTAL:</td>
+                                            <td class="text-end" style="border: 1px solid #000; padding: 4px;">
+                                                <t t-out="'${:,.2f}'.format(values.get('salida_subtotal', 0))"/>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <!-- ===== VENTA POR IMPUESTOS ===== -->
+                            <div class="ms-3 mt-1" style="page-break-inside: avoid;">
+                                <h6 style="font-weight: bold; border-bottom: 2px solid #000; padding-bottom: 2px; margin-bottom: 3px; font-size: 0.9rem; page-break-after: avoid;">
+                                    VENTA POR IMPUESTOS
+                                </h6>
+                                <table class="table table-sm table-bordered" style="margin-top: 3px; margin-bottom: 3px; width: 100%; border: 1px solid #000; font-size: 0.85rem;">
+                                    <thead style="background-color: #f0f0f0;">
+                                        <tr>
+                                            <th style="border: 1px solid #000; padding: 4px; width: 70%;">Concepto</th>
+                                            <th class="text-end" style="border: 1px solid #000; padding: 4px; width: 30%;">Monto</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-foreach="values.get('sales_by_tax', [])" t-as="tax_sale">
+                                            <tr>
+                                                <td style="border: 1px solid #000; padding: 4px;"><t t-out="tax_sale.get('label')"/></td>
+                                                <td class="text-end" style="border: 1px solid #000; padding: 4px;">
+                                                    <t t-out="'${:,.2f}'.format(tax_sale.get('amount', 0))"/>
+                                                </td>
+                                            </tr>
+                                        </t>
+                                        <t t-if="not values.get('sales_by_tax')">
+                                            <tr>
+                                                <td style="border: 1px solid #000; padding: 4px;">VENTA AL [0.00%]</td>
+                                                <td class="text-end" style="border: 1px solid #000; padding: 4px;">$0.00</td>
+                                            </tr>
+                                        </t>
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <!-- ===== IMPUESTOS ===== -->
+                            <div class="ms-3 mt-1" style="page-break-inside: avoid;">
+                                <h6 style="font-weight: bold; border-bottom: 2px solid #000; padding-bottom: 2px; margin-bottom: 3px; font-size: 0.9rem; page-break-after: avoid;">
+                                    IMPUESTOS
+                                </h6>
+                                <table class="table table-sm table-bordered" style="margin-top: 3px; margin-bottom: 3px; width: 100%; border: 1px solid #000; font-size: 0.85rem;">
+                                    <thead style="background-color: #f0f0f0;">
+                                        <tr>
+                                            <th style="border: 1px solid #000; padding: 4px; width: 70%;">Concepto</th>
+                                            <th class="text-end" style="border: 1px solid #000; padding: 4px; width: 30%;">Monto</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-foreach="values.get('tax_details', [])" t-as="tax">
+                                            <tr>
+                                                <td style="border: 1px solid #000; padding: 4px;"><t t-out="tax.get('label')"/></td>
+                                                <td class="text-end" style="border: 1px solid #000; padding: 4px;">
+                                                    <t t-out="'${:,.2f}'.format(tax.get('amount', 0))"/>
+                                                </td>
+                                            </tr>
+                                        </t>
+                                        <t t-if="not values.get('tax_details')">
+                                            <tr>
+                                                <td style="border: 1px solid #000; padding: 4px;">Sin impuestos</td>
+                                                <td class="text-end" style="border: 1px solid #000; padding: 4px;">$0.00</td>
+                                            </tr>
+                                        </t>
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                        </div> <!-- Fin sección movimientos -->
+                        
+                        <!-- ============================================ -->
+                        <!-- TOTALES FINALES -->
+                        <!-- ============================================ -->
+                        <div style="page-break-inside: avoid; margin-top: 10px;">
+                            <table class="table table-sm table-bordered" style="width: 100%; border: 1px solid #000; font-size: 0.85rem;">
+                                <tbody>
+                                    <tr style="background-color: #f0f0f0;">
+                                        <td class="text-end" style="border: 1px solid #000; padding: 6px;"><strong>Total Usuario:</strong></td>
+                                        <td class="text-end" style="border: 1px solid #000; padding: 6px; width: 30%;">
+                                            <strong><t t-out="'${:,.2f}'.format(values.get('total_usuario', 0))"/></strong>
+                                        </td>
+                                    </tr>
+                                    <tr style="background-color: #f0f0f0;">
+                                        <td class="text-end" style="border: 1px solid #000; padding: 6px;"><strong>Total Estación de Trabajo:</strong></td>
+                                        <td class="text-end" style="border: 1px solid #000; padding: 6px;">
+                                            <strong><t t-out="'${:,.2f}'.format(values.get('total_estacion', 0))"/></strong>
+                                        </td>
+                                    </tr>
+                                    <tr style="background-color: #e8e8e8;">
+                                        <td class="text-end" style="border: 1px solid #000; padding: 6px;"><strong>Diferencia:</strong></td>
+                                        <td class="text-end" style="border: 1px solid #000; padding: 6px;">
+                                            <strong><t t-out="'${:,.2f}'.format(values.get('diferencia', 0))"/></strong>
+                                        </td>
                                     </tr>
                                 </tbody>
                             </table>
-                        </t>
+                        </div>
                     </t>
                 </div>
             </t>
         </t>
     </template>
 
+    <!-- ============================================ -->
+    <!-- PLANTILLA CONTENEDOR -->
+    <!-- ============================================ -->
     <template id="report_pos_x">
         <t t-call="web.html_container">
             <t t-foreach="docs" t-as="doc">
@@ -190,7 +387,9 @@
         </t>
     </template>
 
-    <!-- Report Action Definition -->
+    <!-- ============================================ -->
+    <!-- ACCIÓN DEL REPORTE -->
+    <!-- ============================================ -->
     <record id="action_report_pos_x" model="ir.actions.report">
         <field name="name">Reporte X - Corte de Caja</field>
         <field name="model">pos.report.xz</field>

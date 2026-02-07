@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_pos_order_form_inherit_work_shift" model="ir.ui.view">
+        <field name="name">pos.order.form.work.shift</field>
+        <field name="model">pos.order</field>
+        <field name="inherit_id" ref="point_of_sale.view_pos_pos_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='user_id']" position="after">
+                <field name="x_work_shift" readonly="1"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_pos_order_tree_inherit_work_shift" model="ir.ui.view">
+        <field name="name">pos.order.tree.work.shift</field>
+        <field name="model">pos.order</field>
+        <field name="inherit_id" ref="point_of_sale.view_pos_order_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='config_id']" position="after">
+                <field name="x_work_shift" optional="show" widget="badge" decoration-info="x_work_shift == 'morning'" decoration-warning="x_work_shift == 'afternoon'"/>
+            </xpath>
+        </field>
+    </record>
+    <record id="view_pos_order_search_inherit_work_shift" model="ir.ui.view">
+        <field name="name">pos.order.search.work.shift</field>
+        <field name="model">pos.order</field>
+        <field name="inherit_id" ref="point_of_sale.view_pos_order_filter"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group" position="inside">
+                <filter string="Turno" name="group_by_work_shift" context="{'group_by': 'x_work_shift'}"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

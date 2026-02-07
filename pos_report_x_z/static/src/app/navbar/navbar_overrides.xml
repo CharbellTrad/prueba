@@ -1,7 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates id="template" xml:space="preserve">
     <t t-inherit="point_of_sale.Navbar" t-inherit-mode="extension">
+        <xpath expr="//div[hasclass('status-buttons')]/Dropdown" position="before">
+            <div class="d-flex align-items-center me-2 px-3 py-1 rounded shadow-sm bg-white text-primary border text-nowrap" style="align-self: center; justify-content: center;">
+                <i class="fa fa-clock-o me-2"/>
+                <strong>Turno de <t t-esc="currentShiftName"/></strong>
+            </div>
+        </xpath>
+
+        <xpath expr="//div[hasclass('pos-centerheader')]" position="attributes">
+            <attribute name="style">width: 10%;</attribute>
+        </xpath>
+
+        <xpath expr="//div[hasclass('pos-leftheader')]" position="attributes">
+             <attribute name="style">width: 35%;</attribute>
+        </xpath>
+
+        <xpath expr="//div[hasclass('pos-rightheader')]" position="attributes">
+             <attribute name="style">width: 55%;</attribute>
+        </xpath>
+
         <xpath expr="//DropdownItem[contains(., 'Close Register')]" position="before">
+            <DropdownItem onSelected="() => this.changeShift()">
+                Cambio de Turno
+            </DropdownItem>
             <DropdownItem onSelected="() => this.printReportX()">
                 Reporte X
             </DropdownItem>

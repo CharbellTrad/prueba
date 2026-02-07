@@ -35,11 +35,55 @@ class PosReportXZ(models.TransientModel):
         ('z', 'Reporte Z (Cierre Diario)'),
     ], string='Tipo de Reporte', required=True, default='x')
 
+    shift = fields.Selection([
+        ('morning', 'Mañana'),
+        ('afternoon', 'Tarde')
+    ], string='Jornada Laboral', help="Filtrar reporte por turno (Opcional)")
+
     company_id = fields.Many2one(
         'res.company',
         string='Compañía',
         default=lambda self: self.env.company
     )
+
+    has_shifts = fields.Boolean(compute='_compute_has_shifts', store=False)
+
+    @api.depends('date', 'type', 'config_id', 'config_ids', 'report_scope')
+    def _compute_has_shifts(self):
+        for record in self:
+            orders_to_check = self.env['pos.order']
+            
+            # 1. Identify orders based on scope
+            if record.report_scope == 'sessions':
+                # Get specific sessions
+                config_target = record.config_id if record.type == 'x' else record.config_ids
+                sessions = record._get_sessions(config_target)
+                orders_to_check = sessions.mapped('order_ids').filtered(lambda o: o.state in ['paid', 'invoiced', 'done'])
+                
+            else: # By Orders (Date Range)
+                day_start, day_end = record._get_date_range()
+                domain = [
+                    ('date_order', '>=', day_start),
+                    ('date_order', '<=', day_end),
+                    ('state', 'in', ['paid', 'invoiced', 'done']) 
+                ]
+                
+                if record.type == 'x' and record.config_id:
+                    domain.append(('config_id', '=', record.config_id.id))
+                elif record.type == 'z' and record.config_ids:
+                    domain.append(('config_id', 'in', record.config_ids.ids))
+                
+                orders_to_check = self.env['pos.order'].search(domain)
+            
+            # 2. Check consistency
+            if not orders_to_check:
+                record.has_shifts = False
+            else:
+                # Count orders WITHOUT shift
+                orders_without_shift = orders_to_check.filtered(lambda o: not o.x_work_shift)
+                
+                # Show option ONLY if valid orders exist AND ALL have shifts (0 missing)
+                record.has_shifts = len(orders_without_shift) == 0
 
     def _get_user_tz(self):
         """Get user timezone, fallback to company timezone/portal, then UTC"""
@@ -49,14 +93,12 @@ class PosReportXZ(models.TransientModel):
         """Convert date to datetime range in UTC for session filtering"""
         user_tz = self._get_user_tz()
         date_start = datetime.combine(self.date, datetime.min.time())
-        # Localize to user TZ, then convert to UTC
         date_start = user_tz.localize(date_start).astimezone(pytz.UTC).replace(tzinfo=None)
         date_stop = date_start + timedelta(days=1, seconds=-1)
         return date_start, date_stop
 
     def _get_sessions(self, config_ids=None):
         """Get sessions using Overlap Strategy: Active during the selected Local Day"""
-        # 1. Broad Fetch: Search +/- 24 hours to catch any TZ-shifted session
         date_start, date_stop = self._get_date_range()
         search_start = date_start - timedelta(hours=24)
         search_stop = date_stop + timedelta(hours=24)
@@ -90,10 +132,7 @@ class PosReportXZ(models.TransientModel):
             # OPEN SESSION: Overlap Match (Show if active today)
             else:
                 start_local = pytz.utc.localize(session.start_at).astimezone(user_tz).replace(tzinfo=None)
-                # Assume active until now/infinity. Check if it started before end of target day.
-                # (And logically hasn't closed, so it covers everything after start)
                 if start_local <= target_day_end:
-                     # Check if it was already active before target day ended (it's open now/future)
                     valid_sessions += session
 
         # Return sorted by start time
@@ -199,17 +238,192 @@ class PosReportXZ(models.TransientModel):
         
         return list(payment_summary.values())
 
+    def _get_order_summary(self, session):
+        """Get summary of orders: vigentes (valid), canceladas (cancelled), totales"""
+        orders = session.order_ids
+        vigentes = orders.filtered(lambda o: o.state in ['paid', 'invoiced', 'done'])
+        canceladas = orders.filtered(lambda o: o.state == 'cancel')
+        
+        return {
+            'vigentes': len(vigentes),
+            'canceladas': len(canceladas),
+            'totales': len(vigentes) + len(canceladas),
+        }
+
+    def _calculate_venta_summary(self, orders):
+        """
+        Helper method to calculate sales summary with discounts.
+        Returns:
+        - venta_summary: List of dicts per payment method (amount BEFORE discount) + Discount line
+        - total_discount: Total discount amount
+        - venta_subtotal: Net subtotal (Sales - Discount)
+        """
+        venta_summary = []
+        total_discount = 0.0
+        
+        # Calculate totals by payment method including discount info
+        payment_amounts_before_discount = {}  # Amounts before discount
+        
+        for order in orders:
+            # Calculate order subtotal before discount and total discount
+            order_subtotal_before_discount = 0.0
+            order_discount = 0.0
+            
+            for line in order.lines:
+                line_subtotal_before_discount = line.price_unit * line.qty
+                order_subtotal_before_discount += line_subtotal_before_discount
+                
+                if line.discount:
+                    order_discount += line_subtotal_before_discount * (line.discount / 100.0)
+            
+            total_discount += order_discount
+            
+            # Distribute the "before discount" amount proportionally to payments
+            order_total_with_discount = order.amount_total
+            
+            for payment in order.payment_ids:
+                method_id = payment.payment_method_id.id
+                method_name = payment.payment_method_id.name
+                method_code = self._get_payment_method_code(payment.payment_method_id)
+                
+                if method_id not in payment_amounts_before_discount:
+                    payment_amounts_before_discount[method_id] = {
+                        'code': method_code,
+                        'name': method_name,
+                        'amount': 0.0,
+                        'usd_amount': 0.0,
+                        'amount_from_usd': 0.0,
+                    }
+                
+                # Calculate proportion of this payment
+                if order_total_with_discount > 0:
+                    proportion = payment.amount / order_total_with_discount
+                    amount_before_discount = order_subtotal_before_discount * proportion
+                else:
+                    amount_before_discount = 0.0
+                
+                payment_amounts_before_discount[method_id]['amount'] += amount_before_discount
+                
+                # Track USD portion if applicable
+                if getattr(payment, 'amount_usd', 0.0) > 0:
+                     payment_amounts_before_discount[method_id]['usd_amount'] += payment.amount_usd
+                     payment_amounts_before_discount[method_id]['amount_from_usd'] += amount_before_discount
+        
+        # Build final venta_summary list
+        for method_data in payment_amounts_before_discount.values():
+            venta_summary.append(method_data)
+        
+        # Add Descuento line (always shown, even if 0)
+        venta_summary.append({
+            'code': 'DS',
+            'name': 'Descuento',
+            'amount': -total_discount,  # Negative to show as reduction
+        })
+        
+        return {
+            'venta_summary': venta_summary,
+            'total_discount': total_discount,
+            'venta_subtotal': sum(p['amount'] for p in payment_amounts_before_discount.values()) - total_discount,
+        }
+
+    def _get_venta_summary_with_discount(self, session):
+        """
+        Get venta summary with amounts BEFORE discount applied, plus a discount line.
+        Wrapper around _calculate_venta_summary for single session.
+        """
+        orders = session.order_ids.filtered(lambda o: o.state in ['paid', 'invoiced', 'done'])
+        return self._calculate_venta_summary(orders)
+
+    def _get_sales_by_tax(self, orders):
+        """
+        Group sales by tax rate using price_subtotal_incl (price WITH tax included).
+        ALWAYS shows 0%, 8%, and 16% even if no sales for that rate.
+        
+        Data source: pos.order.line.price_subtotal_incl, tax_ids
+        """
+        # Initialize with standard rates (always visible)
+        standard_rates = [0.0, 8.0, 16.0]
+        sales_by_tax = {rate: 0.0 for rate in standard_rates}
+        
+        for order in orders.filtered(lambda o: o.state in ['paid', 'invoiced', 'done']):
+            for line in order.lines:
+                # Use price_subtotal_incl which includes tax
+                line_total_incl = line.price_subtotal_incl
+                
+                if line.tax_ids:
+                    # Sum up the rates if multiple taxes (rare but possible)
+                    total_rate = sum(tax.amount for tax in line.tax_ids)
+                    if total_rate not in sales_by_tax:
+                        sales_by_tax[total_rate] = 0.0
+                    sales_by_tax[total_rate] += line_total_incl
+                else:
+                    # No tax = 0%
+                    sales_by_tax[0.0] += line_total_incl
+        
+        # Convert to list sorted by rate
+        result = []
+        for rate in sorted(sales_by_tax.keys()):
+            result.append({
+                'label': f"VENTA AL [{rate:.2f}%]",
+                'rate': rate,
+                'amount': sales_by_tax[rate],
+            })
+        
+        return result
+
+    def _get_tax_details(self, orders):
+        """
+        Calculate actual tax amounts from price_subtotal_incl.
+        ALWAYS shows IEPS [8.00%] and IVA [16.00%] even if $0.00.
+        
+        Formula: tax_amount = total_incl / (1 + rate/100) * (rate/100)
+        
+        Data source: pos.order.line.price_subtotal_incl, tax_ids -> account.tax
+        """
+        # Initialize with standard taxes (always visible with fixed labels)
+        standard_taxes = {
+            8.0: {'label': 'IEPS [8.00%]', 'rate': 8.0, 'amount': 0.0},
+            16.0: {'label': 'IVA [16.00%]', 'rate': 16.0, 'amount': 0.0},
+        }
+        
+        for order in orders.filtered(lambda o: o.state in ['paid', 'invoiced', 'done']):
+            for line in order.lines:
+                line_total_incl = line.price_subtotal_incl
+                
+                for tax in line.tax_ids:
+                    tax_rate = tax.amount
+                    
+                    # Skip 0% taxes
+                    if tax_rate <= 0:
+                        continue
+                    
+                    # Calculate tax from inclusive price
+                    tax_amount = line_total_incl / (1 + tax_rate / 100.0) * (tax_rate / 100.0)
+                    
+                    # Add to standard tax if matches, otherwise create new entry
+                    if tax_rate in standard_taxes:
+                        standard_taxes[tax_rate]['amount'] += tax_amount
+                    else:
+                        # Non-standard tax rate - use actual name from DB
+                        if tax_rate not in standard_taxes:
+                            standard_taxes[tax_rate] = {
+                                'label': f"{tax.name} [{tax_rate:.2f}%]",
+                                'rate': tax_rate,
+                                'amount': 0.0,
+                            }
+                        standard_taxes[tax_rate]['amount'] += tax_amount
+        
+        # Sort by rate and return
+        return sorted(standard_taxes.values(), key=lambda x: x['rate'])
+
     def _generate_folio(self, prefix='X'):
         """Generate a folio number based on company sequence or custom logic"""
-        # Get company/config based prefix
         company = self.company_id or self.env.company
         config = self.config_id if self.type == 'x' else (self.config_ids[0] if self.config_ids else False)
         
-        # Build folio with date and sequence
         date_str = self.date.strftime('%d%m%y') if self.date else ''
         config_code = config.name[:3].upper() if config else 'POS'
         
-        # Search for existing reports to determine sequence
         search_domain = [
             ('date', '=', self.date),
             ('type', '=', self.type),
@@ -237,7 +451,21 @@ class PosReportXZ(models.TransientModel):
             results = []
             
             for session in sessions:
-                # Use existing logic per session
+                # Get venta data with discounts
+                venta_data = self._get_venta_summary_with_discount(session)
+                
+                # Get orders for tax calculations
+                session_orders = session.order_ids
+                
+                # Calculate active users (Only those with orders)
+                active_users = set()
+                for order in session.order_ids:
+                    if hasattr(order, 'employee_id') and order.employee_id:
+                        active_users.add(order.employee_id.name)
+                    elif order.user_id:
+                        active_users.add(order.user_id.name)
+                users_str = ', '.join(sorted(list(active_users))) if active_users else 'Sin ventas'
+                
                 vals = {
                     'wizard': self,
                     'date': self.date,
@@ -245,27 +473,32 @@ class PosReportXZ(models.TransientModel):
                     'user_tz': self._get_user_tz(),
                     'config': session.config_id,
                     'user': session.user_id,
+                    'users_list': users_str,
                     'session': session,
                     'is_consolidated': False,
                     'payment_details': self._get_payment_details_by_method(session),
                     'cash_movements': self._get_cash_movements(session),
                     'folio': self._generate_folio('X'),
+                    'order_summary': self._get_order_summary(session),
                     'payment_summary': [{'name': p['name'], 'code': p['code'], 'amount': p['total']} for p in self._get_payment_details_by_method(session)],
-                    'venta_summary': [{'name': p['name'], 'code': p['code'], 'amount': p['total']} for p in self._get_payment_details_by_method(session)],
+                    'venta_summary': venta_data['venta_summary'],
+                    'venta_subtotal': venta_data['venta_subtotal'],
+                    'total_discount': venta_data['total_discount'],
+                    'sales_by_tax': self._get_sales_by_tax(session_orders),
+                    'tax_details': self._get_tax_details(session_orders),
                     'apertura_summary': [
-                        {'code': m['name'], 'name': m['type'], 'amount': m['amount']} 
-                        for m in self._get_cash_movements(session) if m['type'] == 'Apertura de caja'
-                    ],
+                        {'code': self._get_payment_method_code(session.config_id.payment_method_ids.filtered(lambda m: m.is_cash_count)[0]) if session.config_id.payment_method_ids.filtered(lambda m: m.is_cash_count) else 'EF', 'name': session.config_id.payment_method_ids.filtered(lambda m: m.is_cash_count)[0].name if session.config_id.payment_method_ids.filtered(lambda m: m.is_cash_count) else 'Efectivo', 'amount': session.cash_register_balance_start}
+                    ] if session.cash_register_balance_start >= 0 else [],
                     'salida_summary': [
                         m for m in self._get_cash_movements(session) if m['type'] != 'Apertura de caja'
-                    ], # Exclude apertura from here if separate
+                    ],
                     'salida_subtotal': sum(m['amount'] for m in self._get_cash_movements(session) if m['type'] != 'Apertura de caja'),
-                    'apertura_subtotal': sum(m['amount'] for m in self._get_cash_movements(session) if m['type'] == 'Apertura de caja'),
-                    'venta_subtotal': sum(p['total'] for p in self._get_payment_details_by_method(session)),
+                    'apertura_subtotal': session.cash_register_balance_start,
                     'total_corte_ciego': sum(p['total'] for p in self._get_payment_details_by_method(session)),
-                    'total_estacion': sum(p['total'] for p in self._get_payment_details_by_method(session)) + sum(m['amount'] for m in self._get_cash_movements(session) if m['type'] != 'Apertura de caja') + sum(m['amount'] for m in self._get_cash_movements(session) if m['type'] == 'Apertura de caja'),
-                    'total_usuario': sum(p['total'] for p in self._get_payment_details_by_method(session)) + sum(m['amount'] for m in self._get_cash_movements(session) if m['type'] != 'Apertura de caja') + sum(m['amount'] for m in self._get_cash_movements(session) if m['type'] == 'Apertura de caja'),
+                    'total_estacion': sum(p['total'] for p in self._get_payment_details_by_method(session)) + sum(m['amount'] for m in self._get_cash_movements(session) if m['type'] != 'Apertura de caja') + session.cash_register_balance_start,
+                    'total_usuario': sum(p['total'] for p in self._get_payment_details_by_method(session)) + sum(m['amount'] for m in self._get_cash_movements(session) if m['type'] != 'Apertura de caja') + session.cash_register_balance_start,
                     'diferencia': session.cash_register_balance_end_real - session.cash_register_balance_end if session.cash_register_balance_end_real else 0,
+                    'current_time': datetime.now(self._get_user_tz()),
                 }
                 results.append(vals)
                 
@@ -279,53 +512,48 @@ class PosReportXZ(models.TransientModel):
         """Fetch orders for the day and aggregate them into a single report stucture"""
         user_tz = self._get_user_tz()
         
-        # Define range in UTC
         day_start = user_tz.localize(datetime.combine(self.date, datetime.min.time())).astimezone(pytz.UTC).replace(tzinfo=None)
         day_end = user_tz.localize(datetime.combine(self.date, datetime.max.time())).astimezone(pytz.UTC).replace(tzinfo=None)
         
-        domain = [
-            ('date_order', '>=', day_start),
-            ('date_order', '<=', day_end),
-            ('state', 'in', ['paid', 'invoiced', 'done']),
-        ]
+        domain = []
+        domain.append(('date_order', '>=', day_start))
+        domain.append(('date_order', '<=', day_end))
+        domain.append(('state', 'in', ['paid', 'invoiced', 'done']))
+        
+        domain_all = []
+        domain_all.append(('date_order', '>=', day_start))
+        domain_all.append(('date_order', '<=', day_end))
         
         if self.config_id:
             domain.append(('config_id', '=', self.config_id.id))
+            domain_all.append(('config_id', '=', self.config_id.id))
+            
+        if self.shift:
+            domain.append(('x_work_shift', '=', self.shift))
+            domain_all.append(('x_work_shift', '=', self.shift))
             
         orders = self.env['pos.order'].search(domain)
+        all_orders = self.env['pos.order'].search(domain_all)
         
         if not orders:
              return [{
                 'error': _('No se encontraron ventas para el día seleccionado (00:00 - 23:59).'),
             }]
-            
-        # Aggregate Payments
-        payment_details = {}
-        total_sales = 0.0
         
-        for order in orders:
-            total_sales += order.amount_total
-            for payment in order.payment_ids:
-                method_id = payment.payment_method_id.id
-                if method_id not in payment_details:
-                     payment_details[method_id] = {
-                        'id': method_id,
-                        'name': payment.payment_method_id.name,
-                        'code': self._get_payment_method_code(payment.payment_method_id),
-                        'is_cash': payment.payment_method_id.is_cash_count,
-                        'total': 0.0,
-                        'transactions': [],
-                    }
-                payment_details[method_id]['total'] += payment.amount
-                
-                # Transactions
-                partner_name = order.partner_id.name if order.partner_id else 'PUBLICO EN GENERAL'
-                payment_details[method_id]['transactions'].append({
-                    'type': 'Venta',
-                    'order_name': order.name,
-                    'partner_name': partner_name,
-                    'amount': payment.amount,
-                })
+        # Calculate order summary
+        vigentes = all_orders.filtered(lambda o: o.state in ['paid', 'invoiced', 'done'])
+        canceladas = all_orders.filtered(lambda o: o.state == 'cancel')
+        order_summary = {
+            'vigentes': len(vigentes),
+            'canceladas': len(canceladas),
+            'totales': len(vigentes) + len(canceladas),
+        }
+            
+        # Calculate venta_summary with discounts using Helper
+        sales_data = self._calculate_venta_summary(orders)
+        venta_summary = sales_data['venta_summary']
+        total_discount = sales_data['total_discount']
+        venta_subtotal = sales_data['venta_subtotal']
 
         # Mimic Session Object for Template Compatibility
         class MockSession:
@@ -338,7 +566,7 @@ class PosReportXZ(models.TransientModel):
                 self.currency_id = config.currency_id if config else False
 
         mock_session = MockSession(
-            name=_("Reporte Consolidado (Órdenes)"),
+            name=_("Reporte Consolidado (Órdenes)") + (f" - {dict(self._fields['shift']._description_selection(self.env)).get(self.shift, '')}" if self.shift else ""),
             config=self.config_id or self.env['pos.config'],
             date=self.date,
             user=self.env.user
@@ -356,7 +584,7 @@ class PosReportXZ(models.TransientModel):
             apertura_amount = sum(sessions_today.mapped('cash_register_balance_start'))
             # Find cash method for label
             cash_method = sessions_today[0].config_id.payment_method_ids.filtered(lambda m: m.is_cash_count)
-            if cash_method and apertura_amount > 0:
+            if cash_method:
                 apertura_summary.append({
                     'code': self._get_payment_method_code(cash_method[0]),
                     'name': cash_method[0].name,
@@ -364,32 +592,40 @@ class PosReportXZ(models.TransientModel):
                 })
 
         cash_movements_amount = sum(m['amount'] for m in self._get_consolidated_cash_movements(day_start, day_end))
-        total_estacion = total_sales + cash_movements_amount + apertura_amount
+        total_estacion = venta_subtotal + cash_movements_amount + apertura_amount
 
         return [{
             'wizard': self,
             'date': self.date,
             'company': self.company_id or self.env.company,
             'user_tz': user_tz,
-            'config': self.config_id if self.config_id else self.env['pos.config'], # Pass safe object or empty
+            'config': self.config_id if self.config_id else self.env['pos.config'],
             'user': self.env.user,
+            'users_list': ', '.join(sorted(list(set(
+                (o.employee_id.name if hasattr(o, 'employee_id') and o.employee_id else o.user_id.name) 
+                for o in orders if (hasattr(o, 'employee_id') and o.employee_id) or o.user_id
+            )))) if orders else 'Sin ventas',
             'session': mock_session, 
             'is_consolidated': True,
-            'payment_details': list(payment_details.values()),
-            'payment_summary': [{'name': p['name'], 'code': p['code'], 'amount': p['total']} for p in payment_details.values()],
-            'venta_summary': [{'name': p['name'], 'code': p['code'], 'amount': p['total']} for p in payment_details.values()],
+            'order_summary': order_summary,
+            'payment_details': [],
+            'venta_summary': venta_summary,
+            'venta_subtotal': venta_subtotal,
+            'total_discount': total_discount,
+            'sales_by_tax': self._get_sales_by_tax(orders),
+            'tax_details': self._get_tax_details(orders),
             'apertura_summary': apertura_summary,
             'apertura_subtotal': apertura_amount,
             'cash_movements': self._get_consolidated_cash_movements(day_start, day_end), 
-            'salida_summary': self._get_consolidated_cash_movements(day_start, day_end), # Map for template
+            'salida_summary': self._get_consolidated_cash_movements(day_start, day_end),
             'salida_subtotal': cash_movements_amount,
             'folio': self._generate_folio('X'),
-            'total_sales_consolidated': total_sales, 
-            'total_corte_ciego': total_sales,
-            'venta_subtotal': total_sales,
+            'total_sales_consolidated': venta_subtotal, 
+            'total_corte_ciego': venta_subtotal,
             'total_estacion': total_estacion,
-            'total_usuario': total_estacion, # Theoretical closing as we don't have real count
+            'total_usuario': total_estacion,
             'diferencia': 0.0,
+            'current_time': datetime.now(user_tz),
         }]
         
     def _get_consolidated_cash_movements(self, day_start, day_end, config_id=None):
@@ -406,6 +642,10 @@ class PosReportXZ(models.TransientModel):
             target_config = self.config_id
         if target_config:
              domain.append(('pos_session_id.config_id', '=', target_config.id))
+
+        if self.shift:
+            # Filter by specific shift if set in wizard
+            domain.append(('x_work_shift', '=', self.shift))
              
         lines = self.env['account.bank.statement.line'].sudo().search(domain).sorted('create_date')
         
@@ -418,18 +658,14 @@ class PosReportXZ(models.TransientModel):
                 'name': line.payment_ref or f'{movement_type} {idx}',
                 'reference': line.pos_session_id.name or '',
                 'amount': line.amount,
+                'shift_label': dict(line._fields['x_work_shift'].selection).get(line.x_work_shift, 'Sin Turno') if hasattr(line, 'x_work_shift') and line.x_work_shift else 'Sin Turno'
             })
             
         return cash_movements
         
-        # Legacy loop loop kept if needed elsewhere, but unreachable here
-
-        
         for session in sessions:
-            # Get payment methods from config
             payment_methods = session.config_id.payment_method_ids
             
-            # Build payment summary (INGRESADO section)
             payment_summary = []
             for method in payment_methods:
                 method_payments = session.order_ids.mapped('payment_ids').filtered(
@@ -531,180 +767,287 @@ class PosReportXZ(models.TransientModel):
         return results
 
     def _get_report_z_values(self):
-        """Prepare values for Report Z (daily summary of all sessions)"""
+        """
+        Prepare values for Report Z (daily summary).
+        STRUCTURE:
+        - SHIFTS (Mañana / Tarde / Sin Turno)
+          - STATIONS (Configs)
+             - Users
+             - Order Summary
+             - Sales (Strictly by order.x_work_shift)
+             - Cash Moves (Assigned to Shift via Session Dominance or Time)
+        """
         self.ensure_one()
         user_tz = self._get_user_tz()
         
+        # 1. Scope & Data Fetch
         config_ids = self.config_ids if self.config_ids else self.env['pos.config'].search([
-            ('company_id', '=', self.company_id.id)
+            ('company_id', 'child_of', self.env.companies.ids)
         ])
         
-        stations = []
-        gran_total = 0.0
-        
-        # Initialize variables to avoid unbound warnings
         day_start = None
         day_end = None
+        orders = self.env['pos.order']
+        all_period_orders = self.env['pos.order']
         
-        # LOGIC: Define data source based on scope
         if self.report_scope == 'sessions':
             sessions = self._get_sessions(config_ids)
-            # Validations
             if not sessions:
-                # In sessions mode, strictly require closed sessions
-                return {'error': _('No se encontraron sesiones cerradas para la fecha seleccionada.')}
-        else:
-             # BY ORDERS: No sessions needed, just date range
-             sessions = self.env['pos.session'] # Empty recordset
-             day_start = user_tz.localize(datetime.combine(self.date, datetime.min.time())).astimezone(pytz.UTC).replace(tzinfo=None)
-             day_end = user_tz.localize(datetime.combine(self.date, datetime.max.time())).astimezone(pytz.UTC).replace(tzinfo=None)
+                 return {'error': _('No se encontraron sesiones cerradas para la fecha seleccionada.')}
+            orders = sessions.mapped('order_ids').filtered(lambda o: o.state in ['paid', 'invoiced', 'done'])
+            all_period_orders = sessions.mapped('order_ids')
+            # target_sessions are explicitly the selected ones
+            target_sessions = sessions
+        else: # By Orders
+            day_start = user_tz.localize(datetime.combine(self.date, datetime.min.time())).astimezone(pytz.UTC).replace(tzinfo=None)
+            day_end = user_tz.localize(datetime.combine(self.date, datetime.max.time())).astimezone(pytz.UTC).replace(tzinfo=None)
+            
+            domain = [
+                ('date_order', '>=', day_start),
+                ('date_order', '<=', day_end),
+                ('state', 'in', ['paid', 'invoiced', 'done']),
+                ('config_id', 'in', config_ids.ids)
+            ]
+            orders = self.env['pos.order'].search(domain)
+            
+            domain_all = [
+                ('date_order', '>=', day_start),
+                ('date_order', '<=', day_end),
+                ('config_id', 'in', config_ids.ids)
+            ]
+            all_period_orders = self.env['pos.order'].search(domain_all)
 
+            target_sessions = orders.mapped('session_id')
+            sessions_started = self.env['pos.session'].search([
+                ('config_id', 'in', config_ids.ids),
+                ('start_at', '>=', day_start),
+                ('start_at', '<=', day_end)
+            ])
+            target_sessions = target_sessions | sessions_started
+
+        session_shift_map = {}
         
-        for config in config_ids:
-            station_data = {
-                'config': config,
-                'name': config.name,
-                'movements': [],
-                'total_estacion': 0.0,
-            }
+        for session in target_sessions:
+            m_count = len(session.order_ids.filtered(lambda o: o.x_work_shift == 'morning'))
+            a_count = len(session.order_ids.filtered(lambda o: o.x_work_shift == 'afternoon'))
             
-            apertura_total = 0.0
-            venta_payments = {} # {method_id: {'code':..., 'name':..., 'amount':...}}
-            salida_total = 0.0
-            
-            # --- FETCH DATA ---
-            if self.report_scope == 'sessions':
-                # Get sessions for this specific config
-                config_sessions = sessions.filtered(lambda s: s.config_id.id == config.id)
-                if not config_sessions:
-                    continue # Skip config if no sessions
-                
-                # 1. Apertura
-                apertura_total = sum(config_sessions.mapped('cash_register_balance_start'))
-                
-                # 2. Ventas (Loop orders in sessions)
-                for session in config_sessions:
-                    for order in session.order_ids.filtered(lambda o: o.state in ['paid', 'invoiced', 'done']):
-                        for payment in order.payment_ids:
-                            mid = payment.payment_method_id.id
-                            if mid not in venta_payments:
-                                venta_payments[mid] = {
-                                    'code': self._get_payment_method_code(payment.payment_method_id),
-                                    'name': payment.payment_method_id.name,
-                                    'amount': 0.0
-                                }
-                            venta_payments[mid]['amount'] += payment.amount
-                    
-                    # 3. Salidas (Check session statements)
-                    for line in session.sudo().statement_line_ids:
-                        salida_total += line.amount
-                            
-            else: # BY ORDERS
-                # 1. Apertura - Fetch from sessions opened today for this config
-                apertura_total = 0.0
-                # Find sessions started today for this config to get their opening balance
-                sessions_today = self.env['pos.session'].search([
-                    ('config_id', '=', config.id),
-                    ('start_at', '>=', day_start),
-                    ('start_at', '<=', day_end)
-                ])
-                apertura_total = sum(sessions_today.mapped('cash_register_balance_start'))
-                
-                # 2. Ventas (Search orders in date range for this config)
-                domain_orders = [
-                    ('date_order', '>=', day_start),
-                    ('date_order', '<=', day_end),
-                    ('state', 'in', ['paid', 'invoiced', 'done']),
-                    ('config_id', '=', config.id)
-                ]
-                orders = self.env['pos.order'].search(domain_orders)
-                for order in orders:
-                    for payment in order.payment_ids:
-                        mid = payment.payment_method_id.id
-                        if mid not in venta_payments:
-                            venta_payments[mid] = {
-                                'code': self._get_payment_method_code(payment.payment_method_id),
-                                'name': payment.payment_method_id.name,
-                                'amount': 0.0
-                            }
-                        venta_payments[mid]['amount'] += payment.amount
-                
-                # 3. Salidas (Search statements in date range for this config)
-                cash_moves = self._get_consolidated_cash_movements(day_start, day_end, config_id=config)
-                for move in cash_moves:
-                    salida_total += move['amount'] # Sum positive and negative content
-            
-            # --- POPULATE MOVEMENTS ---
-            
-            # Movement: Apertura
-            if apertura_total > 0:
-                cash_method = config.payment_method_ids.filtered(lambda m: m.is_cash_count)
-                if cash_method:
-                     station_data['movements'].append({
-                        'type': 'Apertura de caja',
-                        'payments': [{
-                            'code': self._get_payment_method_code(cash_method[0]),
-                            'name': cash_method[0].name,
-                            'amount': apertura_total,
-                        }],
-                        'total': apertura_total,
-                    })
+            if m_count >= a_count and m_count > 0:
+                s_label = 'morning'
+            elif a_count > m_count:
+                s_label = 'afternoon'
+            else:
+                start_local = pytz.utc.localize(session.start_at).astimezone(user_tz)
+                if start_local.hour < 14:
+                    s_label = 'morning'
+                else:
+                    s_label = 'afternoon'
+            session_shift_map[session.id] = s_label
 
-            # Movement: Venta
-            venta_total = sum(p['amount'] for p in venta_payments.values())
-            if venta_payments:
-                 station_data['movements'].append({
-                    'type': 'Venta',
-                    'payments': list(venta_payments.values()),
-                    'total': venta_total,
+        tree = {
+            'morning': {'label': 'MAÑANA', 'configs': {}},
+            'afternoon': {'label': 'TARDE', 'configs': {}},
+            'undefined': {'label': 'SIN TURNO', 'configs': {}},
+        }
+
+        # Helper to ensure config node
+        def get_config_node(shift_key, config_obj):
+            if config_obj.id not in tree[shift_key]['configs']:
+                tree[shift_key]['configs'][config_obj.id] = {
+                    'obj': config_obj,
+                    'name': config_obj.name,
+                    'users': set(),
+                    'orders': self.env['pos.order'],
+                    'all_orders': self.env['pos.order'],
+                    'movements': [],
+                    'total_cash_concept': 0.0,
+                    'agg_entry': 0.0,
+                    'agg_exit': 0.0,
+                }
+            return tree[shift_key]['configs'][config_obj.id]
+
+        # A) Populate Sales (Strict)
+        for order in orders:
+            shift_key = order.x_work_shift or 'undefined'
+            if shift_key not in tree: shift_key = 'undefined'
+            node = get_config_node(shift_key, order.config_id)
+            node['orders'] += order
+            node['orders'] += order
+            
+            u_name = False
+            if hasattr(order, 'employee_id') and order.employee_id:
+                u_name = order.employee_id.name
+            elif order.user_id:
+                u_name = order.user_id.name
+                
+            if u_name:
+                node['users'].add(u_name)
+
+        for order in all_period_orders:
+            shift_key = order.x_work_shift or 'undefined'
+            if shift_key not in tree: shift_key = 'undefined'
+            node = get_config_node(shift_key, order.config_id)
+            node['all_orders'] += order
+            node['all_orders'] += order
+            
+            u_name = False
+            if hasattr(order, 'employee_id') and order.employee_id:
+                u_name = order.employee_id.name
+            elif order.user_id:
+                u_name = order.user_id.name
+                
+            if u_name:
+                node['users'].add(u_name)
+
+        # B) Populate Moves/Apertura
+        for session in target_sessions:
+            session_fallback_shift = session_shift_map.get(session.id, 'undefined')
+            
+            include_apertura = True
+            if day_start and day_end:
+                 if not (day_start <= session.start_at <= day_end):
+                     include_apertura = False
+
+            if include_apertura and session.cash_register_balance_start > 0:
+                if session_fallback_shift not in tree: session_fallback_shift = 'undefined'
+                node = get_config_node(session_fallback_shift, session.config_id)
+                
+                cash_method = session.config_id.payment_method_ids.filtered(lambda m: m.is_cash_count)
+                node['movements'].append({
+                    'type': 'Apertura de caja',
+                    'note': cash_method[0].name if cash_method else 'Efectivo',
+                    'amount': session.cash_register_balance_start
                 })
+                node['total_cash_concept'] += session.cash_register_balance_start
             
-            # Movement: Salida (Now Net Moves)
-            if salida_total != 0: 
-                cash_method = config.payment_method_ids.filtered(lambda m: m.is_cash_count)
-                if cash_method:
-                    station_data['movements'].append({
-                        'type': 'Entrada/Salida de dinero',
-                        'payments': [{
-                            'code': self._get_payment_method_code(cash_method[0]),
-                            'name': cash_method[0].name,
-                            'amount': salida_total, 
-                        }],
-                        'total': salida_total,
+            # Salidas (Statement Lines)
+            for line in session.sudo().statement_line_ids:
+                # Filter by Date if "By Orders"
+                if day_start and day_end:
+                    if not (day_start <= line.create_date <= day_end):
+                        continue
+
+                if line.amount != 0:
+                    # CHECK FOR SPECIFIC SHIFT ON LINE
+                    line_shift = False
+                    if hasattr(line, 'x_work_shift') and line.x_work_shift:
+                        line_shift = line.x_work_shift
+                    else:
+                        line_shift = 'undefined'
+                    
+                    if line_shift not in tree: line_shift = 'undefined'
+                    node = get_config_node(line_shift, session.config_id)
+
+                    m_type = 'Entrada de dinero' if line.amount > 0 else 'Salida de dinero'
+                    
+                    if line.amount > 0:
+                        node['agg_entry'] += line.amount
+                    else:
+                        node['agg_exit'] += line.amount
+
+                    node['total_cash_concept'] += line.amount
+
+        # Post-process movements for aggregation (Entrada/Salida)
+        for sub_shift_key in tree:
+            for sub_config_id in tree[sub_shift_key]['configs']:
+                sub_node = tree[sub_shift_key]['configs'][sub_config_id]
+                if sub_node['agg_entry'] > 0:
+                    sub_node['movements'].append({
+                        'type': 'Entrada de dinero',
+                        'note': 'Totalizado',
+                        'amount': sub_node['agg_entry']
+                    })
+                if sub_node['agg_exit'] != 0:
+                    sub_node['movements'].append({
+                        'type': 'Salida de dinero',
+                        'note': 'Totalizado',
+                        'amount': sub_node['agg_exit']
                     })
 
-            # Calculate Station Total
-            # Total = Apertura + Venta + Salida (negative)
-            station_data['total_estacion'] = apertura_total + venta_total + salida_total
-            
-            # Add to list if it has any activity
-            if station_data['movements']:
-                stations.append(station_data)
-                gran_total += station_data['total_estacion']
+        final_shifts = []
+        grand_total = 0.0
+        total_sales_global = 0.0
 
+        for key in ['morning', 'afternoon', 'undefined']:
+            shift_node = tree[key]
+            if not shift_node['configs']:
+                continue
+                
+            stations_list = []
+            shift_total_sales = 0.0
+            
+            for config_id, c_data in shift_node['configs'].items():
+                # Process Orders Summary
+                vigentes = c_data['orders']
+                canceladas = c_data['all_orders'].filtered(lambda o: o.state == 'cancel')
+                
+                # Sales Calc
+                sales_data = self._calculate_venta_summary(vigentes)
+                
+                # Taxes
+                sales_by_tax = self._get_sales_by_tax(vigentes)
+                tax_details = self._get_tax_details(vigentes)
+                
+                # Total Station (Sales + Cash Concepts)
+                # Formula: Sales Subtotal + Apertura + Moves
+                # Warning: Sales Subtotal includes NON-CASH.
+                total_estacion = sales_data['venta_subtotal'] + c_data['total_cash_concept']
+                
+                stations_list.append({
+                    'name': c_data['name'],
+                    'users': ', '.join(sorted(list(c_data['users']))),
+                    'order_summary': {
+                        'vigentes': len(vigentes),
+                        'canceladas': len(canceladas),
+                        'totales': len(vigentes) + len(canceladas)
+                    },
+                    'venta_summary': sales_data['venta_summary'],
+                    'venta_subtotal': sales_data['venta_subtotal'],
+                    'sales_by_tax': sales_by_tax,
+                    'tax_details': tax_details,
+                    'movements': c_data['movements'],
+                    'total_estacion': total_estacion,
+                })
+                
+                shift_total_sales += sales_data['venta_subtotal']
+                grand_total += total_estacion
+                total_sales_global += sales_data['venta_subtotal']
+            
+            # Sort stations by name
+            stations_list.sort(key=lambda x: x['name'])
+            
+            final_shifts.append({
+                'title': shift_node['label'],
+                'stations': stations_list,
+                'total_shift_sales': shift_total_sales
+            })
+
+        pos_names = ', '.join(config_ids.mapped('name'))
+        
         return {
             'wizard': self,
             'company': self.company_id or self.env.company,
             'date': self.date,
-            'stations': stations,
-            'gran_total': gran_total,
             'folio': self._generate_folio('Z'),
+            'pos_names': pos_names,
+            'shifts': final_shifts,
+            'total_sales_global': total_sales_global,
+            'gran_total': grand_total,
+            'current_time': datetime.now(user_tz),
         }
 
     @api.model
-    def generate_report_from_pos(self, config_id, report_type):
+    def generate_report_from_pos(self, config_id, report_type, shift=False):
         """Called from POS UI to generate report X or Z for today (Consolidated/By Orders)"""
-        # Create wizard instance
         wizard = self.create({
-            'type': report_type, # 'x' or 'z'
+            'type': report_type,
             'date': fields.Date.context_today(self),
-            'report_scope': 'orders', # Always consolidated for POS buttons
-            'config_ids': [Command.set([config_id])], # Report Z needs this
-            'config_id': config_id, # Report X needs this
-            'company_id': self.env['pos.config'].browse(config_id).company_id.id
+            'report_scope': 'orders',
+            'config_ids': [Command.set([config_id])],
+            'config_id': config_id,
+            'company_id': self.env['pos.config'].browse(config_id).company_id.id,
+            'shift': shift,
         })
         
-        # Return action result directly
         return wizard.action_generate_report()
 
     def action_generate_report(self):

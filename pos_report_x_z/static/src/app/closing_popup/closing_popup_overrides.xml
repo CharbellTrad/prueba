@@ -2,25 +2,19 @@
 <templates id="template" xml:space="preserve">
     <t t-inherit="point_of_sale.ClosePosPopup" t-inherit-mode="extension">
         
-        <!-- 1. Center the main container -->
         <xpath expr="//t[@t-set-slot='footer']//div[contains(@class, 'justify-content-between')]" position="attributes">
             <attribute name="class" add="justify-content-center" remove="justify-content-between" separator=" "/>
         </xpath>
 
-        <!-- 2. Remove "Cash In/Out" from its original location (start of second group) -->
         <xpath expr="//button[@t-on-click='() => this.cashMove()']" position="replace">
-            <!-- Removed -->
         </xpath>
 
-        <!-- 3. Add "Cash In/Out" after "Discard" (end of first group) -->
         <xpath expr="//button[@t-on-click='cancel']" position="after">
              <button class="button btn btn-secondary" 
                      t-att-class="this.ui.isSmall ? 'w-100' : 'btn-lg'" 
                      t-on-click="() => this.cashMove()">Cash In/Out</button>
         </xpath>
 
-        <!-- 4. Add "Report Z" before "Daily Sale" (in second group) -->
-        <!-- Note: We use the existing Daily Sale button as anchor -->
          <xpath expr="//button[@t-on-click='downloadSalesReport']" position="before">
              <button class="button icon btn btn-secondary"
                      t-on-click="printReportZ"
