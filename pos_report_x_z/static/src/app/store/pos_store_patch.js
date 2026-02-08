@@ -7,34 +7,41 @@ patch(PosStore.prototype, {
     async setup() {
         await super.setup(...arguments);
 
-        // Logic to Initialize Work Shift
-        // STRICT BACKEND RELIANCE (User Requirement)
-        // 1. Always use backend data as Source of Truth
-        // 2. Default to 1 if backend data is missing/invalid
+        let sessionShift = this.session.x_current_work_shift;
 
-        const sessionShift = this.session.x_current_work_shift;
-
-        if (sessionShift && sessionShift > 0) {
-            console.log("[PosReportXZ] Loaded shift from backend:", sessionShift);
-            this.workShift = sessionShift;
-        } else {
-            console.log("[PosReportXZ] No valid shift in backend. Defaulting to 1.");
-            this.workShift = 1;
+        // Fallback: If undefined/null, fetch explicitly from backend
+        if (sessionShift === undefined || sessionShift === null) {
+            try {
+                const [result] = await this.env.services.orm.read("pos.session", [this.session.id], ["x_current_work_shift"]);
+                if (result && result.x_current_work_shift) {
+                    sessionShift = result.x_current_work_shift;
+                    // Patch the local session record
+                    this.session.x_current_work_shift = sessionShift;
+                }
+            } catch (error) {
+                console.error("[PosReportXZ] Failed to fetch shift:", error);
+            }
         }
 
-        // Update local storage only for offline redundancy (optional, but good for refresh)
-        window.localStorage.setItem("pos_work_shift", this.workShift);
+        if (sessionShift && sessionShift > 0) {
+            this.workShift = sessionShift;
+        } else {
+            console.log("[PosReportXZ] No valid shift found (Value:", sessionShift, "). Defaulting to 1.");
+            this.workShift = 1;
+        }
     },
 
     async setWorkShift(shift) {
         this.workShift = shift;
-        window.localStorage.setItem("pos_work_shift", shift);
-        window.localStorage.setItem("pos_work_shift_session_id", this.session.id);
 
         // Persist to backend session using ORM service
         if (this.session && this.session.id) {
             try {
                 await this.env.services.orm.write("pos.session", [this.session.id], { x_current_work_shift: shift });
+
+                // Update local session object immediately so it reflects the change without reload
+                this.session.x_current_work_shift = shift;
+
             } catch (error) {
                 console.error("Failed to save shift to backend:", error);
                 // Non-blocking error, user can continue working

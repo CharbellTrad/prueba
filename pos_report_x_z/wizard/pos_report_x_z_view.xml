@@ -11,7 +11,7 @@
                     <group>
                         <field name="date"/>
                         <field name="type" widget="radio"/>
-                        <field name="report_scope" widget="radio"/>
+                        <field name="report_scope" widget="radio" invisible="1"/>
                         <field name="shift" widget="radio" options="{'horizontal': true}"
                                invisible="not has_shifts or type != 'x'"/>
                         <field name="has_shifts" invisible="1"/>

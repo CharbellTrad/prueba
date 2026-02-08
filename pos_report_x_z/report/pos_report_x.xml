@@ -84,7 +84,8 @@
                                 <strong style="font-size: 0.95rem;">Terminal: <t t-out="values.get('config').name"/></strong>
                                 <t t-if="values.get('wizard').shift">
                                     <span style="font-size: 0.85rem;">
-                                        (Turno <t t-out="values.get('wizard').shift"/>)
+                                        (<t t-if="values.get('wizard').shift == '0'">Todos los Turnos</t>
+                                        <t t-else="">Turno <t t-out="values.get('wizard').shift"/></t>)
                                     </span>
                                 </t>
                             </div>
@@ -93,7 +94,7 @@
                         <!-- ============================================ -->
                         <!-- SECCIÓN DE MOVIMIENTOS -->
                         <!-- ============================================ -->
-                        <div style="page-break-inside: avoid;">
+                        <div>
                             <div class="mt-2 mb-2" style="background-color: #000; color: white; padding: 6px 12px;">
                                 <h6 class="mb-0" style="font-weight: bold;">MOVIMIENTOS</h6>
                             </div>
@@ -103,7 +104,8 @@
                                 <span style="font-size: 0.8rem;"><t t-out="values.get('users_list')"/></span>
                                 <t t-if="values.get('wizard').shift">
                                     <span style="font-size: 0.8rem;">
-                                        (Turno <t t-out="values.get('wizard').shift"/>)
+                                        (<t t-if="values.get('wizard').shift == '0'">Todos los Turnos</t>
+                                        <t t-else="">Turno <t t-out="values.get('wizard').shift"/></t>)
                                     </span>
                                 </t>
                             </div>
@@ -240,13 +242,12 @@
                             <!-- ===== SALIDAS DE DINERO ===== -->
                             <div class="ms-3 mt-1" style="page-break-inside: avoid;">
                                 <h6 style="font-weight: bold; border-bottom: 2px solid #000; padding-bottom: 2px; margin-bottom: 3px; font-size: 0.9rem; page-break-after: avoid;">
-                                    SALIDAS DE DINERO
+                                    ENTRADAS/SALIDAS DE DINERO
                                 </h6>
                                 <table class="table table-sm table-bordered" style="margin-top: 3px; margin-bottom: 3px; width: 100%; border: 1px solid #000; font-size: 0.85rem;">
                                     <thead style="background-color: #f0f0f0;">
                                         <tr>
-                                            <th style="border: 1px solid #000; padding: 4px; width: 15%;">Código</th>
-                                            <th style="border: 1px solid #000; padding: 4px; width: 55%;">Concepto</th>
+                                            <th style="border: 1px solid #000; padding: 4px; width: 70%;">Concepto</th>
                                             <th class="text-end" style="border: 1px solid #000; padding: 4px; width: 30%;">Monto</th>
                                         </tr>
                                     </thead>
@@ -254,7 +255,6 @@
                                         <t t-if="values.get('salida_summary')">
                                             <t t-foreach="values.get('salida_summary', [])" t-as="salida">
                                                 <tr>
-                                                    <td style="border: 1px solid #000; padding: 4px;"><t t-out="salida.get('code')"/></td>
                                                     <td style="border: 1px solid #000; padding: 4px;"><t t-out="salida.get('name')"/></td>
                                                     <td class="text-end" style="border: 1px solid #000; padding: 4px;">
                                                         <t t-out="'${:,.2f}'.format(salida.get('amount', 0))"/>
@@ -264,13 +264,12 @@
                                         </t>
                                         <t t-else="">
                                             <tr>
-                                                <td style="border: 1px solid #000; padding: 4px;">-</td>
                                                 <td style="border: 1px solid #000; padding: 4px;">Sin movimientos</td>
                                                 <td class="text-end" style="border: 1px solid #000; padding: 4px;">$0.00</td>
                                             </tr>
                                         </t>
                                         <tr style="background-color: #e8e8e8; font-weight: bold;">
-                                            <td colspan="2" class="text-end" style="border: 1px solid #000; padding: 4px;">SUBTOTAL:</td>
+                                            <td class="text-end" style="border: 1px solid #000; padding: 4px;">SUBTOTAL:</td>
                                             <td class="text-end" style="border: 1px solid #000; padding: 4px;">
                                                 <t t-out="'${:,.2f}'.format(values.get('salida_subtotal', 0))"/>
                                             </td>
@@ -340,6 +339,46 @@
                                     </tbody>
                                 </table>
                             </div>
+                            <!-- ============================================ -->
+                            <!-- DETALLE POR TURNOS (Solo Consolidado) -->
+                            <!-- ============================================ -->
+                            <t t-if="values.get('shift_breakdown')">
+                                <div class="ms-3 mt-1" style="page-break-inside: avoid; margin-top: 15px;">
+                                    <h6 style="font-weight: bold; border-bottom: 2px solid #000; padding-bottom: 2px; margin-bottom: 3px; font-size: 0.9rem;">
+                                        DETALLE POR TURNOS
+                                    </h6>
+                                    <table class="table table-sm table-bordered" style="width: 100%; border: 1px solid #000; font-size: 0.8rem;">
+                                        <thead style="background-color: #f0f0f0;">
+                                            <tr>
+                                                <th style="border: 1px solid #000; padding: 4px;">Turno</th>
+                                                <th class="text-end" style="border: 1px solid #000; padding: 4px;">Apertura de Caja</th>
+                                                <th class="text-end" style="border: 1px solid #000; padding: 4px;">Entradas/Salidas</th>
+                                                <th class="text-end" style="border: 1px solid #000; padding: 4px;">Ventas</th>
+                                                <th class="text-end" style="border: 1px solid #000; padding: 4px;">Ventas %</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <t t-foreach="values.get('shift_breakdown', [])" t-as="sb">
+                                                <tr t-att-style="'font-weight: bold; background-color: #e8e8e8;' if sb.get('shift') == 'TOTALES' else ''">
+                                                    <td style="border: 1px solid #000; padding: 4px;"><t t-out="sb.get('shift')"/></td>
+                                                    <td class="text-end" style="border: 1px solid #000; padding: 4px;">
+                                                        <t t-out="'${:,.2f}'.format(sb.get('apertura', 0))"/>
+                                                    </td>
+                                                    <td class="text-end" style="border: 1px solid #000; padding: 4px;">
+                                                        <t t-out="'${:,.2f}'.format(sb.get('io', 0))"/>
+                                                    </td>
+                                                    <td class="text-end" style="border: 1px solid #000; padding: 4px;">
+                                                        <t t-out="'${:,.2f}'.format(sb.get('sales', 0))"/>
+                                                    </td>
+                                                    <td class="text-end" style="border: 1px solid #000; padding: 4px;">
+                                                        <t t-out="'{:,.2f}%'.format(sb.get('pct', 0))"/>
+                                                    </td>
+                                                </tr>
+                                            </t>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </t>
                             
                         </div> <!-- Fin sección movimientos -->
                         
@@ -370,46 +409,6 @@
                                 </tbody>
                             </table>
                         </div>
-                        <!-- ============================================ -->
-                        <!-- DETALLE POR TURNOS (Solo Consolidado) -->
-                        <!-- ============================================ -->
-                        <t t-if="values.get('shift_breakdown')">
-                             <div style="page-break-inside: avoid; margin-top: 15px;">
-                                <h6 style="font-weight: bold; border-bottom: 2px solid #000; padding-bottom: 2px; margin-bottom: 3px; font-size: 0.9rem;">
-                                    DETALLE POR TURNOS
-                                </h6>
-                                <table class="table table-sm table-bordered" style="width: 100%; border: 1px solid #000; font-size: 0.8rem;">
-                                    <thead style="background-color: #f0f0f0;">
-                                        <tr>
-                                            <th style="border: 1px solid #000; padding: 4px;">Turno</th>
-                                            <th class="text-end" style="border: 1px solid #000; padding: 4px;">Apertura de Caja</th>
-                                            <th class="text-end" style="border: 1px solid #000; padding: 4px;">Entradas/Salidas</th>
-                                            <th class="text-end" style="border: 1px solid #000; padding: 4px;">Ventas</th>
-                                            <th class="text-end" style="border: 1px solid #000; padding: 4px;">Ventas %</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <t t-foreach="values.get('shift_breakdown', [])" t-as="sb">
-                                            <tr t-att-style="'font-weight: bold; background-color: #e8e8e8;' if sb.get('shift') == 'TOTALES' else ''">
-                                                <td style="border: 1px solid #000; padding: 4px;"><t t-out="sb.get('shift')"/></td>
-                                                <td class="text-end" style="border: 1px solid #000; padding: 4px;">
-                                                    <t t-out="'${:,.2f}'.format(sb.get('apertura', 0))"/>
-                                                </td>
-                                                <td class="text-end" style="border: 1px solid #000; padding: 4px;">
-                                                     <t t-out="'${:,.2f}'.format(sb.get('io', 0))"/>
-                                                </td>
-                                                <td class="text-end" style="border: 1px solid #000; padding: 4px;">
-                                                     <t t-out="'${:,.2f}'.format(sb.get('sales', 0))"/>
-                                                </td>
-                                                <td class="text-end" style="border: 1px solid #000; padding: 4px;">
-                                                     <t t-out="'{:,.2f}%'.format(sb.get('pct', 0))"/>
-                                                </td>
-                                            </tr>
-                                        </t>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </t>
                     </t>
                 </div>
             </t>

@@ -26,7 +26,7 @@
         <field name="model">pos.order</field>
         <field name="inherit_id" ref="point_of_sale.view_pos_order_filter"/>
         <field name="arch" type="xml">
-            <xpath expr="//group" position="inside">
+            <xpath expr="//filter[@name='config_id']" position="after">
                 <filter string="Turno" name="group_by_work_shift" context="{'group_by': 'x_work_shift'}"/>
             </xpath>
         </field>
