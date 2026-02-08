@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- VISTA FORMULARIO: Sale Pdf Import -->
+    <record id="view_sale_pdf_import_form" model="ir.ui.view">
+        <field name="name">sale.pdf.import.form</field>
+        <field name="model">sale.pdf.import</field>
+        <field name="arch" type="xml">
+            <form string="Importación de Ventas PDF">
+                <header>
+                    <button name="action_process" string="Procesar PDF" type="object" class="btn-primary" 
+                            invisible="state != 'draft'"/>
+                    
+                    <button name="action_revalidate" string="Re-Validar / Resolver Todos" type="object" class="btn-secondary" 
+                            invisible="state not in ['processed']"/>
+                            
+                    <button name="action_import" string="Crear Cotizaciones" type="object" class="btn-success" 
+                            invisible="state != 'processed'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,processed,done"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="pdf_file" filename="pdf_filename" readonly="state == 'done'"/>
+                            <field name="pdf_filename" invisible="1"/>
+                            <field name="create_date" readonly="1"/>
+                            <field name="create_uid" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="grouping_mode" widget="radio" readonly="state != 'draft'"/>
+                        </group>
+                    </group>
+                    <group string="Opciones de Auto-Creación">
+                        <group>
+                            <field name="auto_create_locations" readonly="state == 'done'"/>
+                            <field name="auto_create_partners" readonly="state == 'done'"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Líneas Extraídas">
+                            <field name="line_ids" readonly="state == 'done'">
+                                <list editable="bottom" decoration-success="state == 'ready'" decoration-warning="state == 'warning'" decoration-danger="state == 'error'">
+                                    <field name="state" widget="badge" decoration-success="state == 'ready'" decoration-warning="state == 'warning'" decoration-danger="state == 'error'"/>
+                                    <field name="original_client_text" optional="show"/>
+                                    <field name="partner_id" optional="show" options="{'no_create': True}"/> 
+                                    <field name="allowed_location_ids" column_invisible="True"/>
+                                    <field name="original_location_text" optional="show"/>
+                                    <field name="location_id" optional="show" options="{'no_create': True}" domain="[('id', 'in', allowed_location_ids)]"/>
+                                    <field name="original_product_text" optional="show"/>
+                                    <field name="product_id" optional="show" options="{'no_create': True}"/>
+                                    <field name="quantity" optional="show"/>
+                                    <field name="original_date_text" optional="hide"/>
+                                    <field name="warning_message" optional="hide"/>
+                                    <field name="matching_info" optional="hide"/>
+                                    
+                                    <button name="action_manual_solve" string="Resolver" type="object" 
+                                            icon="fa-check-circle" 
+                                            class="btn-primary"
+                                            invisible="state == 'ready'"
+                                            title="Validar línea después de corregir manualmente"/>
+
+                                    <button name="action_create_alias" string="Crear Alias" type="object" 
+                                            icon="fa-tag" 
+                                            class="btn-secondary"
+                                            invisible="not partner_id or not original_client_text or matching_info"
+                                            title="Guardar este nombre de PDF como alias para el cliente seleccionado"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- VISTA LISTA: Sale Pdf Import -->
+    <record id="view_sale_pdf_import_tree" model="ir.ui.view">
+        <field name="name">sale.pdf.import.list</field>
+        <field name="model">sale.pdf.import</field>
+        <field name="arch" type="xml">
+            <list string="Importaciones PDF" decoration-info="state == 'draft'" decoration-muted="state == 'done'">
+                <field name="name"/>
+                <field name="pdf_filename"/>
+                <field name="create_date"/>
+                <field name="create_uid"/>
+                <field name="state" widget="badge" decoration-success="state == 'done'" decoration-info="state == 'processed'"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ACTION -->
+    <record id="action_sale_pdf_import" model="ir.actions.act_window">
+        <field name="name">Importaciones PDF</field>
+        <field name="res_model">sale.pdf.import</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+          <p class="o_view_nocontent_smiling_face">
+            Crar una nueva importación de PDF
+          </p><p>
+            Suba sus archivos PDF de remisiones para convertirlos en Cotizaciones de Venta.
+          </p>
+        </field>
+    </record>
+
+    <!-- MENU ITEM -->
+    <menuitem id="menu_sale_pdf_import"
+              name="Importaciones PDF"
+              parent="sale.sale_order_menu"
+              action="action_sale_pdf_import"
+              sequence="30"/>
+
+    <!-- ========================================================= -->
+    <!-- ALIAS MANAGEMENT VIEWS -->
+    <!-- ========================================================= -->
+    <record id="view_res_partner_pdf_alias_tree" model="ir.ui.view">
+        <field name="name">res.partner.pdf.alias.tree</field>
+        <field name="model">res.partner.pdf.alias</field>
+        <field name="arch" type="xml">
+            <list string="Alias de Clientes (PDF)" editable="bottom">
+                <field name="name"/>
+                <field name="partner_id"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_sale_pdf_alias" model="ir.actions.act_window">
+        <field name="name">Alias de Clientes (PDF)</field>
+        <field name="res_model">res.partner.pdf.alias</field>
+        <field name="view_mode">list</field>
+        <field name="help" type="html">
+          <p class="o_view_nocontent_smiling_face">
+            Crear un nuevo Alias de Cliente
+          </p><p>
+            Defina nombres alternativos que aparecen en los PDFs para asignarlos automáticamente a sus clientes.
+          </p>
+        </field>
+    </record>
+
+    <menuitem id="menu_sale_pdf_alias"
+              name="Alias de Clientes"
+              parent="sale.sale_order_menu"
+              action="action_sale_pdf_alias"
+              sequence="31"/>
+
+
+</odoo>

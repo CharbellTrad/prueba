@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_sale_pdf_import,sale.pdf.import,model_sale_pdf_import,sales_team.group_sale_manager,1,1,1,1
+access_sale_pdf_import_line,sale.pdf.import.line,model_sale_pdf_import_line,sales_team.group_sale_manager,1,1,1,1
+access_res_partner_pdf_alias,res.partner.pdf.alias,model_res_partner_pdf_alias,sales_team.group_sale_manager,1,1,1,1
+access_res_partner_pdf_alias_user,res.partner.pdf.alias,model_res_partner_pdf_alias,sales_team.group_sale_salesman,1,0,0,0

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Botón Visible junto a CREAR en Órdenes -->
+    <record id="view_order_tree_inherit_pdf_import" model="ir.ui.view">
+        <field name="name">sale.order.list.inherit.pdf.import</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//list" position="inside">
+                <header>
+                    <button name="%(sale_partner_project_pdf_import.action_sale_pdf_import)d" 
+                            string="Importaciones PDF" 
+                            type="action" 
+                            class="btn-secondary"
+                            icon="fa-file-pdf-o"/>
+                </header>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Botón Visible en COTIZACIONES -->
+    <record id="view_quotation_tree_inherit_pdf_import" model="ir.ui.view">
+        <field name="name">sale.quotation.list.inherit.pdf.import</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_quotation_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//list" position="inside">
+                <header>
+                    <button name="%(sale_partner_project_pdf_import.action_sale_pdf_import)d" 
+                            string="Importaciones PDF" 
+                            type="action" 
+                            class="btn-secondary"
+                            icon="fa-file-pdf-o"/>
+                </header>
+            </xpath>
+        </field>
+    </record>
+</odoo>
