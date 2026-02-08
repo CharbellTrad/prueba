@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ========================================================= -->
+    <!-- VIEWS: res.partner.location -->
+    <!-- ========================================================= -->
+
+    <record id="res_partner_location_view_tree" model="ir.ui.view">
+        <field name="name">res.partner.location.view.list</field>
+        <field name="model">res.partner.location</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="name"/>
+                <field name="product_count" width="200px"/>
+                <field name="partner_count" string="Personas Asignadas" width="200px"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="res_partner_location_view_form" model="ir.ui.view">
+        <field name="name">res.partner.location.view.form</field>
+        <field name="model">res.partner.location</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name" class="oe_edit_only"/>
+                        <h1><field name="name" placeholder="Ej. Torre A, Planta Baja..."/></h1>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="res_partner_location_view_search" model="ir.ui.view">
+        <field name="name">res.partner.location.view.search</field>
+        <field name="model">res.partner.location</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <filter string="Activos" name="active" domain="[('active', '=', True)]"/>
+                <filter string="Archivados" name="inactive" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="res_partner_location_action" model="ir.actions.act_window">
+        <field name="name">Ubicaciones</field>
+        <field name="res_model">res.partner.location</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Crea tu primera ubicación
+            </p>
+            <p>
+                Define las ubicaciones (ej. Edificios, Plantas) que luego podrás asignar a tus clientes.
+            </p>
+        </field>
+    </record>
+
+    <!-- Menú en Contactos/Configuración/Ubicaciones -->
+    <menuitem id="menu_partner_location"
+              name="Ubicaciones"
+              action="res_partner_location_action"
+              parent="contacts.res_partner_menu_config"
+              sequence="3"/>
+
+
+    <!-- ========================================================= -->
+    <!-- VIEWS: res.partner (Incorporating res.partner.project) -->
+    <!-- ========================================================= -->
+
+    <!-- Herencia de vista Form de res.partner -->
+    <record id="res_partner_view_form_inherit_project" model="ir.ui.view">
+        <field name="name">res.partner.view.form.inherit.project</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <!-- Smart Button -->
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_projects" type="object"
+                        class="oe_stat_button" icon="fa-building-o"
+                        invisible="project_count == 0">
+                    <div class="o_field_widget o_stat_info">
+                        <span class="o_stat_value">
+                            <field name="project_count" nolabel="1"/>
+                        </span>
+                        <span class="o_stat_text">Ubicaciones</span>
+                    </div>
+                </button>
+            </xpath>
+            
+            <!-- Pestaña de Proyectos/Ubicaciones -->
+            <xpath expr="//page[@name='internal_notes']" position="before">
+                <page string="Precios por Ubicaciones" name="projects">
+                    <field name="project_ids" 
+                           context="{'default_partner_id': id}">
+                        <list editable="bottom">
+                            <field name="location_id" 
+                                   string="Ubicación"
+                                   options="{'no_create': True}"/> 
+                            <field name="product_count" readonly="1" string="Precios Configurados" width="300px"/>
+                            <field name="active" column_invisible="1"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

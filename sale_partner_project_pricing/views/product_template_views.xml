@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Vista List de product.project.price -->
+    <record id="product_project_price_view_list" model="ir.ui.view">
+        <field name="name">product.project.price.view.list</field>
+        <field name="model">product.project.price</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="partner_id" options="{'no_create': True}" required="1"/>
+                <field name="location_id" options="{'no_create': True}" required="1"/>
+                <field name="price_adjustment"/>
+                <field name="fixed_price" 
+                       invisible="price_adjustment != 'fixed'"
+                       widget="monetary"/>
+                <field name="percent_adjustment"
+                       invisible="price_adjustment != 'percent'"/>
+                <field name="amount_adjustment"
+                       invisible="price_adjustment != 'amount'"
+                       widget="monetary"/>
+                <field name="base_price" widget="monetary" optional="show"/>
+                <field name="final_price" widget="monetary" decoration-bf="1"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="active" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Vista Form de product.project.price -->
+    <record id="product_project_price_view_form" model="ir.ui.view">
+        <field name="name">product.project.price.view.form</field>
+        <field name="model">product.project.price</field>
+        <field name="arch" type="xml">
+            <form string="Precio por Proyecto">
+                <sheet>
+                    <group>
+                        <group string="Configuración">
+                            <field name="product_tmpl_id" 
+                                   invisible="context.get('default_product_tmpl_id')"
+                                   options="{'no_create': True}"/>
+                            <field name="partner_id" options="{'no_create': True}" required="1"/>
+                            <field name="location_id" options="{'no_create': True}" required="1"/>
+                        </group>
+                        <group string="Precio Base">
+                            <field name="base_price" widget="monetary" readonly="1"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Tipo de Ajuste">
+                            <field name="price_adjustment" widget="radio"/>
+                        </group>
+                        <group string="Valor del Ajuste">
+                            <field name="fixed_price" 
+                                   widget="monetary"
+                                   invisible="price_adjustment != 'fixed'"/>
+                            <field name="percent_adjustment"
+                                   invisible="price_adjustment != 'percent'"/>
+                            <field name="amount_adjustment"
+                                   widget="monetary"
+                                   invisible="price_adjustment != 'amount'"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group>
+                            <div class="alert alert-success" role="alert">
+                                <h4>Precio Final: 
+                                    <field name="final_price" widget="monetary" 
+                                           nolabel="1" class="oe_inline"/>
+                                </h4>
+                            </div>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="active"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Herencia de vista Form de product.template - Agregar pestaña de precios -->
+    <record id="product_template_view_form_inherit_project_price" model="ir.ui.view">
+        <field name="name">product.template.view.form.inherit.project.price</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_form_view"/>
+        <field name="arch" type="xml">
+            <!-- Smart Button -->
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_project_prices" type="object"
+                        class="oe_stat_button" icon="fa-users"
+                        invisible="project_price_count == 0">
+                    <field name="project_price_count" widget="statinfo" 
+                           string="Clientes"/>
+                </button>
+            </xpath>
+            
+            <!-- Pestaña de Precios por Proyecto -->
+            <xpath expr="//page[@name='sales']" position="after">
+                <page string="Precios por Ubicación" name="project_prices">
+                    <group>
+                        <div class="alert alert-info mb-3" role="alert">
+                            <i class="fa fa-info-circle"/> 
+                            Configure precios especiales para clientes específicos y sus proyectos/ubicaciones.
+                            El precio base actual es: <field name="list_price" widget="monetary" nolabel="1" readonly="1" class="oe_inline"/>
+                        </div>
+                    </group>
+                    <field name="project_price_ids" 
+                           context="{'default_product_tmpl_id': id}">
+                        <list editable="bottom" default_order="partner_id asc">
+                            <field name="partner_id" string="Cliente" options="{'no_create': True}" required="1"/>
+                            <field name="location_id" string="Ubicación" options="{'no_create': True}" required="1"/>
+                            <field name="price_adjustment" string="Tipo de Ajuste"/>
+                            <field name="fixed_price" 
+                                   string="Precio Fijo"
+                                   invisible="price_adjustment != 'fixed'"
+                                   widget="monetary"/>
+                            <field name="percent_adjustment"
+                                   string="Porcentaje (%)"
+                                   invisible="price_adjustment != 'percent'"
+                                   widget="percentage"/>
+                            <field name="amount_adjustment"
+                                   string="Monto de Ajuste"
+                                   invisible="price_adjustment != 'amount'"
+                                   widget="monetary"
+                                   width="150px"/>
+                            <field name="final_price" string="Precio Final" widget="monetary" decoration-bf="1"/>
+                            <field name="currency_id" column_invisible="1"/>
+                            <field name="active" column_invisible="1"/>
+                        </list>
+                        <form string="Precio por Proyecto">
+                            <group>
+                                <group string="Configuración">
+                                    <field name="partner_id" options="{'no_create': True}"/>
+                                    <field name="location_id" options="{'no_create': True}"/>
+                                </group>
+                                <group string="Precio Base">
+                                    <field name="base_price" widget="monetary" readonly="1"/>
+                                    <field name="currency_id" invisible="1"/>
+                                </group>
+                            </group>
+                            <group>
+                                <group string="Tipo de Ajuste">
+                                    <field name="price_adjustment" widget="radio"/>
+                                </group>
+                                <group string="Valor del Ajuste">
+                                    <field name="fixed_price" 
+                                           widget="monetary"
+                                           invisible="price_adjustment != 'fixed'"/>
+                                    <field name="percent_adjustment"
+                                           invisible="price_adjustment != 'percent'"/>
+                                    <field name="amount_adjustment"
+                                           widget="monetary"
+                                           invisible="price_adjustment != 'amount'"/>
+                                </group>
+                            </group>
+                            <group>
+                                <group>
+                                    <div class="alert alert-success" role="alert">
+                                        <h4>Precio Final: 
+                                            <field name="final_price" widget="monetary" 
+                                                   nolabel="1" class="oe_inline"/>
+                                        </h4>
+                                    </div>
+                                </group>
+                                <group>
+                                    <field name="active"/>
+                                </group>
+                            </group>
+                        </form>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>
