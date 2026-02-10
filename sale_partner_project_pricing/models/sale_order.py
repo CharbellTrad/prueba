@@ -21,26 +21,23 @@ class SaleOrder(models.Model):
         string='Mostrar Configuración',
     )
 
-    @api.depends('partner_id')
+    @api.depends('partner_id', 'partner_id.project_ids')
     def _compute_available_locations(self):
-        """Calcula las ubicaciones que tienen precios configurados para el cliente seleccionado."""
+        """Calcula las ubicaciones asignadas al cliente seleccionado."""
         for order in self:
             if not order.partner_id:
                 order.available_location_ids = False
                 continue
 
-            prices = self.env['product.project.price'].search([
-                ('partner_id', '=', order.partner_id.id),
-                ('active', '=', True),
-            ])
-            location_ids = prices.mapped('location_id.id')
+            location_ids = order.partner_id.project_ids.mapped('location_id.id')
             order.available_location_ids = [fields.Command.set(location_ids)]
 
-    @api.depends('partner_id', 'available_location_ids')
+    @api.depends('partner_id', 'partner_id.project_ids')
     def _compute_show_partner_project(self):
-        """Muestra el campo de proyecto solo si el cliente tiene ubicaciones con precios."""
+        """Muestra el campo de ubicación si el cliente tiene ubicaciones asignadas."""
         for order in self:
-            order.show_partner_project = bool(order.available_location_ids)
+            # Cambiado: Verificar si tiene project_ids directamente
+            order.show_partner_project = bool(order.partner_id.project_ids)
 
     @api.onchange('partner_id')
     def _onchange_partner_reset_project(self):

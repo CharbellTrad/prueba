@@ -96,10 +96,15 @@ class ProductProjectPrice(models.Model):
 
     @api.onchange('partner_id')
     def _onchange_partner_id(self):
-        """Limpia ubicación cuando cambia el cliente."""
+        """Limpia ubicación cuando cambia el cliente, solo si la combinación no es válida."""
         if self.partner_id and self.location_id:
-            # Si el partner cambia, la ubicación anterior probablemente ya no es válida
-            self.location_id = False
+            # Verificar si existe un proyecto válido para esta combinación
+            valid_project = self.env['res.partner.project'].search_count([
+                ('partner_id', '=', self.partner_id.id),
+                ('location_id', '=', self.location_id.id)
+            ])
+            if not valid_project:
+                self.location_id = False
     
     price_adjustment = fields.Selection(
         selection=[
@@ -109,7 +114,7 @@ class ProductProjectPrice(models.Model):
         ],
         string='Tipo de Ajuste',
         required=True,
-        default='fixed',
+        # default='fixed', 
         help='Tipo de ajuste a aplicar sobre el precio base del producto'
     )
     fixed_price = fields.Float(
@@ -156,11 +161,6 @@ class ProductProjectPrice(models.Model):
         default=True,
     )
 
-    _sql_constraints = [
-        ('product_partner_location_unique', 
-         'UNIQUE(product_tmpl_id, partner_id, location_id)',
-         'Ya existe una configuración de precio para este cliente y ubicación en este producto.')
-    ]
 
     @api.depends('price_adjustment', 'fixed_price', 'percent_adjustment', 
                  'amount_adjustment', 'product_tmpl_id.list_price')

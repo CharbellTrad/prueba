@@ -11,7 +11,7 @@
         <field name="arch" type="xml">
             <list editable="bottom">
                 <field name="name"/>
-                <field name="product_count" width="200px"/>
+                <field name="product_count" string="Precios Configurados" width="200px"/>
                 <field name="partner_count" string="Personas Asignadas" width="200px"/>
             </list>
         </field>

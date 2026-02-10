@@ -34,7 +34,7 @@ class ResPartnerProject(models.Model):
         help='Si se desmarca, la ubicación será archivada y no aparecerá en las búsquedas.'
     )
     product_count = fields.Integer(
-        string='Precios Configurados',
+        string='Cantidad de Productos',
         compute='_compute_product_count',
         store=False,
         help='Cantidad de precios configurados para esta ubicación'
@@ -50,11 +50,6 @@ class ResPartnerProject(models.Model):
         string='Precios Configurados',
     )
 
-    _sql_constraints = [
-        ('partner_location_unique', 
-         'UNIQUE(partner_id, location_id)',
-         'El cliente ya tiene esta ubicación configurada.')
-    ]
 
     @api.constrains('partner_id', 'location_id')
     def _check_partner_location_unique(self):

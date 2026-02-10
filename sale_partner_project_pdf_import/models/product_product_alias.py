@@ -2,12 +2,12 @@ from odoo import api, fields, models, _
 from odoo.exceptions import ValidationError
 
 
-class ResPartner(models.Model):
-    _inherit = 'res.partner'
+class ProductProduct(models.Model):
+    _inherit = 'product.product'
 
     pdf_alias_ids = fields.One2many(
-        'res.partner.pdf.alias',
-        'partner_id',
+        'product.product.pdf.alias',
+        'product_id',
         string='Alias PDF'
     )
     pdf_alias_count = fields.Integer(
@@ -17,13 +17,13 @@ class ResPartner(models.Model):
 
     @api.depends('pdf_alias_ids')
     def _compute_pdf_alias_count(self):
-        for partner in self:
-            partner.pdf_alias_count = len(partner.pdf_alias_ids.filtered('active'))
+        for product in self:
+            product.pdf_alias_count = len(product.pdf_alias_ids.filtered('active'))
 
 
-class ResPartnerPdfAlias(models.Model):
-    _name = 'res.partner.pdf.alias'
-    _description = 'Alias de Cliente para Importación PDF'
+class ProductProductPdfAlias(models.Model):
+    _name = 'product.product.pdf.alias'
+    _description = 'Alias de Producto para Importación PDF'
     _order = 'name'
 
     name = fields.Char(
@@ -32,9 +32,9 @@ class ResPartnerPdfAlias(models.Model):
         index=True,
         help='Nombre alternativo que aparece en los PDFs'
     )
-    partner_id = fields.Many2one(
-        'res.partner',
-        string='Cliente',
+    product_id = fields.Many2one(
+        'product.product',
+        string='Producto',
         required=True,
         ondelete='cascade',
         index=True
@@ -59,35 +59,27 @@ class ResPartnerPdfAlias(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
-            if 'name' in vals and 'partner_id' in vals:
-                # Buscar existente incluso archivado
+            if 'name' in vals and 'product_id' in vals:
                 existing = self.with_context(active_test=False).search([
                     ('name', '=ilike', vals['name'])
                 ], limit=1)
                 
                 if existing:
-                    if existing.active:
-                        # Si está activo, dejar que _check_name_unique maneje el error o lanzarlo aquí
-                        pass 
-                    else:
-                        # Si está archivado
-                        if existing.partner_id.id == vals['partner_id']:
-                            # Mismo dueño -> Reactivar
+                    if not existing.active:
+                        if existing.product_id.id == vals['product_id']:
                             existing.write({'active': True})
                             return existing
                         else:
                             raise ValidationError(_(
-                                'El alias "%(name)s" ya existe pero está archivado y pertenece a otro cliente (%(partner)s).\n'
-                                'No se puede reactivar automáticamente para el nuevo cliente.',
+                                'El alias "%(name)s" ya existe (archivado) para otro producto (%(prod)s).',
                                 name=existing.name,
-                                partner=existing.partner_id.name
+                                prod=existing.product_id.display_name
                             ))
-                            
         return super().create(vals_list)
 
     def name_get(self):
         result = []
         for record in self:
-            name = f"{record.name} → {record.partner_id.name}"
+            name = f"{record.name} → {record.product_id.display_name}"
             result.append((record.id, name))
         return result

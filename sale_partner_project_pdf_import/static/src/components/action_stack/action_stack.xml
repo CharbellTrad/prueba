@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="sale_partner_project_pdf_import.ActionStackField">
+        <div class="d-flex flex-column gap-1">
+            <t t-foreach="actions" t-as="action" t-key="action.name">
+                <button type="button" 
+                        t-on-click="() => this.onActionClick(action)"
+                        t-attf-class="btn btn-sm {{action.class}} w-100 text-truncate"
+                        t-att-title="action.title">
+                    <i t-if="action.icon" t-attf-class="fa {{action.icon}} me-1"/>
+                    <t t-esc="action.label"/>
+                </button>
+            </t>
+        </div>
+    </t>
+</templates>

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_sale_pdf_import_alias_manager_form" model="ir.ui.view">
+        <field name="name">sale.pdf.import.alias.manager.form</field>
+        <field name="model">sale.pdf.import.alias.manager</field>
+        <field name="arch" type="xml">
+            <form string="Gestión de Alias Globales">
+                <notebook>
+                    <page string="Clientes" name="partners">
+                        <field name="partner_alias_ids" nolabel="1" context="{'active_test': False}" domain="['|', ('active', '=', True), ('active', '=', False)]">
+                            <list editable="bottom" create="true" delete="true" decoration-muted="not active">
+                                <field name="active" widget="boolean_toggle" width="50"/>
+                                <field name="name" required="1" placeholder="Texto en el PDF"/>
+                                <field name="partner_id" required="1" options="{'no_create': True}" placeholder="Cliente en Odoo"/>
+                            </list>
+                        </field>
+                    </page>
+                    <page string="Ubicaciones" name="locations">
+                        <field name="location_alias_ids" nolabel="1" context="{'active_test': False}" domain="['|', ('active', '=', True), ('active', '=', False)]">
+                            <list editable="bottom" create="true" delete="true" decoration-muted="not active">
+                                <field name="active" widget="boolean_toggle" width="50"/>
+                                <field name="name" required="1" placeholder="Texto en el PDF"/>
+                                <field name="location_id" required="1" options="{'no_create': True}" placeholder="Ubicación en Odoo"/>
+                            </list>
+                        </field>
+                    </page>
+                    <page string="Productos" name="products">
+                        <field name="product_alias_ids" nolabel="1" context="{'active_test': False}" domain="['|', ('active', '=', True), ('active', '=', False)]">
+                            <list editable="bottom" create="true" delete="true" decoration-muted="not active">
+                                <field name="active" widget="boolean_toggle" width="50"/>
+                                <field name="name" required="1" placeholder="Texto en el PDF"/>
+                                <field name="product_id" required="1" options="{'no_create': True}" placeholder="Producto en Odoo"/>
+                            </list>
+                        </field>
+                    </page>
+                </notebook>
+            </form>
+        </field>
+    </record>
+
+    <!-- Server Action to open the Singleton Manager -->
+    <record id="action_open_alias_manager" model="ir.actions.server">
+        <field name="name">Gestión de Alias Globales</field>
+        <field name="model_id" ref="model_sale_pdf_import_alias_manager"/>
+        <field name="state">code</field>
+        <field name="code">
+            action = model.action_open_manager()
+        </field>
+    </record>
+</odoo>

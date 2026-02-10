@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ========================================================= -->
+    <!-- VISTAS DE ALIAS GLOBALES -->
+    <!-- ========================================================= -->
+
+    <!-- Vista de Alias de Clientes -->
+    <record id="view_res_partner_pdf_alias_tree" model="ir.ui.view">
+        <field name="name">res.partner.pdf.alias.tree</field>
+        <field name="model">res.partner.pdf.alias</field>
+        <field name="arch" type="xml">
+            <list string="Alias de Clientes" editable="bottom">
+                <field name="active" widget="boolean_toggle"/>
+                <field name="name" placeholder="Nombre que aparece en el PDF"/>
+                <field name="partner_id" options="{'no_create': True}"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_res_partner_pdf_alias_search" model="ir.ui.view">
+        <field name="name">res.partner.pdf.alias.search</field>
+        <field name="model">res.partner.pdf.alias</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="partner_id"/>
+                <filter string="Activos" name="active" domain="[('active', '=', True)]"/>
+                <filter string="Inactivos" name="inactive" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- Vista de Alias de Ubicaciones -->
+    <record id="view_res_partner_location_pdf_alias_tree" model="ir.ui.view">
+        <field name="name">res.partner.location.pdf.alias.tree</field>
+        <field name="model">res.partner.location.pdf.alias</field>
+        <field name="arch" type="xml">
+            <list string="Alias de Ubicaciones" editable="bottom">
+                <field name="active" widget="boolean_toggle"/>
+                <field name="name" placeholder="Nombre que aparece en el PDF"/>
+                <field name="location_id" options="{'no_create': True}"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_res_partner_location_pdf_alias_search" model="ir.ui.view">
+        <field name="name">res.partner.location.pdf.alias.search</field>
+        <field name="model">res.partner.location.pdf.alias</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="location_id"/>
+                <filter string="Activos" name="active" domain="[('active', '=', True)]"/>
+                <filter string="Inactivos" name="inactive" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- Vista de Alias de Productos -->
+    <record id="view_product_product_pdf_alias_tree" model="ir.ui.view">
+        <field name="name">product.product.pdf.alias.tree</field>
+        <field name="model">product.product.pdf.alias</field>
+        <field name="arch" type="xml">
+            <list string="Alias de Productos" editable="bottom">
+                <field name="active" widget="boolean_toggle"/>
+                <field name="name" placeholder="Nombre que aparece en el PDF"/>
+                <field name="product_id" options="{'no_create': True}"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_product_product_pdf_alias_search" model="ir.ui.view">
+        <field name="name">product.product.pdf.alias.search</field>
+        <field name="model">product.product.pdf.alias</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="product_id"/>
+                <filter string="Activos" name="active" domain="[('active', '=', True)]"/>
+                <filter string="Inactivos" name="inactive" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+</odoo>

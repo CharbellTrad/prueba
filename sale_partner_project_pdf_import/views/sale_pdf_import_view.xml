@@ -1,76 +1,223 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- VISTA FORMULARIO: Sale Pdf Import -->
+    <!-- ========================================================= -->
+    <!-- VISTAS PRINCIPALES DEL MÓDULO -->
+    <!-- ========================================================= -->
+
+    <!-- Vista de Lista de Importaciones -->
+    <record id="view_sale_pdf_import_tree" model="ir.ui.view">
+        <field name="name">sale.pdf.import.tree</field>
+        <field name="model">sale.pdf.import</field>
+        <field name="arch" type="xml">
+            <list string="Importaciones PDF" 
+                  decoration-info="state == 'draft'" 
+                  decoration-success="state == 'done'"
+                  decoration-muted="state == 'cancel'">
+                <header>
+                    <button name="%(sale_partner_project_pdf_import.action_open_alias_manager)d"
+                            string="Alias Globales"
+                            type="action"
+                            class="btn-secondary"
+                            icon="fa-tags"
+                            display="always"
+                            context="{'active_test': False}"/>
+                </header>
+                <field name="name"/>
+                <field name="pdf_filename"/>
+                <field name="total_lines" optional="show" width="120"/>
+                <field name="ready_lines" optional="hide" width="130"/>
+                <field name="warning_lines" optional="hide" width="120"/>
+                <field name="error_lines" optional="hide" width="100"/>
+                <field name="create_date" string="Fecha de Creación"/>
+                <field name="create_uid" string="Creado por"/>
+                <field name="state" widget="badge" 
+                       decoration-success="state == 'done'" 
+                       decoration-info="state == 'processed'"
+                       decoration-warning="state == 'draft'"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Vista de Formulario de Importación -->
     <record id="view_sale_pdf_import_form" model="ir.ui.view">
         <field name="name">sale.pdf.import.form</field>
         <field name="model">sale.pdf.import</field>
         <field name="arch" type="xml">
             <form string="Importación de Ventas PDF">
                 <header>
-                    <button name="action_process" string="Procesar PDF" type="object" class="btn-primary" 
-                            invisible="state != 'draft'"/>
+                    <button name="action_process" 
+                            string="Procesar PDF" 
+                            type="object" 
+                            class="btn-primary" 
+                            invisible="state != 'draft'"
+                            help="Extrae los datos del PDF y detecta clientes, productos y ubicaciones"/>
                     
-                    <button name="action_revalidate" string="Re-Validar / Resolver Todos" type="object" class="btn-secondary" 
-                            invisible="state not in ['processed']"/>
+                    <button name="action_revalidate" 
+                            string="Re-Validar Todas las Líneas" 
+                            type="object" 
+                            class="btn-secondary" 
+                            invisible="state not in ['processed']"
+                            help="Vuelve a ejecutar la validación en todas las líneas"/>
                             
-                    <button name="action_import" string="Crear Cotizaciones" type="object" class="btn-success" 
-                            invisible="state != 'processed'"/>
+                    <button name="action_import" 
+                            string="Crear Cotizaciones" 
+                            type="object" 
+                            class="btn-success" 
+                            invisible="state != 'processed'"
+                            help="Convierte las líneas válidas en cotizaciones de venta"/>
+                    
                     <field name="state" widget="statusbar" statusbar_visible="draft,processed,done"/>
                 </header>
                 <sheet>
                     <div class="oe_title">
+                        <label for="name" string="Nombre de Importación" class="oe_edit_only"/>
                         <h1>
-                            <field name="name" readonly="1"/>
+                            <field name="name" 
+                                   placeholder="Ej: Remisiones Febrero 2026" 
+                                   readonly="state == 'done'"/>
                         </h1>
                     </div>
+
                     <group>
-                        <group>
-                            <field name="pdf_file" filename="pdf_filename" readonly="state == 'done'"/>
+                        <group string="Archivo">
+                            <field name="pdf_file" 
+                                   filename="pdf_filename" 
+                                   readonly="state == 'done'"/>
                             <field name="pdf_filename" invisible="1"/>
-                            <field name="create_date" readonly="1"/>
-                            <field name="create_uid" readonly="1"/>
+                            <field name="create_date" readonly="1" string="Fecha de Creación"/>
+                            <field name="create_uid" readonly="1" string="Creado por"/>
                         </group>
-                        <group>
-                            <field name="grouping_mode" widget="radio" readonly="state != 'draft'"/>
-                        </group>
-                    </group>
-                    <group string="Opciones de Auto-Creación">
-                        <group>
-                            <field name="auto_create_locations" readonly="state == 'done'"/>
-                            <field name="auto_create_partners" readonly="state == 'done'"/>
+                        <group string="Opciones de Importación">
+                            <field name="grouping_mode" 
+                                   widget="radio" 
+                                   readonly="state == 'done'"/>
+                            <field name="auto_create_locations" 
+                                   readonly="state == 'done'"
+                                   help="Crear automáticamente ubicaciones que no existan"/>
                         </group>
                     </group>
 
+                    <!-- Estadísticas -->
+                    <separator string="Resumen de Procesamiento" invisible="state == 'draft'"/>
+                    <div class="row mb-4" invisible="state == 'draft'">
+                        <div class="col-3 text-center">
+                            <div class="badge badge-pill badge-secondary p-3 w-100">
+                                <div style="font-size: 24px;">
+                                    <field name="total_lines" nolabel="1"/>
+                                </div>
+                                <div>Total de Líneas</div>
+                            </div>
+                        </div>
+                        <div class="col-3 text-center">
+                            <div class="badge badge-pill badge-success p-3 w-100">
+                                <div style="font-size: 24px;">
+                                    <field name="ready_lines" nolabel="1"/>
+                                </div>
+                                <div>Listas</div>
+                            </div>
+                        </div>
+                        <div class="col-3 text-center">
+                            <div class="badge badge-pill badge-warning p-3 w-100">
+                                <div style="font-size: 24px;">
+                                    <field name="warning_lines" nolabel="1"/>
+                                </div>
+                                <div>Advertencias</div>
+                            </div>
+                        </div>
+                        <div class="col-3 text-center">
+                            <div class="badge badge-pill badge-danger p-3 w-100">
+                                <div style="font-size: 24px;">
+                                    <field name="error_lines" nolabel="1"/>
+                                </div>
+                                <div>Errores</div>
+                            </div>
+                        </div>
+                    </div>
+
                     <notebook>
-                        <page string="Líneas Extraídas">
+                        <!-- Pestaña de Líneas Extraídas -->
+                        <page string="Líneas Extraídas" name="lines">
                             <field name="line_ids" readonly="state == 'done'">
-                                <list editable="bottom" decoration-success="state == 'ready'" decoration-warning="state == 'warning'" decoration-danger="state == 'error'">
-                                    <field name="state" widget="badge" decoration-success="state == 'ready'" decoration-warning="state == 'warning'" decoration-danger="state == 'error'"/>
-                                    <field name="original_client_text" optional="show"/>
-                                    <field name="partner_id" optional="show" options="{'no_create': True}"/> 
-                                    <field name="allowed_location_ids" column_invisible="True"/>
-                                    <field name="original_location_text" optional="show"/>
-                                    <field name="location_id" optional="show" options="{'no_create': True}" domain="[('id', 'in', allowed_location_ids)]"/>
-                                    <field name="original_product_text" optional="show"/>
-                                    <field name="product_id" optional="show" options="{'no_create': True}"/>
-                                    <field name="quantity" optional="show"/>
+                                <list editable="bottom" 
+                                      decoration-success="state == 'ready'" 
+                                      decoration-warning="state == 'warning'" 
+                                      decoration-danger="state == 'error'">
+                                    
+                                    <field name="display_state_html" widget="html" nolabel="1"/>
+                                    
+                                    <!-- Datos del PDF -->
+                                    <field name="original_client_text" optional="show" string="Cliente (PDF)" class="text-wrap"/>
+                                    <field name="original_location_text" optional="show" string="Ubicación (PDF)" class="text-wrap"/>
+                                    <field name="original_product_text" optional="show" string="Producto (PDF)" class="text-wrap"/>
+                                    <field name="quantity" optional="show" width="70"/>
                                     <field name="original_date_text" optional="hide"/>
+                                    
+                                    <!-- Registros detectados -->
+                                    <field name="allowed_location_ids" column_invisible="1"/>
+                                    <field name="partner_id" optional="show" options="{'no_create': True}" class="text-wrap"/>
+                                    <field name="location_id" optional="show" options="{'no_create': True}" class="text-wrap"/>
+                                    <field name="product_id" optional="show" options="{'no_create': True}" class="text-wrap"/>
+                                    
+                                    <!-- Información adicional -->
+                                    <field name="state_message" optional="hide"/>
                                     <field name="warning_message" optional="hide"/>
                                     <field name="matching_info" optional="hide"/>
                                     
-                                    <button name="action_manual_solve" string="Resolver" type="object" 
-                                            icon="fa-check-circle" 
-                                            class="btn-primary"
-                                            invisible="state == 'ready'"
-                                            title="Validar línea después de corregir manualmente"/>
-
-                                    <button name="action_create_alias" string="Crear Alias" type="object" 
-                                            icon="fa-tag" 
-                                            class="btn-secondary"
-                                            invisible="not partner_id or not original_client_text or matching_info"
-                                            title="Guardar este nombre de PDF como alias para el cliente seleccionado"/>
+                                    <!-- Campos para detectar cambios manuales -->
+                                    <field name="auto_detected_partner_id" column_invisible="1"/>
+                                    <field name="auto_detected_location_id" column_invisible="1"/>
+                                    <field name="auto_detected_product_id" column_invisible="1"/>
+                                    <field name="manual_partner_change" column_invisible="1"/>
+                                    <field name="manual_location_change" column_invisible="1"/>
+                                    <field name="manual_product_change" column_invisible="1"/>
+                                    <field name="has_price_configured" column_invisible="1"/>
+                                    
+                                    <!-- Widget de Acciones Apiladas -->
+                                    <field name="action_json" widget="action_stack" width="150" column_invisible="parent.state == 'done'"/>
                                 </list>
                             </field>
+                        </page>
+
+                        <!-- Pestaña de Alias para esta Importación -->
+                        <page string="Alias para esta Importación" name="aliases">
+                            <div class="alert alert-info mb-3" role="alert">
+                                <p><strong>Gestión de Alias para esta Importación</strong></p>
+                                <p>Los aliases globales activos se usan automáticamente en esta importación. 
+                                   Puede desactivar aliases específicos para esta importación sin afectar la configuración global.</p>
+                                <p><strong>Total de alias habilitados: <field name="aliases_enabled_count" nolabel="1" class="oe_inline"/></strong></p>
+                            </div>
+
+                            <notebook>
+                                <page string="Alias de Clientes" name="partner_aliases">
+                                    <field name="enabled_partner_alias_ids" mode="list">
+                                        <list editable="bottom">
+                                            <field name="active" widget="boolean_toggle" string="Activo Globalmente" readonly="1"/>
+                                            <field name="name" readonly="1" string="Alias (Texto en PDF)"/>
+                                            <field name="partner_id" readonly="1" string="Cliente en Odoo"/>
+                                        </list>
+                                    </field>
+                                </page>
+
+                                <page string="Alias de Ubicaciones" name="location_aliases">
+                                    <field name="enabled_location_alias_ids" mode="list">
+                                        <list editable="bottom">
+                                            <field name="active" widget="boolean_toggle" string="Activo Globalmente" readonly="1"/>
+                                            <field name="name" readonly="1" string="Alias (Texto en PDF)"/>
+                                            <field name="location_id" readonly="1" string="Ubicación en Odoo"/>
+                                        </list>
+                                    </field>
+                                </page>
+
+                                <page string="Alias de Productos" name="product_aliases">
+                                    <field name="enabled_product_alias_ids" mode="list">
+                                        <list editable="bottom">
+                                            <field name="active" widget="boolean_toggle" string="Activo Globalmente" readonly="1"/>
+                                            <field name="name" readonly="1" string="Alias (Texto en PDF)"/>
+                                            <field name="product_id" readonly="1" string="Producto en Odoo"/>
+                                        </list>
+                                    </field>
+                                </page>
+                            </notebook>
                         </page>
                     </notebook>
                 </sheet>
@@ -79,74 +226,88 @@
         </field>
     </record>
 
-    <!-- VISTA LISTA: Sale Pdf Import -->
-    <record id="view_sale_pdf_import_tree" model="ir.ui.view">
-        <field name="name">sale.pdf.import.list</field>
-        <field name="model">sale.pdf.import</field>
-        <field name="arch" type="xml">
-            <list string="Importaciones PDF" decoration-info="state == 'draft'" decoration-muted="state == 'done'">
-                <field name="name"/>
-                <field name="pdf_filename"/>
-                <field name="create_date"/>
-                <field name="create_uid"/>
-                <field name="state" widget="badge" decoration-success="state == 'done'" decoration-info="state == 'processed'"/>
-            </list>
-        </field>
-    </record>
-
-    <!-- ACTION -->
+    <!-- Acción Principal -->
     <record id="action_sale_pdf_import" model="ir.actions.act_window">
         <field name="name">Importaciones PDF</field>
         <field name="res_model">sale.pdf.import</field>
         <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_draft': 1}</field>
         <field name="help" type="html">
-          <p class="o_view_nocontent_smiling_face">
-            Crar una nueva importación de PDF
-          </p><p>
-            Suba sus archivos PDF de remisiones para convertirlos en Cotizaciones de Venta.
-          </p>
+            <p class="o_view_nocontent_smiling_face">
+                Crear una nueva importación de PDF
+            </p>
+            <p>
+                Suba sus archivos PDF de remisiones para convertirlos en Cotizaciones de Venta de manera automática.
+            </p>
         </field>
     </record>
 
-    <!-- MENU ITEM -->
-    <menuitem id="menu_sale_pdf_import"
-              name="Importaciones PDF"
-              parent="sale.sale_order_menu"
-              action="action_sale_pdf_import"
-              sequence="30"/>
-
-    <!-- ========================================================= -->
-    <!-- ALIAS MANAGEMENT VIEWS -->
-    <!-- ========================================================= -->
-    <record id="view_res_partner_pdf_alias_tree" model="ir.ui.view">
-        <field name="name">res.partner.pdf.alias.tree</field>
-        <field name="model">res.partner.pdf.alias</field>
+    <!-- Vista de Búsqueda -->
+    <record id="view_sale_pdf_import_search" model="ir.ui.view">
+        <field name="name">sale.pdf.import.search</field>
+        <field name="model">sale.pdf.import</field>
         <field name="arch" type="xml">
-            <list string="Alias de Clientes (PDF)" editable="bottom">
+            <search>
                 <field name="name"/>
-                <field name="partner_id"/>
-            </list>
+                <field name="pdf_filename"/>
+                <field name="create_uid"/>
+                <filter string="Borrador" name="draft" domain="[('state', '=', 'draft')]"/>
+                <filter string="Procesado" name="processed" domain="[('state', '=', 'processed')]"/>
+                <filter string="Importado" name="done" domain="[('state', '=', 'done')]"/>
+            </search>
         </field>
     </record>
 
-    <record id="action_sale_pdf_alias" model="ir.actions.act_window">
-        <field name="name">Alias de Clientes (PDF)</field>
-        <field name="res_model">res.partner.pdf.alias</field>
-        <field name="view_mode">list</field>
-        <field name="help" type="html">
-          <p class="o_view_nocontent_smiling_face">
-            Crear un nuevo Alias de Cliente
-          </p><p>
-            Defina nombres alternativos que aparecen en los PDFs para asignarlos automáticamente a sus clientes.
-          </p>
+    <!-- Vista Form Específica para Configuración de Precio desde Importación -->
+    <record id="view_product_project_price_pdf_import_form" model="ir.ui.view">
+        <field name="name">product.project.price.pdf.import.form</field>
+        <field name="model">product.project.price</field>
+        <field name="arch" type="xml">
+            <form string="Configurar Precio">
+                <sheet>
+                    <group>
+                        <group string="Configuración">
+                            <field name="product_tmpl_id" options="{'no_create': True}" readonly="1"/>
+                            <field name="partner_id" options="{'no_create': True}" readonly="1"/>
+                            <field name="location_id" options="{'no_create': True}" readonly="1"/>
+                        </group>
+                        <group string="Precio Base">
+                            <field name="base_price" widget="monetary" readonly="1"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Tipo de Ajuste">
+                            <field name="price_adjustment" widget="radio" required="1"/>
+                        </group>
+                        <group string="Valor del Ajuste">
+                            <field name="fixed_price" 
+                                   widget="monetary"
+                                   invisible="price_adjustment != 'fixed'"/>
+                            <field name="percent_adjustment"
+                                   widget="percentage"
+                                   string="Porcentaje de Ajuste"
+                                   invisible="price_adjustment != 'percent'"/>
+                            <field name="amount_adjustment"
+                                   widget="monetary"
+                                   invisible="price_adjustment != 'amount'"/>
+                        </group>
+                    </group>
+                    <field name="active" invisible="1"/>
+                </sheet>
+                <footer>
+                    <div class="d-flex justify-content-between align-items-center w-100">
+                        <div class="d-flex gap-2">
+                            <button string="Guardar" name="action_save_and_close" type="object" class="btn-primary" data-hotkey="q"/>
+                            <button string="Descartar" class="btn-secondary" special="cancel" data-hotkey="z"/>
+                        </div>
+                        <div class="border p-2 rounded text-bg-light">
+                            <field name="final_price" widget="monetary" decoration-bf="1" nolabel="1" class="oe_inline" style="font-size: 1.5em;"/>
+                        </div>
+                    </div>
+                </footer>
+            </form>
         </field>
     </record>
-
-    <menuitem id="menu_sale_pdf_alias"
-              name="Alias de Clientes"
-              parent="sale.sale_order_menu"
-              action="action_sale_pdf_alias"
-              sequence="31"/>
-
 
 </odoo>

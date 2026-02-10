@@ -6,9 +6,6 @@ class ResPartnerLocation(models.Model):
     _description = 'Ubicación de Cliente'
     _order = 'name'
 
-    _sql_constraints = [
-        ('name_unique', 'UNIQUE(name)', 'Ya existe una ubicación con este nombre.')
-    ]
 
     name = fields.Char(
         string='Ubicación',
