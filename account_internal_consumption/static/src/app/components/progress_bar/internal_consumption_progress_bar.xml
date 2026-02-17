@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="account_internal_consumption.InternalConsumptionProgressBar">
+        <div class="o_internal_consumption_progressbar w-100 position-relative">
+            <!-- Barra de Progreso (Píldora) -->
+            <div class="w-100 position-relative shadow-sm overflow-hidden" 
+                 style="height: 24px; background-color: #e9ecef; border-radius: 12px; border: 1px solid rgba(0,0,0,0.05);">
+                <div t-att-class="'h-100 transition-width ' + barClass"
+                     t-att-style="'width: ' + Math.min(value, 100) + '%; transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: inset 0 -2px 5px rgba(0,0,0,0.1);'">
+                </div>
+            </div>
+
+            <!-- Texto Porcentaje -->
+            <div class="text-center mt-1">
+                <span class="small fw-bold" t-att-style="'color: ' + statusColor + '; letter-spacing: 0.5px; font-size: 0.85rem;'">
+                    <t t-esc="formattedValue"/>
+                </span>
+            </div>
+        </div>
+    </t>
+</templates>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-name="account_internal_consumption.PartnerList" t-inherit="point_of_sale.PartnerList" t-inherit-mode="extension">
+        <xpath expr="//Input" position="after">
+            <button t-if="isBarcodeScannerSupported() and !pos.config.module_pos_restaurant" 
+                    class="btn btn-lg ms-2" 
+                    t-att-class="state.scanning ? 'btn-danger' : 'btn-secondary'" 
+                    t-on-click="toggleScanning">
+                <i class="fa fa-barcode fs-2"/>
+            </button>
+        </xpath>
+        <xpath expr="//div[hasclass('h-100')]" position="attributes">
+            <attribute name="class">h-100 position-relative</attribute>
+        </xpath>
+        <xpath expr="//div[hasclass('h-100')]/*[1]" position="before">
+            <BarcodeVideoScanner t-if="state.scanning" t-props="barcodeVideoScannerProps" />
+        </xpath>
+    </t>
+</templates>

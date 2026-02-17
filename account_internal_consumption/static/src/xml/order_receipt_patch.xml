@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-inherit="point_of_sale.OrderReceipt" t-inherit-mode="extension">
+        <!-- Modify Payment Method Name -->
+        <xpath expr="//div[hasclass('paymentlines')]//t[@t-esc='line.payment_method_id.name']" position="replace">
+            <t t-if="line.payment_method_id.is_internal_consumption and order.partner_id and order.partner_id.consumption_limit_info">
+                <t t-esc="'Consumo Interno'" />
+            </t>
+            <t t-else="">
+                <t t-esc="line.payment_method_id.name" />
+            </t>
+        </xpath>
+
+        <!-- Conditionalize QR Code (Hide if Internal Consumption AND Valid Config) -->
+        <xpath expr="//div[hasclass('gap-2')][hasclass('d-flex')][hasclass('flex-row')][hasclass('pt-3')]" position="attributes">
+            <attribute name="t-if">order.company.point_of_sale_use_ticket_qr_code and order.finalized and !(order.is_internal_consumption_order and order.partner_id and order.partner_id.consumption_limit_info)</attribute>
+        </xpath>
+
+        <!-- Add Signature Line (Show if Internal Consumption AND Valid Config) -->
+        <xpath expr="//div[hasclass('before-footer')]" position="before">
+            <t t-if="order.is_internal_consumption_order and order.partner_id and order.partner_id.consumption_limit_info">
+                <div class="pos-receipt-signature text-center" style="margin-top: 6rem; margin-bottom: 3rem;">
+                    <div style="border-top: 1px solid black; width: 80%; margin: 0 auto;"></div>
+                    <div t-if="order.partner_id" class="pt-1 fw-bold">
+                        <t t-esc="order.partner_id.name" />
+                    </div>
+                </div>
+            </t>
+        </xpath>
+    </t>
+</templates>

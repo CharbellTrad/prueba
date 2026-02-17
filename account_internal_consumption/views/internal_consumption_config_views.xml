@@ -1,0 +1,297 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- VISTA FORMULARIO -->
+    <record id="view_internal_consumption_config_form" model="ir.ui.view">
+        <field name="name">internal.consumption.config.form</field>
+        <field name="model">internal.consumption.config</field>
+        <field name="arch" type="xml">
+            <form string="Configuración de Consumo Interno">
+                <header/>
+                <sheet>
+                    <!-- Botones inteligentes (stat buttons) -->
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_audits"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-clipboard">
+                            <field name="audit_count"
+                                   widget="statinfo"
+                                   string="Consumo Emitidos"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon"
+                            title="Archivado"
+                            bg_color="text-bg-danger"
+                            invisible="active"/>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="Nombre de la configuración..."
+                                   readonly="audit_count &gt; 0"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Clasificación">
+                            <field name="belongs_to_odoo"
+                                   readonly="account_id or audit_count &gt; 0"/>
+                            <field name="department_id"
+                                   invisible="not belongs_to_odoo"
+                                   required="belongs_to_odoo"
+                                   readonly="audit_count &gt; 0"/>
+                            <field name="partner_id"
+                                   invisible="belongs_to_odoo"
+                                   required="not belongs_to_odoo"
+                                   readonly="audit_count &gt; 0"/>
+                            <field name="company_id"
+                                   invisible="not belongs_to_odoo"
+                                   readonly="audit_count &gt; 0"/>
+                        </group>
+                        <group string="Límites y Moneda">
+                            <field name="currency_id"/>
+                            <field name="consumption_limit"/>
+                            <field name="consumed_limit"/>
+                            <field name="available_limit"/>
+                            <label for="period_value" string="Período de Reinicio"/>
+                            <div class="d-flex gap-2 align-items-center">
+                                <field name="period_value" class="oe_inline"/>
+                                <field name="period_type" class="oe_inline"/>
+                            </div>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Plan de Cuentas">
+                            <field name="account_code"/>
+                            <field name="account_id" readonly="1" force_save="1"/>
+                        </group>
+                        <group string="Período Vigente">
+                            <field name="period_start"/>
+                            <field name="period_end"/>
+                            <field name="consumption_percentage"
+                                   widget="progressbar"/>
+                        </group>
+                    </group>
+                    <field name="active" invisible="1"/>
+
+                    <!-- Pestaña de historial de cambios -->
+                    <notebook>
+                        <page string="Historial de Cambios" name="change_log">
+                            <field name="log_ids" readonly="1">
+                                <list>
+                                    <field name="change_date"/>
+                                    <field name="user_id"/>
+                                    <field name="field_name"/>
+                                    <field name="old_value"/>
+                                    <field name="new_value"/>
+                                    <field name="description"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- VISTA LISTA -->
+    <record id="view_internal_consumption_config_list" model="ir.ui.view">
+        <field name="name">internal.consumption.config.list</field>
+        <field name="model">internal.consumption.config</field>
+        <field name="arch" type="xml">
+            <list string="Configuraciones de Consumo Interno">
+                <!-- <header>
+                    <button name="%(account_internal_consumption.action_internal_consumption_audit)d"
+                            string="Consumos Emitidos"
+                            type="action"
+                            class="btn-secondary"
+                            icon="fa-clipboard"
+                            display="always"/>
+                </header> -->
+                <field name="name"/>
+                <field name="belongs_to_odoo"/>
+                <field name="department_id" optional="show"/>
+                <field name="partner_id" optional="show"/>
+                <field name="consumption_limit"/>
+                <field name="consumed_limit"/>
+                <field name="available_limit"/>
+                <field name="consumption_percentage"
+                       widget="progressbar"/>
+                <field name="period_type"/>
+                <field name="account_code" optional="hide"/>
+                <field name="currency_id" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- VISTA KANBAN: Dashboard con indicadores semafóricos -->
+    <record id="view_internal_consumption_config_kanban" model="ir.ui.view">
+        <field name="name">internal.consumption.config.kanban</field>
+        <field name="model">internal.consumption.config</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_dashboard" decoration-danger="consumption_percentage &gt; 90" decoration-warning="consumption_percentage &gt; 75">
+                <!-- <header>
+                    <button name="%(account_internal_consumption.action_internal_consumption_audit)d"
+                            string="Consumos Emitidos"
+                            type="action"
+                            class="btn-secondary"
+                            icon="fa-clipboard"
+                            display="always"/>
+                </header> -->
+                <field name="name"/>
+                <field name="belongs_to_odoo"/>
+                <field name="department_id"/>
+                <field name="partner_id"/>
+                <field name="consumption_limit"/>
+                <field name="consumed_limit"/>
+                <field name="available_limit"/>
+                <field name="consumption_percentage"/>
+                <field name="currency_id"/>
+                <field name="period_type"/>
+                <field name="period_start"/>
+                <field name="period_end"/>
+                <field name="audit_count"/>
+                    <t t-name="card">
+                        <div class="oe_kanban_global_click p-0 mb-0">
+                            <!-- Sección Superior con Padding -->
+                            <div class="p-3 pb-2">
+                                <!-- Fila 1: Título -->
+                                <div class="mb-2">
+                                    <strong class="o_kanban_record_title fs-5 d-block" 
+                                            style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; min-height: 2.4em;">
+                                        <field name="name"/>
+                                    </strong>
+                                </div>
+
+                                <!-- Fila 2: Subtítulo y Badge -->
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <!-- Icono y Nombre (Hasta 2 líneas) -->
+                                    <div class="d-flex align-items-start me-2 text-muted small overflow-hidden">
+                                        <i class="fa fa-building-o me-2 mt-1 flex-shrink-0" t-if="record.belongs_to_odoo.raw_value" title="Departamento"/>
+                                        <i class="fa fa-user me-2 mt-1 flex-shrink-0" t-else="" title="Contacto"/>
+                                        
+                                        <div style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; min-height: 2.4em;">
+                                            <field name="department_id" t-if="record.belongs_to_odoo.raw_value"/>
+                                            <field name="partner_id" t-else=""/>
+                                        </div>
+                                    </div>
+
+                                    <!-- Badge -->
+                                    <span t-if="record.belongs_to_odoo.raw_value" class="badge rounded-pill text-bg-primary small flex-shrink-0">Departamento</span>
+                                    <span t-else="" class="badge rounded-pill text-bg-info small flex-shrink-0">Empresa</span>
+                                </div>
+
+                                <!-- Métrica Principal - Hero -->
+                                <div class="text-center mb-4">
+                                    <div class="text-muted small text-uppercase">Disponible</div>
+                                    <div class="h2 mb-0 text-primary fw-bold">
+                                        <field name="available_limit" widget="monetary"/>
+                                    </div>
+                                </div>
+
+                                <!-- Métricas Secundarias -->
+                                <div class="row g-0 text-center small mb-2 border-top border-bottom py-2">
+                                    <div class="col-6 border-end">
+                                        <div class="text-muted">Límite</div>
+                                        <strong class="text-dark"><field name="consumption_limit" widget="monetary"/></strong>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="text-muted">Consumido</div>
+                                        <strong class="text-dark"><field name="consumed_limit" widget="monetary"/></strong>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Barra de Progreso -->
+                            <div class="w-100 mb-2">
+                                <field name="consumption_percentage" widget="internal_consumption_progressbar" 
+                                    options="{'current_value': 'consumption_percentage', 'max_value': 100, 'editable': false}" 
+                                    class="w-100"/>
+                            </div>
+
+                            <!-- Sección Inferior con Padding -->
+                            <div class="p-3 pt-0">
+                                <!-- Fechas -->
+                                <div class="d-flex justify-content-center align-items-center small text-muted mb-3 w-100">
+                                    <i class="fa fa-calendar me-2" title="Periodo"/>
+                                    <span class="text-nowrap"><field name="period_start" widget="date"/></span>
+                                    <i class="fa fa-long-arrow-right mx-2 text-muted" title="Hasta"/>
+                                    <span class="text-nowrap"><field name="period_end" widget="date"/></span>
+                                </div>
+
+                                <!-- Footer: Badge Centrado -->
+                                <div class="text-center border-top pt-3">
+                                    <span class="badge text-bg-light border text-dark">
+                                        <field name="audit_count"/> Consumos Emitidos
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- VISTA SEARCH -->
+    <record id="view_internal_consumption_config_search" model="ir.ui.view">
+        <field name="name">internal.consumption.config.search</field>
+        <field name="model">internal.consumption.config</field>
+        <field name="arch" type="xml">
+            <search string="Buscar Configuraciones">
+                <field name="name"/>
+                <field name="department_id"/>
+                <field name="partner_id"/>
+                <field name="account_code"/>
+                <filter name="filter_odoo"
+                        string="Departamentos"
+                        domain="[('belongs_to_odoo', '=', True)]"/>
+                <filter name="filter_external"
+                        string="Contactos Externos"
+                        domain="[('belongs_to_odoo', '=', False)]"/>
+                <separator/>
+                <filter name="filter_active"
+                        string="Activos"
+                        domain="[('active', '=', True)]"/>
+                <filter name="filter_archived"
+                        string="Archivados"
+                        domain="[('active', '=', False)]"/>
+
+                <group>
+                    <filter name="group_department"
+                            string="Departamento"
+                            context="{'group_by': 'department_id'}"/>
+                    <filter name="group_period"
+                            string="Tipo de Período"
+                            context="{'group_by': 'period_type'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- VISTA GRAPH: Tendencia de consumo -->
+    <record id="view_internal_consumption_config_graph" model="ir.ui.view">
+        <field name="name">internal.consumption.config.graph</field>
+        <field name="model">internal.consumption.config</field>
+        <field name="arch" type="xml">
+            <graph string="Análisis de Consumo Interno" type="bar">
+                <field name="name"/>
+                <field name="consumption_limit" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- ACCIÓN DE VENTANA -->
+    <record id="action_internal_consumption_config" model="ir.actions.act_window">
+        <field name="name">Consumos Internos</field>
+        <field name="res_model">internal.consumption.config</field>
+        <field name="view_mode">kanban,list,form,graph</field>
+        <field name="search_view_id" ref="view_internal_consumption_config_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                ¡Cree su primera configuración de consumo interno!
+            </p>
+            <p>
+                Configure límites de consumo por departamento o contacto externo
+                para controlar los gastos internos de su organización.
+            </p>
+        </field>
+    </record>
+</odoo>

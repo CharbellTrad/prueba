@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_internal_consumption_audit_form" model="ir.ui.view">
+        <field name="name">internal.consumption.audit.form</field>
+        <field name="model">internal.consumption.audit</field>
+        <field name="arch" type="xml">
+            <form string="Consumos Emitidos" create="0" edit="0">
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group string="Información del Consumo">
+                            <field name="config_id"/>
+                            <field name="order_id"/>
+                            <field name="consumption_date"/>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="amount_total"/>
+                        </group>
+                        <group string="Identificación">
+                            <field name="employee_id"/>
+                            <field name="partner_id"/>
+                            <field name="department_id"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Límites al Momento del Consumo">
+                            <field name="limit_before"/>
+                            <field name="limit_after"/>
+                        </group>
+                        <group string="Período">
+                            <field name="period_start"/>
+                            <field name="period_end"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Contexto del POS">
+                            <field name="pos_config_id"/>
+                            <field name="user_id"/>
+                            <field name="session_id"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Productos Consumidos" name="products">
+                            <field name="line_ids" readonly="1">
+                                <list>
+                                    <field name="product_id"/>
+                                    <field name="quantity"/>
+                                    <field name="price_unit"/>
+                                    <field name="price_subtotal"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Recibo" name="attachments">
+                            <field name="attachment_ids" widget="internal_consumption_pdf_viewer"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_internal_consumption_audit_list" model="ir.ui.view">
+        <field name="name">internal.consumption.audit.list</field>
+        <field name="model">internal.consumption.audit</field>
+        <field name="arch" type="xml">
+            <list string="Consumos Emitidos"
+                  create="0"
+                  decoration-info="limit_after > 0"
+                  decoration-danger="limit_after &lt;= 0">
+                <field name="name"/>
+                <field name="consumption_date"/>
+                <field name="config_name"/>
+                <field name="partner_id"/>
+                <field name="employee_id" optional="show"/>
+                <field name="department_id" optional="show"/>
+                <field name="amount_total" sum="Total"/>
+                <field name="limit_before"/>
+                <field name="limit_after"/>
+                <field name="pos_config_id" optional="hide"/>
+                <field name="user_id" optional="hide"/>
+                <field name="currency_id" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_internal_consumption_audit_search" model="ir.ui.view">
+        <field name="name">internal.consumption.audit.search</field>
+        <field name="model">internal.consumption.audit</field>
+        <field name="arch" type="xml">
+            <search string="Buscar Consumos Emitidos">
+                <field name="name"/>
+                <field name="config_id"/>
+                <field name="partner_id"/>
+                <field name="employee_id"/>
+                <filter name="filter_today"
+                        string="Hoy"
+                        domain="[('consumption_date', '>=', datetime.datetime.combine(context_today(), datetime.time(0,0,0))),
+                                 ('consumption_date', '&lt;=', datetime.datetime.combine(context_today(), datetime.time(23,59,59)))]"/>
+                <filter name="filter_this_month"
+                        string="Este Mes"
+                        domain="[('consumption_date', '>=', (context_today() - relativedelta(day=1)).strftime('%Y-%m-%d')),
+                                 ('consumption_date', '&lt;', (context_today() + relativedelta(months=1, day=1)).strftime('%Y-%m-%d'))]"/>
+                <separator/>
+                <group>
+                    <filter name="group_config"
+                            string="Configuración"
+                            context="{'group_by': 'config_id'}"/>
+                    <filter name="group_partner"
+                            string="Contacto"
+                            context="{'group_by': 'partner_id'}"/>
+                    <filter name="group_date"
+                            string="Fecha"
+                            context="{'group_by': 'consumption_date:month'}"/>
+                    <filter name="group_department"
+                            string="Departamento"
+                            context="{'group_by': 'department_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_internal_consumption_audit" model="ir.actions.act_window">
+        <field name="name">Consumos Emitidos</field>
+        <field name="res_model">internal.consumption.audit</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_internal_consumption_audit_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Aún no hay registros de consumos emitidos.
+            </p>
+            <p>
+                Los registros se crean automáticamente cada vez que se procesa
+                una orden de consumo interno en el Punto de Venta.
+            </p>
+        </field>
+    </record>
+</odoo>

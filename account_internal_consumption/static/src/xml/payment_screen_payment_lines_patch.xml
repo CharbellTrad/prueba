@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-inherit="point_of_sale.PaymentScreenPaymentLines" t-inherit-mode="extension">
+        
+        <!-- Cuando la línea está seleccionada -->
+        <xpath expr="//span[hasclass('payment-name')]/t[@t-esc='line.payment_method_id.name']" position="replace">
+            <div class="d-flex flex-column">
+                <span class="fw-bold"><t t-esc="line.consumption_payment_name"/></span>
+                <t t-set="stats" t-value="line.internal_consumption_stats"/>
+                <t t-if="stats.is_active">
+                    <div class="d-flex flex-column gap-1 mt-1" style="font-size: 0.85rem; color: #495057;">
+                        <t t-if="stats.limit !== undefined">
+                            <div>
+                                <strong>Disponible:</strong> 
+                                <span class="ms-1 text-success">
+                                    <t t-esc="env.utils.formatCurrency(stats.available_previous)"/>
+                                </span>
+                            </div>
+                            <div>
+                                <strong>Disponible Final:</strong>
+                                <span t-attf-class="ms-1 fw-bold {{ stats.available_final &lt; 0 ? 'text-danger' : 'text-success' }}">
+                                    (<t t-esc="env.utils.formatCurrency(stats.available_previous)"/> - <t t-esc="env.utils.formatCurrency(stats.current_payment)"/>) = <t t-esc="env.utils.formatCurrency(stats.available_final)"/>
+                                </span>
+                            </div>
+                        </t>
+                        <t t-else="">
+                            <span class="text-muted small">
+                                <i class="fa fa-spinner fa-spin"/> Cargando consumo...
+                            </span>
+                        </t>
+                    </div>
+                </t>
+            </div>
+        </xpath>
+
+        <!-- Cuando la línea NO está seleccionada -->
+        <xpath expr="//div[hasclass('payment-infos')]//t[@t-esc='line.payment_method_id?.name']" position="replace">
+             <div class="d-flex flex-column">
+                <span class="fw-bold"><t t-esc="line.consumption_payment_name"/></span>
+                <t t-set="stats" t-value="line.internal_consumption_stats"/>
+                <t t-if="stats.is_active">
+                    <div class="d-flex gap-1 mt-1 opacity-75" style="font-size: 0.75rem;">
+                         <t t-if="stats.limit !== undefined">
+                             <span>Disponible: <t t-esc="env.utils.formatCurrency(stats.available_previous)"/></span> |
+                             <span t-attf-class="{{ stats.available_final &lt; 0 ? 'text-danger fw-bold' : '' }}">
+                                Disponible Final: <t t-esc="env.utils.formatCurrency(stats.available_final)"/>
+                             </span>
+                         </t>
+                    </div>
+                </t>
+            </div>
+        </xpath>
+    </t>
+</templates>

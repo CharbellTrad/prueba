@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="account_internal_consumption.InternalConsumptionPDFViewer">
+        <div class="o_internal_consumption_pdf_viewer w-100 h-100 d-flex flex-column" style="min-height: 500px;">
+            <t t-if="state.loading">
+                <div class="h-100 w-100 d-flex flex-column align-items-center justify-content-center text-muted">
+                    <i class="fa fa-circle-o-notch fa-spin fa-3x mb-3"></i>
+                    <span>Cargando vista previa...</span>
+                </div>
+            </t>
+            <t t-elif="state.pdfUrl">
+                <iframe t-att-src="state.pdfUrl" 
+                        class="w-100 flex-grow-1 border rounded shadow-sm"
+                        style="height: 600px;"
+                        frameborder="0">
+                </iframe>
+            </t>
+            <t t-else="">
+                <div class="alert alert-info text-center p-5">
+                    <i class="fa fa-file-pdf-o fa-3x mb-3 text-muted"></i>
+                    <h4>No hay vista previa disponible</h4>
+                    <p>No se ha encontrado un archivo PDF adjunto para visualizar.</p>
+                </div>
+            </t>
+        </div>
+    </t>
+</templates>

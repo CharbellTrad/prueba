@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_res_partner_form_consumption" model="ir.ui.view">
+        <field name="name">res.partner.form.consumption</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <!-- Agregar pestaña de consumo interno en el notebook -->
+            <xpath expr="//notebook" position="inside">
+                <page string="Consumo Interno"
+                      name="internal_consumption">
+                    <group>
+                        <group string="Estado del Consumo">
+                            <field name="is_internal_consumption" readonly="1"/>
+                            <field name="allow_internal_consumption" readonly="not is_internal_consumption"/>
+                            <field name="consumption_currency_id" invisible="1"/>
+                            <field name="consumption_limit_info"/>
+                            <field name="consumed_limit_info"/>
+                            <field name="available_limit_info"/>
+                        </group>
+                        <group string="Período Vigente">
+                            <field name="period_start_info"/>
+                            <field name="period_end_info"/>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+            
+            <!-- Bloquear cuenta por cobrar si es consumo interno -->
+            <xpath expr="//field[@name='property_account_receivable_id']" position="attributes">
+                <attribute name="readonly">is_internal_consumption</attribute>
+                <attribute name="force_save">1</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>

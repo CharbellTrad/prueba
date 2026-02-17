@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_hr_employee_form_consumption" model="ir.ui.view">
+        <field name="name">hr.employee.form.consumption</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_form"/>
+        <field name="arch" type="xml">
+            <!-- Agregar grupo de consumo interno al final de la hoja -->
+            <xpath expr="//notebook" position="inside">
+                <page string="Consumo Interno"
+                      name="internal_consumption">
+                    <group>
+                        <group string="Estado del Consumo">
+                            <field name="is_internal_consumption" readonly="1"/>
+                             <field name="allow_internal_consumption" readonly="not is_internal_consumption"/>
+                            <field name="consumption_currency_id" invisible="1"/>
+                            <field name="consumption_limit_info"/>
+                            <field name="consumed_limit_info"/>
+                            <field name="available_limit_info"/>
+                        </group>
+                        <group string="Período Vigente">
+                            <field name="period_start_info"/>
+                            <field name="period_end_info"/>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

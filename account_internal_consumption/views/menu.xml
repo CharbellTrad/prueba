@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Menú Principal: Consumos Internos -->
+    <menuitem id="menu_internal_consumption_root"
+              name="Consumos Internos"
+              parent="accountant.menu_accounting"
+              sequence="15"/>
+
+    <!-- Submenú: Configuración -->
+    <menuitem id="menu_internal_consumption_config"
+              name="Configuración"
+              parent="menu_internal_consumption_root"
+              action="action_internal_consumption_config"
+              sequence="1"/>
+
+    <!-- Submenú: Consumos Emitidos -->
+    <menuitem id="menu_internal_consumption_audit"
+              name="Consumos Emitidos"
+              parent="menu_internal_consumption_root"
+              action="action_internal_consumption_audit"
+              sequence="2"/>
+</odoo>
