@@ -80,20 +80,22 @@ class HrEmployee(models.Model):
     # Sincronización de códigos de barras
     def write(self, vals):
         """
-        Sobrescribe write() para sincronizar el campo barcode del empleado
-        con el contacto relacionado (res.partner).
-
-        Se usa un flag temporal en el contexto (_syncing_barcode_ic) para
-        evitar loops infinitos. Cuando este módulo escribe el barcode en
-        res.partner, lo hace con este flag activo, lo cual le indica al
-        write() de res.partner que NO debe volver a sincronizar de regreso.
-
-        FLUJO:
-        1. Se llama super() para ejecutar la escritura nativa.
-        2. Si el campo 'barcode' cambió y NO estamos en un ciclo de sync:
-           a. Se busca el contacto relacionado del empleado.
-           b. Se escribe el nuevo barcode en el contacto con el flag activo.
+        Sobrescribe write() para:
+        1. Sincronizar el campo barcode con el contacto.
+        2. Gestionar cambios de Consumo Interno (Cambio de Depto o Contacto).
         """
+        # --- PRE-WRITE: Capturar estado anterior para lógica de Consumo Interno ---
+        # Solo nos interesa si cambian campos clave
+        check_consumption_changes = 'department_id' in vals or 'work_contact_id' in vals
+        old_data = {}
+        if check_consumption_changes:
+            for employee in self:
+                old_data[employee.id] = {
+                    'department_id': employee.department_id,
+                    'work_contact_id': employee.work_contact_id
+                }
+
+        # --- PRE-WRITE: Lógica original de Barcode (Validaciones) ---
         if 'barcode' in vals:
             new_barcode = vals.get('barcode')
             if new_barcode:
@@ -124,18 +126,74 @@ class HrEmployee(models.Model):
                                 % (new_barcode, existing_partner.name, company.name)
                             )
 
-        # 2. Ejecutar escritura
+        # --- EXECUTE WRITE ---
         result = super().write(vals)
 
-        # 2b. Sincronización de Consumo Interno (Depto/Contacto)
-        if 'department_id' in vals or 'work_contact_id' in vals:
+        # --- POST-WRITE: Lógica de Consumo Interno (Restaurar/Aplicar Cuentas) ---
+        if check_consumption_changes:
+            ConsumptionConfig = self.env['internal.consumption.config']
             for employee in self:
-                # Si tiene departamento y contacto (ya sea nuevo o existente)
-                if employee.department_id and employee.work_contact_id:
-                    self._sync_employee_consumption_config(employee.department_id, employee.work_contact_id)
+                old = old_data.get(employee.id, {})
+                old_dept = old.get('department_id')
+                old_partner = old.get('work_contact_id')
+                
+                new_dept = employee.department_id
+                new_partner = employee.work_contact_id
+
+                # Caso 1: Cambio de Departamento (Mismo Partner o Cambio de Partner tmb)
+                # Si el depto cambió, revocamos del viejo y asignamos al nuevo
+                if old_dept != new_dept:
+                    # 1.A Revocar del viejo (Si tenía config)
+                    if old_dept and old_partner:
+                        old_config = ConsumptionConfig.sudo().search([
+                            ('department_id', '=', old_dept.id),
+                            ('belongs_to_odoo', '=', True),
+                        ], limit=1)
+                        if old_config:
+                             # IMPORTANTE: Solo restaurar si el partner NO cambia o si cambia (ya que el viejo partner ya no debe tenerla)
+                             # Si el partner cambió, old_partner es el que debemos limpiar.
+                             old_config._sync_partner_config(old_partner, unset=True)
+
+                    # 1.B Asignar al nuevo (Si tiene config y hay partner)
+                    if new_dept and new_partner:
+                        new_config = ConsumptionConfig.sudo().search([
+                            ('department_id', '=', new_dept.id),
+                            ('belongs_to_odoo', '=', True),
+                        ], limit=1)
+                        if new_config:
+                            new_config._sync_partner_config(new_partner, unset=False)
+
+                # Caso 2: Cambio de Contacto (Mismo Departamento)
+                # El depto es el mismo, pero cambiamos la persona.
+                # Restaurar al viejo, asignar al nuevo.
+                elif old_partner != new_partner and new_dept: 
+                     # (Si new_dept no existe, no hay config que aplicar ni revocar asociada a depto)
+                     
+                     config = ConsumptionConfig.sudo().search([
+                        ('department_id', '=', new_dept.id),
+                        ('belongs_to_odoo', '=', True),
+                    ], limit=1)
+                     
+                     if config:
+                         # Revocar al viejo
+                         if old_partner:
+                             config._sync_partner_config(old_partner, unset=True)
+                         # Asignar al nuevo
+                         if new_partner:
+                             config._sync_partner_config(new_partner, unset=False)
+
+                # Post-procesamiento: Asegurar coherencia de flags en el empleado
+                # Si después de los cambios NO hay consumo interno (is_internal_consumption False), 
+                # forzar allow_internal_consumption a False.
+                if not employee.is_internal_consumption:
+                    employee.allow_internal_consumption = False
+                elif employee.work_contact_id:
+                     # Si HAY consumo interno, sincronizar con el partner (por si acaso no se disparó el write del partner)
+                     if employee.allow_internal_consumption != employee.work_contact_id.allow_internal_consumption:
+                          employee.allow_internal_consumption = employee.work_contact_id.allow_internal_consumption
 
 
-        # 3. Sincronización POST-escritura (Propagación a Partner)
+        # --- POST-WRITE: Lógica original de Barcode (Propagación) ---
         if 'barcode' in vals and not self.env.context.get('_syncing_barcode_ic'):
             for employee in self:
                 try:
@@ -163,7 +221,7 @@ class HrEmployee(models.Model):
                         employee.name, employee.id, str(e)
                     )
 
-        # 3b. Sincronizar allow_internal_consumption (Empleado → Partner)
+        # Sync allow_internal_consumption
         if 'allow_internal_consumption' in vals and not self.env.context.get('_syncing_allow_ic'):
              for employee in self:
                 try:
@@ -171,13 +229,30 @@ class HrEmployee(models.Model):
                     if partner:
                         new_allow = vals.get('allow_internal_consumption')
                         if partner.allow_internal_consumption != new_allow:
-                            partner.with_context(_syncing_allow_ic=True).write({
-                                'allow_internal_consumption': new_allow
-                            })
+                            partner.with_context(_syncing_allow_ic=True).write({'allow_internal_consumption': new_allow})
                 except Exception as e:
                     _logger.warning("Error sync allow_consumption E->P: %s", e)
 
         return result
+
+    def unlink(self):
+        """
+        Al eliminar un empleado, restaurar la cuenta contable original de su contacto.
+        """
+        for employee in self:
+            if employee.department_id and employee.work_contact_id:
+                # Buscar si hay configuración activa para este departamento
+                ConsumptionConfig = self.env['internal.consumption.config']
+                config = ConsumptionConfig.sudo().search([
+                    ('department_id', '=', employee.department_id.id),
+                    ('belongs_to_odoo', '=', True),
+                ], limit=1)
+                
+                if config:
+                    # Restaurar cuenta original (unset=True)
+                    config._sync_partner_config(employee.work_contact_id, unset=True)
+        
+        return super().unlink()
 
     @api.depends('department_id')
     def _compute_is_internal_consumption(self):

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Vista Form del Wizard de Reportes de Configuraciones -->
+    <record id="view_internal_consumption_config_report_wizard_form" model="ir.ui.view">
+        <field name="name">internal.consumption.config.report.wizard.form</field>
+        <field name="model">internal.consumption.config.report.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Generar Reporte de Configuraciones">
+                <sheet>
+                    <group>
+                        <group string="Configuración a Reportar">
+                            <field name="report_all"/>
+                        <field name="config_id" invisible="report_all" required="not report_all"
+                               placeholder="Seleccione una configuración específica"/>
+                        </group>
+                        
+                        <group string="Período" invisible="report_all">
+                            <field name="available_period_ids" invisible="1"/>
+                            <field name="selected_period_id" 
+                                   required="not report_all"
+                                   placeholder="Seleccione un período"
+                                   options="{'no_create': True, 'no_open': True}"/>
+                        </group>
+                    </group>
+                    
+                    <group>
+                        <group string="Opciones">
+                            <field name="include_changelog"/>
+                        </group>
+                    </group>
+                </sheet>
+                
+                <footer>
+                    <button name="action_generate_config_report" string="Generar Reporte" type="object" class="btn-primary"/>
+                    <button string="Cancelar" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Acción de Wizard -->
+    <record id="action_internal_consumption_config_report_wizard" model="ir.actions.act_window">
+        <field name="name">Generar Reporte de Configuraciones</field>
+        <field name="res_model">internal.consumption.config.report.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="view_id" ref="view_internal_consumption_config_report_wizard_form"/>
+    </record>
+</odoo>

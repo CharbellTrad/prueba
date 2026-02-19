@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_internal_consumption_report_wizard_form" model="ir.ui.view">
+        <field name="name">internal.consumption.report.wizard.form</field>
+        <field name="model">internal.consumption.report.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Reporte de Consumos Emitidos">
+                <sheet>
+
+                    <!-- Fila 1: Tipo de Reporte (izq) + Filtros (der) -->
+                    <group>
+                        <group string="Tipo de Reporte">
+                            <field name="allowed_department_ids" invisible="1"/>
+                            <field name="allowed_partner_ids" invisible="1"/>
+                            <field name="report_type" widget="radio" nolabel="1" colspan="2"/>
+                        </group>
+                        <group string="Filtrar por Departamentos"
+                               invisible="report_type != 'department'">
+                            <field name="department_ids"
+                                   widget="many2many_tags"
+                                   nolabel="1"
+                                   colspan="2"
+                                   placeholder="Dejar vacío para todos"/>
+                        </group>
+                        <group string="Filtrar por Empresas"
+                               invisible="report_type != 'partner'">
+                            <field name="partner_ids"
+                                   widget="many2many_tags"
+                                   nolabel="1"
+                                   colspan="2"
+                                   placeholder="Dejar vacío para todas"/>
+                        </group>
+                    </group>
+
+                    <!-- Fila 2: Período + Opciones -->
+                    <group>
+                        <group string="Período">
+                            <field name="date_from" string="Desde"/>
+                            <field name="date_to" string="Hasta"/>
+                        </group>
+                        <group string="Opciones">
+                            <field name="sort_by"/>
+                            <field name="group_by_employees"
+                                   invisible="report_type == 'partner'"/>
+                            <field name="group_by_children"
+                                   invisible="report_type == 'department'"/>
+                        </group>
+                    </group>
+
+                </sheet>
+
+                <footer>
+                    <button name="action_generate_report"
+                            string="Generar Reporte"
+                            type="object"
+                            class="btn-primary"/>
+                    <button string="Cancelar" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Acción de Wizard -->
+    <record id="action_internal_consumption_report_wizard" model="ir.actions.act_window">
+        <field name="name">Generar Reporte de Consumos Emitidos</field>
+        <field name="res_model">internal.consumption.report.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="view_id" ref="view_internal_consumption_report_wizard_form"/>
+    </record>
+</odoo>

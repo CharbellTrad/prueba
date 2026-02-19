@@ -40,6 +40,30 @@ class HrDepartment(models.Model):
         compute='_compute_consumption_info',
     )
 
+    def unlink(self):
+        """
+        Al eliminar un departamento, restaurar las cuentas de sus empleados.
+        """
+        ConsumptionConfig = self.env['internal.consumption.config']
+        for dept in self:
+            # Buscar configuración asociada al departamento
+            config = ConsumptionConfig.sudo().search([
+                ('department_id', '=', dept.id),
+                ('belongs_to_odoo', '=', True),
+            ], limit=1)
+            
+            if config:
+                # Buscar empleados afectados
+                employees = self.env['hr.employee'].sudo().search([
+                    ('department_id', '=', dept.id)
+                ])
+                # Obtener contactos para restaurar
+                partners = employees.mapped('work_contact_id')
+                if partners:
+                    config._sync_partner_config(partners, unset=True)
+
+        return super().unlink()
+
     def _compute_is_internal_consumption(self):
         """Verifica si existe una configuración de consumo para este departamento."""
         ConsumptionConfig = self.env['internal.consumption.config']

@@ -396,7 +396,6 @@ class InternalConsumptionConfig(models.Model):
                         # FALLBACK
                         default_account = self.env['account.account'].with_company(company).search([
                             ('account_type', '=', 'asset_receivable'),
-                            ('deprecated', '=', False),
                             ('company_ids', 'in', [company.id]),
                         ], limit=1)
                         if default_account:
@@ -408,14 +407,23 @@ class InternalConsumptionConfig(models.Model):
                         self.name, len(target_partners), company.name
                     )
 
-        # Finalmente actualizar el flag global solo a los que lo tienen incorrecto
-        partners_to_update_flag = partners.filtered(lambda p: p.is_internal_consumption != is_active)
-        if partners_to_update_flag:
-            vals_update = {'is_internal_consumption': is_active}
-            if is_active:
-                # Activar permiso por defecto al asignar configuración
-                vals_update['allow_internal_consumption'] = True
-            partners_to_update_flag.sudo().write(vals_update)
+        # Finalmente actualizar el flag global
+        if is_active:
+             # Activar: buscamos los que no lo tengan activo
+             partners_to_update = partners.filtered(lambda p: not p.is_internal_consumption)
+             if partners_to_update:
+                 partners_to_update.sudo().write({
+                     'is_internal_consumption': True, 
+                     'allow_internal_consumption': True
+                 })
+        else:
+             # Desactivar: buscamos los que tengan ALGUNO de los flags activos
+             partners_to_update = partners.filtered(lambda p: p.is_internal_consumption or p.allow_internal_consumption)
+             if partners_to_update:
+                 partners_to_update.sudo().write({
+                     'is_internal_consumption': False, 
+                     'allow_internal_consumption': False
+                 })
 
     @api.model_create_multi
     def create(self, vals_list):

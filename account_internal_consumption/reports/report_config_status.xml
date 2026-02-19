@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!--
+        Punto de entrada del reporte de estado de configuraciones.
+        Modelo: internal.consumption.config.report.wizard → variable: docs
+    -->
+    <template id="report_config_status_document">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="wizard">
+                <t t-call="web.external_layout">
+                    <div class="page">
+
+                        <!-- Encabezado -->
+                        <div class="row mb-3">
+                            <div class="col">
+                                <h4 class="mb-0">Estado de Configuraciones de Consumo Interno</h4>
+                                <t t-set="data" t-value="wizard._get_config_data()"/>
+                                <p class="text-muted mb-0">
+                                    <t t-if="data['report_all']">Todas las configuraciones activas — Período actual</t>
+                                    <t t-else="">Configuración específica</t>
+                                </p>
+                            </div>
+                        </div>
+                        <hr class="mt-0"/>
+
+                        <!-- Sin datos -->
+                        <t t-if="not data['configs_data']">
+                            <p class="text-muted fst-italic text-center py-4">
+                                No se encontraron configuraciones para los criterios seleccionados.
+                            </p>
+                        </t>
+
+                        <!-- Iterar configuraciones -->
+                        <t t-foreach="data['configs_data']" t-as="cfg">
+
+                            <!-- Título de la configuración -->
+                            <h5 class="border-bottom pb-1 mt-3">
+                                <span t-esc="cfg['config'].name"/>
+                                <small class="text-muted ms-2 fw-normal fs-6">
+                                    <t t-if="cfg['is_current_period']">Período Actual</t>
+                                    <t t-else=""><span t-esc="cfg['period_type_label']"/></t>
+                                </small>
+                            </h5>
+
+                            <!-- Información general: dos columnas -->
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <table class="table table-sm table-borderless">
+                                        <tbody>
+                                            <tr>
+                                                <td class="fw-bold text-muted" style="width:45%;">Tipo:</td>
+                                                <td>
+                                                    <t t-if="cfg['config'].belongs_to_odoo">Departamento Interno</t>
+                                                    <t t-else="">Contacto Empresa</t>
+                                                </td>
+                                            </tr>
+                                            <t t-if="cfg['config'].belongs_to_odoo">
+                                                <tr>
+                                                    <td class="fw-bold text-muted">Departamento:</td>
+                                                    <td><span t-esc="cfg['config'].department_id.name or '—'"/></td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="fw-bold text-muted">Empresa:</td>
+                                                    <td><span t-esc="cfg['config'].company_id.name or '—'"/></td>
+                                                </tr>
+                                            </t>
+                                            <t t-else="">
+                                                <tr>
+                                                    <td class="fw-bold text-muted">Contacto:</td>
+                                                    <td><span t-esc="cfg['config'].partner_id.name or '—'"/></td>
+                                                </tr>
+                                            </t>
+                                            <tr>
+                                                <td class="fw-bold text-muted">Tipo de Período:</td>
+                                                <td><span t-esc="cfg['config'].period_type"/></td>
+                                            </tr>
+                                            <tr>
+                                                <td class="fw-bold text-muted">Inicio:</td>
+                                                <td><span t-out="cfg['period_start']"/></td>
+                                            </tr>
+                                            <tr>
+                                                <td class="fw-bold text-muted">Fin:</td>
+                                                <td><span t-out="cfg['period_end']"/></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="col-6">
+                                    <table class="table table-sm table-borderless">
+                                        <tbody>
+                                            <tr>
+                                                <td class="fw-bold text-muted" style="width:55%;">Límite de Consumo:</td>
+                                                <td class="text-end">
+                                                    <span t-esc="'{:,.2f}'.format(cfg['config'].consumption_limit or 0.0)"/>
+                                                    <span t-esc="cfg['config'].currency_id.symbol"/>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="fw-bold text-muted">Consumido en el Período:</td>
+                                                <td class="text-end">
+                                                    <span t-esc="'{:,.2f}'.format(cfg['period_consumed'])"/>
+                                                    <span t-esc="cfg['config'].currency_id.symbol"/>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="fw-bold text-muted">N° de Consumos:</td>
+                                                <td class="text-end"><span t-esc="cfg['period_consumption_count']"/></td>
+                                            </tr>
+                                            <tr>
+                                                <td class="fw-bold text-muted">% Utilizado:</td>
+                                                <td class="text-end fw-bold">
+                                                    <span t-esc="'{:.1f}'.format(cfg['period_percentage'])"/>%
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- Historial de Cambios (opcional) -->
+                            <t t-if="cfg.get('include_changelog') and cfg.get('changelog')">
+                                <h6 class="fw-bold mb-1">Historial de Cambios</h6>
+                                <table class="table table-sm table-borderless">
+                                    <thead class="o_black_border">
+                                        <tr>
+                                            <th>Fecha</th>
+                                            <th>Usuario</th>
+                                            <th>Campo</th>
+                                            <th>Valor Anterior</th>
+                                            <th>Valor Nuevo</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-foreach="cfg['changelog']" t-as="log">
+                                            <tr>
+                                                <td><span t-out="log.change_date"/></td>
+                                                <td><span t-esc="log.user_id.name or '—'"/></td>
+                                                <td><span t-esc="log.field_name or '—'"/></td>
+                                                <td><span t-esc="log.old_value or '—'"/></td>
+                                                <td><span t-esc="log.new_value or '—'"/></td>
+                                            </tr>
+                                        </t>
+                                    </tbody>
+                                </table>
+                            </t>
+
+                            <!-- Salto de página entre configuraciones (excepto la última) -->
+                            <t t-if="not cfg_last">
+                                <p style="page-break-after:always;"/>
+                            </t>
+
+                        </t>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+</odoo>

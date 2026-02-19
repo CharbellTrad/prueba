@@ -1,0 +1,2 @@
+from . import internal_consumption_report_wizard
+from . import internal_consumption_config_report_wizard

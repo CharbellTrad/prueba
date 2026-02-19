@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ── Consumos Internos ── -->
+    <record id="action_report_consumption" model="ir.actions.report">
+        <field name="name">Reporte de Consumos Internos</field>
+        <field name="model">internal.consumption.report.wizard</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">account_internal_consumption.report_consumption_document</field>
+        <field name="report_file">account_internal_consumption.report_consumption_document</field>
+        <field name="binding_model_id" ref="model_internal_consumption_report_wizard"/>
+        <field name="binding_type">report</field>
+        <field name="paperformat_id" ref="base.paperformat_us"/>
+    </record>
+
+    <!-- ── Estado de Configuraciones ── -->
+    <record id="action_report_config_status" model="ir.actions.report">
+        <field name="name">Reporte de Estado de Configuraciones</field>
+        <field name="model">internal.consumption.config.report.wizard</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">account_internal_consumption.report_config_status_document</field>
+        <field name="report_file">account_internal_consumption.report_config_status_document</field>
+        <field name="binding_model_id" ref="model_internal_consumption_config_report_wizard"/>
+        <field name="binding_type">report</field>
+        <field name="paperformat_id" ref="base.paperformat_us"/>
+    </record>
+</odoo>

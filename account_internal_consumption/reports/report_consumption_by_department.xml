@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!--
+        Sub-template: Consumos por Departamento
+        Variable de contexto: wizard (internal.consumption.report.wizard)
+    -->
+    <template id="report_consumption_by_department">
+        <t t-set="departments_data" t-value="wizard._get_consumptions_by_department()"/>
+
+        <!-- Sin datos -->
+        <t t-if="not departments_data">
+            <p class="text-muted fst-italic text-center py-4">
+                No se encontraron consumos emitidos para los criterios seleccionados.
+            </p>
+        </t>
+
+        <!-- Iterar departamentos -->
+        <t t-foreach="departments_data" t-as="dept_data">
+
+            <!-- Título de sección -->
+            <h5 class="border-bottom pb-1 mt-3">
+                <span t-esc="dept_data['department'].name"/>
+            </h5>
+
+            <!-- Ficha de configuración -->
+            <p class="small text-muted mb-2">
+                <strong>Configuración:</strong> <span t-esc="dept_data['config'].name"/> —
+                <strong>Empresa:</strong> <span t-esc="dept_data['config'].company_id.name or 'N/A'"/> —
+                <strong>Total:</strong>
+                <span t-esc="dept_data['total_consumptions']"/> consumos /
+                <strong><span t-esc="'{:,.2f}'.format(dept_data['total_amount'])"/> <span t-esc="dept_data['config'].currency_id.symbol"/></strong>
+            </p>
+
+            <!-- Tabla detallada (sin agrupación) -->
+            <t t-if="not wizard.group_by_employees">
+                <table class="table table-sm table-borderless">
+                    <thead class="o_black_border">
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Referencia</th>
+                            <th>Empleado</th>
+                            <th class="text-end">Monto</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <t t-foreach="dept_data['consumptions']" t-as="c">
+                            <tr>
+                                <td><span t-out="c.consumption_date"/></td>
+                                <td><span t-esc="c.name"/></td>
+                                <td><span t-esc="c.employee_id.name or 'N/A'"/></td>
+                                <td class="text-end">
+                                    <span t-esc="'{:,.2f}'.format(c.amount_total)"/>
+                                    <span t-esc="c.currency_id.symbol"/>
+                                </td>
+                            </tr>
+                        </t>
+                        <tr class="o_total o_border_bottom fw-bold">
+                            <td colspan="3">Total</td>
+                            <td class="text-end">
+                                <span t-esc="'{:,.2f}'.format(dept_data['total_amount'])"/>
+                                <span t-esc="dept_data['config'].currency_id.symbol"/>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </t>
+
+            <!-- Tabla agrupada por empleado -->
+            <t t-if="wizard.group_by_employees and dept_data.get('employees')">
+                <table class="table table-sm table-borderless">
+                    <thead class="o_black_border">
+                        <tr>
+                            <th>Empleado</th>
+                            <th>Primer Consumo</th>
+                            <th>Último Consumo</th>
+                            <th class="text-center">N° Consumos</th>
+                            <th class="text-end">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <t t-foreach="dept_data['employees']" t-as="emp">
+                            <tr>
+                                <td><span t-esc="emp['employee'].name"/></td>
+                                <td><span t-out="emp['date_first']"/></td>
+                                <td><span t-out="emp['date_last']"/></td>
+                                <td class="text-center"><span t-esc="emp['total_count']"/></td>
+                                <td class="text-end">
+                                    <span t-esc="'{:,.2f}'.format(emp['total_amount'])"/>
+                                    <span t-esc="dept_data['config'].currency_id.symbol"/>
+                                </td>
+                            </tr>
+                        </t>
+                        <tr class="o_total o_border_bottom fw-bold">
+                            <td colspan="4">Total</td>
+                            <td class="text-end">
+                                <span t-esc="'{:,.2f}'.format(dept_data['total_amount'])"/>
+                                <span t-esc="dept_data['config'].currency_id.symbol"/>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </t>
+
+            <!-- Salto de página entre departamentos (excepto el último) -->
+            <t t-if="not dept_data_last">
+                <p style="page-break-after:always;"/>
+            </t>
+        </t>
+
+        <!-- Resumen General (solo si hay más de 1 departamento) -->
+        <t t-if="departments_data and len(departments_data) > 1">
+            <t t-set="grand_total" t-value="sum([d['total_amount'] for d in departments_data])"/>
+            <t t-set="grand_count" t-value="sum([d['total_consumptions'] for d in departments_data])"/>
+            <t t-set="sym"         t-value="departments_data[0]['config'].currency_id.symbol"/>
+
+            <h5 class="border-bottom pb-1 mt-4">Resumen General</h5>
+            <table class="table table-sm table-borderless">
+                <thead class="o_black_border">
+                    <tr>
+                        <th>Departamento</th>
+                        <th class="text-center">N° Consumos</th>
+                        <th class="text-end">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <t t-foreach="departments_data" t-as="d">
+                        <tr>
+                            <td><span t-esc="d['department'].name"/></td>
+                            <td class="text-center"><span t-esc="d['total_consumptions']"/></td>
+                            <td class="text-end">
+                                <span t-esc="'{:,.2f}'.format(d['total_amount'])"/>
+                                <span t-esc="sym"/>
+                            </td>
+                        </tr>
+                    </t>
+                    <tr class="o_total o_border_bottom fw-bold">
+                        <td>Total General (<span t-esc="len(departments_data)"/> departamentos)</td>
+                        <td class="text-center"><span t-esc="grand_count"/></td>
+                        <td class="text-end"><span t-esc="'{:,.2f}'.format(grand_total)"/> <span t-esc="sym"/></td>
+                    </tr>
+                </tbody>
+            </table>
+        </t>
+    </template>
+
+</odoo>

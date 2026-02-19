@@ -98,13 +98,36 @@ class ResPartner(models.Model):
         Se usa el flag _syncing_barcode_ic en el contexto para evitar loops.
         """
         # 1. Ejecutar la escritura original
+        # --- PRE-WRITE: Capturar padres anteriores ---
+        old_parents = {}
+        if 'parent_id' in vals:
+            for partner in self:
+                old_parents[partner.id] = partner.parent_id
+
         result = super().write(vals)
 
         # 1b. Sincronización de Consumo Interno (Padre/Hijo)
         if 'parent_id' in vals:
+            ConsumptionConfig = self.env['internal.consumption.config']
             for partner in self:
-                if partner.parent_id:
-                    self._sync_parent_consumption_config(partner.parent_id, partner)
+                old_parent = old_parents.get(partner.id)
+                new_parent = partner.parent_id
+                
+                if old_parent != new_parent:
+                    # A. Restaurar configuración del padre ANTERIOR (si tenía)
+                    if old_parent:
+                        old_config = ConsumptionConfig.sudo().search([
+                            ('partner_id', '=', old_parent.id),
+                            ('belongs_to_odoo', '=', False),
+                        ], limit=1)
+                        if old_config:
+                            old_config._sync_partner_config(partner, unset=True)
+                    
+                    # B. Aplicar configuración del NUEVO padre (si tiene)
+                    if new_parent:
+                        self._sync_parent_consumption_config(new_parent, partner)
+
+
 
 
         # 2. Si cambió el barcode y NO es una sincronización automática
@@ -284,3 +307,28 @@ class ResPartner(models.Model):
             'consumption_currency_id': partner.consumption_currency_id.id,
             'currency_symbol': partner.consumption_currency_id.symbol if partner.consumption_currency_id else '',
         }
+
+    def unlink(self):
+        """
+        Al eliminar una empresa configurada, restaurar las cuentas de sus hijos.
+        """
+        ConsumptionConfig = self.env['internal.consumption.config']
+        for partner in self:
+            # Caso: Se elimina una empresa que tiene configuración de consumo
+            # y tiene contactos hijos que heredaban esa configuración.
+            
+            # Buscar si este partner tiene config asociada
+            config = ConsumptionConfig.sudo().search([
+                ('partner_id', '=', partner.id),
+                ('belongs_to_odoo', '=', False),
+            ], limit=1)
+
+            if config:
+                # Buscar hijos que podrían estar afectados
+                children = self.env['res.partner'].sudo().search([
+                    ('parent_id', '=', partner.id)
+                ])
+                if children:
+                    config._sync_partner_config(children, unset=True)
+                    
+        return super().unlink()

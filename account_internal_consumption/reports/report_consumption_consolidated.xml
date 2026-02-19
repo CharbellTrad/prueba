@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!--
+        Sub-template: Reporte Consolidado (Departamentos + Contactos)
+        Variable de contexto: wizard (internal.consumption.report.wizard)
+    -->
+    <template id="report_consumption_consolidated">
+        <t t-set="departments_data" t-value="wizard._get_consumptions_by_department()"/>
+        <t t-set="partners_data"    t-value="wizard._get_consumptions_by_partner()"/>
+
+        <!-- Sin datos -->
+        <t t-if="not departments_data and not partners_data">
+            <p class="text-muted fst-italic text-center py-4">
+                No se encontraron consumos emitidos para el período seleccionado.
+            </p>
+        </t>
+
+        <!-- ═══════════ SECCIÓN 1: DEPARTAMENTOS ═══════════ -->
+        <t t-if="departments_data">
+            <h5 class="border-bottom pb-1 mt-2">Sección 1 — Departamentos</h5>
+
+            <t t-foreach="departments_data" t-as="dept_data">
+                <!-- Sub-título -->
+                <h6 class="mt-3 mb-1 fw-bold">
+                    <span t-esc="dept_data['department'].name"/>
+                </h6>
+                <p class="small text-muted mb-2">
+                    <strong>Configuración:</strong> <span t-esc="dept_data['config'].name"/> —
+                    <strong>Empresa:</strong> <span t-esc="dept_data['config'].company_id.name or 'N/A'"/> —
+                    <strong>Total:</strong>
+                    <span t-esc="dept_data['total_consumptions']"/> consumos /
+                    <strong><span t-esc="'{:,.2f}'.format(dept_data['total_amount'])"/> <span t-esc="dept_data['config'].currency_id.symbol"/></strong>
+                </p>
+
+                <!-- Tabla detallada -->
+                <t t-if="not wizard.group_by_employees">
+                    <table class="table table-sm table-borderless">
+                        <thead class="o_black_border">
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Referencia</th>
+                                <th>Empleado</th>
+                                <th class="text-end">Monto</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="dept_data['consumptions']" t-as="c">
+                                <tr>
+                                    <td><span t-out="c.consumption_date"/></td>
+                                    <td><span t-esc="c.name"/></td>
+                                    <td><span t-esc="c.employee_id.name or 'N/A'"/></td>
+                                    <td class="text-end">
+                                        <span t-esc="'{:,.2f}'.format(c.amount_total)"/>
+                                        <span t-esc="c.currency_id.symbol"/>
+                                    </td>
+                                </tr>
+                            </t>
+                            <tr class="o_total o_border_bottom fw-bold">
+                                <td colspan="3">Total</td>
+                                <td class="text-end">
+                                    <span t-esc="'{:,.2f}'.format(dept_data['total_amount'])"/>
+                                    <span t-esc="dept_data['config'].currency_id.symbol"/>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </t>
+
+                <!-- Tabla agrupada por empleado -->
+                <t t-if="wizard.group_by_employees and dept_data.get('employees')">
+                    <table class="table table-sm table-borderless">
+                        <thead class="o_black_border">
+                            <tr>
+                                <th>Empleado</th>
+                                <th>Primer Consumo</th>
+                                <th>Último Consumo</th>
+                                <th class="text-center">N° Consumos</th>
+                                <th class="text-end">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="dept_data['employees']" t-as="emp">
+                                <tr>
+                                    <td><span t-esc="emp['employee'].name"/></td>
+                                    <td><span t-out="emp['date_first']"/></td>
+                                    <td><span t-out="emp['date_last']"/></td>
+                                    <td class="text-center"><span t-esc="emp['total_count']"/></td>
+                                    <td class="text-end">
+                                        <span t-esc="'{:,.2f}'.format(emp['total_amount'])"/>
+                                        <span t-esc="dept_data['config'].currency_id.symbol"/>
+                                    </td>
+                                </tr>
+                            </t>
+                            <tr class="o_total o_border_bottom fw-bold">
+                                <td colspan="4">Total</td>
+                                <td class="text-end">
+                                    <span t-esc="'{:,.2f}'.format(dept_data['total_amount'])"/>
+                                    <span t-esc="dept_data['config'].currency_id.symbol"/>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </t>
+            </t>
+        </t>
+
+        <!-- Salto de página entre secciones -->
+        <t t-if="departments_data and partners_data">
+            <p style="page-break-after:always;"/>
+        </t>
+
+        <!-- ═══════════ SECCIÓN 2: CONTACTOS EMPRESA ═══════════ -->
+        <t t-if="partners_data">
+            <h5 class="border-bottom pb-1 mt-2">Sección 2 — Contactos Empresa</h5>
+
+            <t t-foreach="partners_data" t-as="partner_data">
+                <h6 class="mt-3 mb-1 fw-bold">
+                    <span t-esc="partner_data['partner'].name"/>
+                </h6>
+                <p class="small text-muted mb-2">
+                    <strong>Configuración:</strong> <span t-esc="partner_data['config'].name"/> —
+                    <strong>Empresa:</strong> <span t-esc="partner_data['partner'].name"/> —
+                    <strong>Total:</strong>
+                    <span t-esc="partner_data['total_consumptions']"/> consumos /
+                    <strong><span t-esc="'{:,.2f}'.format(partner_data['total_amount'])"/> <span t-esc="partner_data['config'].currency_id.symbol"/></strong>
+                </p>
+
+                <!-- Tabla detallada -->
+                <t t-if="not wizard.group_by_children">
+                    <table class="table table-sm table-borderless">
+                        <thead class="o_black_border">
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Referencia</th>
+                                <th>Contacto</th>
+                                <th class="text-end">Monto</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="partner_data['consumptions']" t-as="c">
+                                <tr>
+                                    <td><span t-out="c.consumption_date"/></td>
+                                    <td><span t-esc="c.name"/></td>
+                                    <td><span t-esc="c.partner_id.name or 'N/A'"/></td>
+                                    <td class="text-end">
+                                        <span t-esc="'{:,.2f}'.format(c.amount_total)"/>
+                                        <span t-esc="c.currency_id.symbol"/>
+                                    </td>
+                                </tr>
+                            </t>
+                            <tr class="o_total o_border_bottom fw-bold">
+                                <td colspan="3">Total</td>
+                                <td class="text-end">
+                                    <span t-esc="'{:,.2f}'.format(partner_data['total_amount'])"/>
+                                    <span t-esc="partner_data['config'].currency_id.symbol"/>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </t>
+
+                <!-- Tabla agrupada por contacto hijo -->
+                <t t-if="wizard.group_by_children and partner_data.get('children')">
+                    <table class="table table-sm table-borderless">
+                        <thead class="o_black_border">
+                            <tr>
+                                <th>Contacto</th>
+                                <th>Primer Consumo</th>
+                                <th>Último Consumo</th>
+                                <th class="text-center">N° Consumos</th>
+                                <th class="text-end">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="partner_data['children']" t-as="child">
+                                <tr>
+                                    <td><span t-esc="child['partner'].name"/></td>
+                                    <td><span t-out="child['date_first']"/></td>
+                                    <td><span t-out="child['date_last']"/></td>
+                                    <td class="text-center"><span t-esc="child['total_count']"/></td>
+                                    <td class="text-end">
+                                        <span t-esc="'{:,.2f}'.format(child['total_amount'])"/>
+                                        <span t-esc="partner_data['config'].currency_id.symbol"/>
+                                    </td>
+                                </tr>
+                            </t>
+                            <tr class="o_total o_border_bottom fw-bold">
+                                <td colspan="4">Total</td>
+                                <td class="text-end">
+                                    <span t-esc="'{:,.2f}'.format(partner_data['total_amount'])"/>
+                                    <span t-esc="partner_data['config'].currency_id.symbol"/>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </t>
+            </t>
+        </t>
+
+        <!-- ═══════════ RESUMEN CONSOLIDADO ═══════════ -->
+        <t t-if="departments_data or partners_data">
+            <t t-set="dept_total"    t-value="sum([d['total_amount'] for d in departments_data]) if departments_data else 0.0"/>
+            <t t-set="dept_count"    t-value="sum([d['total_consumptions'] for d in departments_data]) if departments_data else 0"/>
+            <t t-set="partner_total" t-value="sum([p['total_amount'] for p in partners_data]) if partners_data else 0.0"/>
+            <t t-set="partner_count" t-value="sum([p['total_consumptions'] for p in partners_data]) if partners_data else 0"/>
+            <t t-set="grand_total"   t-value="dept_total + partner_total"/>
+            <t t-set="grand_count"   t-value="dept_count + partner_count"/>
+            <t t-if="departments_data">
+                <t t-set="sym" t-value="departments_data[0]['config'].currency_id.symbol"/>
+            </t>
+            <t t-elif="partners_data">
+                <t t-set="sym" t-value="partners_data[0]['config'].currency_id.symbol"/>
+            </t>
+
+            <h5 class="border-bottom pb-1 mt-4">Resumen Consolidado</h5>
+            <table class="table table-sm table-borderless">
+                <thead class="o_black_border">
+                    <tr>
+                        <th>Sección</th>
+                        <th class="text-center">N° Consumos</th>
+                        <th class="text-end">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Departamentos</td>
+                        <td class="text-center"><span t-esc="dept_count"/></td>
+                        <td class="text-end"><span t-esc="'{:,.2f}'.format(dept_total)"/> <span t-esc="sym"/></td>
+                    </tr>
+                    <tr>
+                        <td>Contactos Empresa</td>
+                        <td class="text-center"><span t-esc="partner_count"/></td>
+                        <td class="text-end"><span t-esc="'{:,.2f}'.format(partner_total)"/> <span t-esc="sym"/></td>
+                    </tr>
+                    <tr class="o_total o_border_bottom fw-bold">
+                        <td>Total General</td>
+                        <td class="text-center"><span t-esc="grand_count"/></td>
+                        <td class="text-end"><span t-esc="'{:,.2f}'.format(grand_total)"/> <span t-esc="sym"/></td>
+                    </tr>
+                </tbody>
+            </table>
+        </t>
+    </template>
+
+</odoo>
