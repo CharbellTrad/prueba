@@ -1,156 +1,197 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-
-    <!--
-        Punto de entrada del reporte de estado de configuraciones.
-        Modelo: internal.consumption.config.report.wizard → variable: docs
-    -->
-    <template id="report_config_status_document">
+    <!-- ============================================================ -->
+    <!--  REPORTE DE ESTADO DE CONFIGURACIONES DE CONSUMO INTERNO     -->
+    <!-- ============================================================ -->
+    <template id="report_config_status_document_fixed">
         <t t-call="web.html_container">
-            <t t-foreach="docs" t-as="wizard">
+            <t t-foreach="docs" t-as="doc">
                 <t t-call="web.external_layout">
+                    <t t-set="cfg_data" t-value="doc._get_config_data()"/>
+                    <!-- Margen superior consistente -->
+                    <style>
+                        @page {
+                            margin-top: 45mm;
+                        }
+                    </style>
                     <div class="page">
 
-                        <!-- Encabezado -->
-                        <div class="row mb-3">
-                            <div class="col">
-                                <h4 class="mb-0">Estado de Configuraciones de Consumo Interno</h4>
-                                <t t-set="data" t-value="wizard._get_config_data()"/>
-                                <p class="text-muted mb-0">
-                                    <t t-if="data['report_all']">Todas las configuraciones activas — Período actual</t>
-                                    <t t-else="">Configuración específica</t>
-                                </p>
+                        <!-- Título principal -->
+                        <h3 class="text-center mb-2" style="font-weight: bold; border-bottom: 3px solid #000; padding-bottom: 6px; font-size: 1.5rem;">
+                            ESTADO DE CONFIGURACIONES DE CONSUMO INTERNO
+                        </h3>
+
+                        <!-- Meta info (Sin tablas, usando divs) -->
+                        <div style="font-size: 1.0rem; margin-bottom: 20px;">
+                            <!-- Línea 1: Tipo de Reporte -->
+                            <div style="margin-bottom: 6px;">
+                                <strong>Tipo de Reporte:</strong> 
+                                <t t-if="cfg_data.get('report_all')">Todas las Configuraciones (Período Actual)</t>
+                                <t t-else="">Configuración Específica</t>
+                            </div>
+                            
+                            <!-- Línea 2: Fecha (izq) y Usuario (der) -->
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <strong>Fecha de Emisión:</strong> <t t-out="doc.write_date.strftime('%d/%m/%Y %H:%M')"/>
+                                </div>
+                                <div>
+                                    <strong>Generado por:</strong> <t t-out="doc.env.user.name"/>
+                                </div>
                             </div>
                         </div>
-                        <hr class="mt-0"/>
+
+                        <hr style="border-top: 2px solid #000; margin: 6px 0 10px 0;"/>
 
                         <!-- Sin datos -->
-                        <t t-if="not data['configs_data']">
-                            <p class="text-muted fst-italic text-center py-4">
-                                No se encontraron configuraciones para los criterios seleccionados.
-                            </p>
-                        </t>
-
-                        <!-- Iterar configuraciones -->
-                        <t t-foreach="data['configs_data']" t-as="cfg">
-
-                            <!-- Título de la configuración -->
-                            <h5 class="border-bottom pb-1 mt-3">
-                                <span t-esc="cfg['config'].name"/>
-                                <small class="text-muted ms-2 fw-normal fs-6">
-                                    <t t-if="cfg['is_current_period']">Período Actual</t>
-                                    <t t-else=""><span t-esc="cfg['period_type_label']"/></t>
-                                </small>
-                            </h5>
-
-                            <!-- Información general: dos columnas -->
-                            <div class="row mb-3">
-                                <div class="col-6">
-                                    <table class="table table-sm table-borderless">
-                                        <tbody>
-                                            <tr>
-                                                <td class="fw-bold text-muted" style="width:45%;">Tipo:</td>
-                                                <td>
-                                                    <t t-if="cfg['config'].belongs_to_odoo">Departamento Interno</t>
-                                                    <t t-else="">Contacto Empresa</t>
-                                                </td>
-                                            </tr>
-                                            <t t-if="cfg['config'].belongs_to_odoo">
-                                                <tr>
-                                                    <td class="fw-bold text-muted">Departamento:</td>
-                                                    <td><span t-esc="cfg['config'].department_id.name or '—'"/></td>
-                                                </tr>
-                                                <tr>
-                                                    <td class="fw-bold text-muted">Empresa:</td>
-                                                    <td><span t-esc="cfg['config'].company_id.name or '—'"/></td>
-                                                </tr>
-                                            </t>
-                                            <t t-else="">
-                                                <tr>
-                                                    <td class="fw-bold text-muted">Contacto:</td>
-                                                    <td><span t-esc="cfg['config'].partner_id.name or '—'"/></td>
-                                                </tr>
-                                            </t>
-                                            <tr>
-                                                <td class="fw-bold text-muted">Tipo de Período:</td>
-                                                <td><span t-esc="cfg['config'].period_type"/></td>
-                                            </tr>
-                                            <tr>
-                                                <td class="fw-bold text-muted">Inicio:</td>
-                                                <td><span t-out="cfg['period_start']"/></td>
-                                            </tr>
-                                            <tr>
-                                                <td class="fw-bold text-muted">Fin:</td>
-                                                <td><span t-out="cfg['period_end']"/></td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                                <div class="col-6">
-                                    <table class="table table-sm table-borderless">
-                                        <tbody>
-                                            <tr>
-                                                <td class="fw-bold text-muted" style="width:55%;">Límite de Consumo:</td>
-                                                <td class="text-end">
-                                                    <span t-esc="'{:,.2f}'.format(cfg['config'].consumption_limit or 0.0)"/>
-                                                    <span t-esc="cfg['config'].currency_id.symbol"/>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td class="fw-bold text-muted">Consumido en el Período:</td>
-                                                <td class="text-end">
-                                                    <span t-esc="'{:,.2f}'.format(cfg['period_consumed'])"/>
-                                                    <span t-esc="cfg['config'].currency_id.symbol"/>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td class="fw-bold text-muted">N° de Consumos:</td>
-                                                <td class="text-end"><span t-esc="cfg['period_consumption_count']"/></td>
-                                            </tr>
-                                            <tr>
-                                                <td class="fw-bold text-muted">% Utilizado:</td>
-                                                <td class="text-end fw-bold">
-                                                    <span t-esc="'{:.1f}'.format(cfg['period_percentage'])"/>%
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
+                        <t t-if="not cfg_data.get('configs_data')">
+                            <div class="alert alert-warning" role="alert">
+                                <strong>Sin datos:</strong> No se encontraron configuraciones con los criterios seleccionados.
                             </div>
-
-                            <!-- Historial de Cambios (opcional) -->
-                            <t t-if="cfg.get('include_changelog') and cfg.get('changelog')">
-                                <h6 class="fw-bold mb-1">Historial de Cambios</h6>
-                                <table class="table table-sm table-borderless">
-                                    <thead class="o_black_border">
-                                        <tr>
-                                            <th>Fecha</th>
-                                            <th>Usuario</th>
-                                            <th>Campo</th>
-                                            <th>Valor Anterior</th>
-                                            <th>Valor Nuevo</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <t t-foreach="cfg['changelog']" t-as="log">
-                                            <tr>
-                                                <td><span t-out="log.change_date"/></td>
-                                                <td><span t-esc="log.user_id.name or '—'"/></td>
-                                                <td><span t-esc="log.field_name or '—'"/></td>
-                                                <td><span t-esc="log.old_value or '—'"/></td>
-                                                <td><span t-esc="log.new_value or '—'"/></td>
-                                            </tr>
-                                        </t>
-                                    </tbody>
-                                </table>
-                            </t>
-
-                            <!-- Salto de página entre configuraciones (excepto la última) -->
-                            <t t-if="not cfg_last">
-                                <p style="page-break-after:always;"/>
-                            </t>
-
                         </t>
+
+                        <!-- ── Por cada configuración ── -->
+                        <t t-foreach="cfg_data.get('configs_data', [])" t-as="ci">
+                            <!-- Salto de página antes de cada config (excepto la primera) -->
+                            <div t-att-style="'page-break-before: always;' if not ci_first else ''">
+                            
+                                <!-- Contenedor estilo Card (Sin padding interno para que header ocupe todo el ancho) -->
+                                <div style="border: 1px solid #e0e0e0; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 20px; overflow: hidden;">
+                                    
+                                    <!-- Header de la Card con color primario -->
+                                    <div t-attf-style="background-color: {{ doc.env.company.primary_color or '#888888' }}; color: #ffffff; padding: 15px; display: flex; justify-content: space-between; align-items: center;">
+                                        <h5 style="font-weight: bold; margin: 0; color: #ffffff;">
+                                            <t t-out="ci['config'].name"/>
+                                        </h5>
+                                        <span style="background-color: rgba(255,255,255,0.2); color: #ffffff; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase;">
+                                            ACTIVA
+                                        </span>
+                                    </div>
+
+                                    <!-- Cuerpo de la Card (con padding) -->
+                                    <div style="padding: 20px;">
+
+                                    <!-- Grid de Info -->
+                                    <div class="row mb-4">
+                                        <div class="col-6">
+                                            <div style="margin-bottom: 12px;">
+                                                <div style="font-size: 0.75rem; color: #888; text-transform: uppercase; margin-bottom: 2px;">ENTIDAD</div>
+                                                <div style="font-weight: bold; font-size: 1.1rem; color: #2c3e50;">
+                                                    <t t-if="ci['config'].belongs_to_odoo">
+                                                        <t t-out="ci['config'].department_id.name"/> (Departamento)
+                                                    </t>
+                                                    <t t-else="">
+                                                        <t t-out="ci['config'].partner_id.name"/> (Contacto)
+                                                    </t>
+                                                </div>
+                                            </div>
+                                            <div style="margin-bottom: 12px;">
+                                                <div style="font-size: 0.75rem; color: #888; text-transform: uppercase; margin-bottom: 2px;">EMPRESA ODOO</div>
+                                                <div style="font-size: 1.0rem;">
+                                                    <t t-out="doc.env.company.name"/>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <div style="font-size: 0.75rem; color: #888; text-transform: uppercase; margin-bottom: 2px;">CUENTA ANALÍTICA / CONTABLE</div>
+                                                <div style="font-size: 1.0rem;">
+                                                    <t t-if="ci['config'].account_id">
+                                                        <t t-out="ci['config'].account_id.code"/> - <t t-out="ci['config'].account_id.name"/>
+                                                    </t>
+                                                    <t t-else="">-</t>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div style="margin-bottom: 12px;">
+                                                <div style="font-size: 0.75rem; color: #888; text-transform: uppercase; margin-bottom: 2px;">PERÍODO CONFIGURADO</div>
+                                                <div style="font-size: 1.0rem;">
+                                                    <t t-out="ci['config'].period_value"/> <span t-field="ci['config'].period_type"/>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <div style="font-size: 0.75rem; color: #888; text-transform: uppercase; margin-bottom: 2px;">RANGO DE FECHAS (EVALUADO)</div>
+                                                <div style="font-size: 1.0rem;">
+                                                    <t t-out="ci.get('period_start').strftime('%d/%m/%Y %H:%M')"/> al <t t-out="ci.get('period_end').strftime('%d/%m/%Y %H:%M')"/>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Sección Consumo y Límites -->
+                                    <div style="background-color: #f8f9fa; border-radius: 6px; padding: 15px; border: 1px solid #eee;">
+                                        <div style="font-size: 0.8rem; color: #666; font-weight: bold; text-transform: uppercase; margin-bottom: 10px;">
+                                            CONSUMO Y LÍMITES
+                                        </div>
+                                        
+                                        <hr style="border-top: 1px solid #e0e0e0; margin: 0 0 10px 0;"/>
+
+                                        <div class="row">
+                                            <div class="col-12">
+                                                <div style="margin-bottom: 6px;">
+                                                    Consumido en este período: <strong style="font-size: 1.1rem;"><t t-out="'${:,.2f}'.format(ci.get('period_consumed', 0))"/></strong>
+                                                </div>
+                                                
+                                                <t t-if="ci['config'].consumption_limit and ci['config'].consumption_limit > 0">
+                                                    <div style="margin-bottom: 8px;">
+                                                        Límite Total: <strong><t t-out="'${:,.2f}'.format(ci['config'].consumption_limit)"/></strong>
+                                                    </div>
+
+                                                    <!-- Barra de Progreso -->
+                                                    <t t-set="pct" t-value="min(ci.get('period_percentage', 0), 100)"/>
+                                                    <t t-set="bar_color" t-value="'#dc3545' if pct >= 90 else ('#ffc107' if pct >= 70 else '#28a745')"/>
+                                                    
+                                                    <div style="height: 8px; width: 100%; background-color: #e9ecef; border-radius: 4px; overflow: hidden; margin-bottom: 8px;">
+                                                        <div t-attf-style="width: {{ pct }}%; background-color: {{ bar_color }}; height: 100%;"></div>
+                                                    </div>
+                                                    
+                                                    <div style="color: #666;">
+                                                        Disponible: <strong><t t-out="'${:,.2f}'.format(max(ci['config'].consumption_limit - ci.get('period_consumed', 0), 0))"/></strong>
+                                                    </div>
+                                                </t>
+                                                <t t-else="">
+                                                    <div style="font-style: italic; color: #666;">Sin límite de consumo configurado</div>
+                                                </t>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    </div>
+                                </div>
+
+                                <!-- (Tabla de consumos eliminada por solicitud) -->
+
+                                <!-- Historial de cambios (opcional) -->
+                                <t t-if="ci.get('include_changelog') and ci.get('changelog')">
+                                    <h6 style="font-weight: bold; padding-bottom: 2px; margin-bottom: 8px; font-size: 0.88rem; margin-top: 20px;">
+                                        HISTORIAL DE CAMBIOS EN LA CONFIGURACIÓN
+                                    </h6>
+                                    
+                                    <table class="table table-sm table-bordered mb-0">
+                                        <thead t-attf-style="background-color: #dddddd; color: #333;">
+                                            <tr>
+                                                <th style="padding: 8px; width: 18%;">Fecha</th>
+                                                <th style="padding: 8px; width: 20%;">Campo</th>
+                                                <th style="padding: 8px; width: 26%;">Valor Anterior</th>
+                                                <th style="padding: 8px; width: 26%;">Valor Nuevo</th>
+                                                <th style="padding: 8px; width: 10%;">Usuario</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <t t-foreach="ci['changelog']" t-as="log">
+                                                <tr t-att-style="'background-color: #f9f9f9;' if log_index % 2 == 1 else ''">
+                                                    <td style="padding: 8px;"><t t-out="log.change_date.strftime('%d/%m/%Y %H:%M')"/></td>
+                                                    <td style="padding: 8px;"><t t-out="log.field_name"/></td>
+                                                    <td style="padding: 8px;"><t t-out="log.old_value"/></td>
+                                                    <td style="padding: 8px;"><t t-out="log.new_value"/></td>
+                                                    <td style="padding: 8px;"><t t-out="log.user_id.name if log.user_id else '-'"/></td>
+                                                </tr>
+                                            </t>
+                                        </tbody>
+                                    </table>
+                                </t>
+                            </div>
+                        </t>
+
                     </div>
                 </t>
             </t>

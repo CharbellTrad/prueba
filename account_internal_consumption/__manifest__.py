@@ -15,7 +15,7 @@
         - Validaciones de límite en tiempo real
         - Sistema de auditoría completo
         - Dashboard con indicadores visuales
-        - Reportes en Excel y PDF
+        - Reportes en PDF
         - Log de cambios en configuración
     """,
     'author': 'Dataliza',
@@ -44,10 +44,7 @@
         'wizard/internal_consumption_report_wizard_views.xml',
         'wizard/internal_consumption_config_report_wizard_views.xml',
         'reports/report_actions.xml',
-        'reports/report_consumption_base.xml',
-        'reports/report_consumption_by_department.xml',
-        'reports/report_consumption_by_partner.xml',
-        'reports/report_consumption_consolidated.xml',
+        'reports/report_consumption.xml',
         'reports/report_config_status.xml',
         'views/menu.xml',
     ],

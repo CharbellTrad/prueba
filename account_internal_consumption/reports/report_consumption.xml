@@ -1,0 +1,513 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ============================================================ -->
+    <!--  PLANTILLA PRINCIPAL — REPORTE DE CONSUMOS INTERNOS          -->
+    <!-- ============================================================ -->
+    <template id="report_consumption_document">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="web.external_layout">
+                    <style>
+                        @page {
+                            margin-top: 45mm;
+                        }
+                    </style>
+                    <!-- ======================================================= -->
+                    <!-- REPORTE POR DEPARTAMENTOS                                -->
+                    <!-- ======================================================= -->
+                    <t t-if="doc.report_type == 'department'">
+                        <t t-set="dept_data" t-value="doc._get_consumptions_by_department()"/>
+                        <div class="page">
+
+                            <h3 class="text-center" style="font-weight: bold; font-size: 1.5rem;">
+                                REPORTE DE CONSUMOS INTERNOS — POR DEPARTAMENTO
+                            </h3>
+                            <hr style="margin: 4px 0 8px 0;"/>
+
+                            <div class="d-flex justify-content-between" style="font-size: 1.0rem; margin-bottom: 16px; color: #444;">
+                                <div>
+                                    <strong>Período:</strong>
+                                    <t t-out="doc.date_from.strftime('%d/%m/%Y')"/> — <t t-out="doc.date_to.strftime('%d/%m/%Y')"/>
+                                </div>
+                                <div>
+                                    <strong>Emisión:</strong> <t t-out="doc.write_date.strftime('%d/%m/%Y %H:%M')"/>
+                                </div>
+                            </div>
+
+                            <t t-if="not dept_data">
+                                <p class="text-center text-muted"><em>Sin consumos para el período seleccionado.</em></p>
+                            </t>
+
+                            <t t-foreach="dept_data" t-as="dpt">
+                                <div t-attf-style="#{'' if dpt_index == 0 else 'page-break-before: always;'}">
+
+                                    <!-- Encabezado -->
+                                    <div t-attf-style="background-color: #{doc.env.company.primary_color}; color: white; padding: 5px 12px;">
+                                        <strong style="font-size: 1.2rem;">DEPARTAMENTO: <t t-out="dpt['department'].name"/></strong>
+                                    </div>
+
+                                    <!-- Detalles (sangría sin borde) -->
+                                    <div style="font-size: 1.0rem; padding: 5px 12px 6px 20px;">
+                                        <strong>Configuración:</strong> <t t-out="dpt['config'].name"/><br/>
+                                        <strong>Empresa:</strong> <t t-out="dpt['config'].company_id.name if dpt['config'].company_id else '-'"/><br/>
+                                        <strong>Total consumos:</strong> <t t-out="dpt['total_consumptions']"/> registros<br/>
+                                        <strong>Total:</strong> <t t-out="'${:,.2f}'.format(dpt['total_amount'])"/>
+                                    </div>
+
+                                    <!-- Tabla (sangría izquierda) -->
+                                    <div style="margin-left: 20px;">
+                                        <!-- Agrupado: totales por empleado -->
+                                        <t t-if="doc.group_by_employees and dpt.get('employees')">
+                                            <table class="table table-sm table-bordered mb-0">
+                                                <thead t-attf-style="background-color: #dddddd; color: #333;">
+                                                    <tr>
+                                                        <th>Empleado</th>
+                                                        <th class="text-end">Consumos</th>
+                                                        <th>Primer Consumo</th>
+                                                        <th>Último Consumo</th>
+                                                        <th class="text-end">Total</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <t t-foreach="dpt['employees']" t-as="emp_row">
+                                                        <tr>
+                                                            <td><t t-out="emp_row['employee'].name"/></td>
+                                                            <td class="text-end"><t t-out="emp_row['total_count']"/></td>
+                                                            <td><t t-out="emp_row['date_first'].strftime('%d/%m/%Y')"/></td>
+                                                            <td><t t-out="emp_row['date_last'].strftime('%d/%m/%Y')"/></td>
+                                                            <td class="text-end"><t t-out="'${:,.2f}'.format(emp_row['total_amount'])"/></td>
+                                                        </tr>
+                                                    </t>
+                                                    <tr class="fw-bold table-active">
+                                                        <td colspan="4" class="text-end">TOTAL DEPARTAMENTO:</td>
+                                                        <td class="text-end"><t t-out="'${:,.2f}'.format(dpt['total_amount'])"/></td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </t>
+                                        <!-- Sin agrupación: detalle (sin columna Contacto) -->
+                                        <t t-else="">
+                                            <table class="table table-sm table-bordered mb-0">
+                                                <thead t-attf-style="background-color: #dddddd; color: #333;">
+                                                    <tr>
+                                                        <th style="width: 18%;">Fecha</th>
+                                                        <th style="width: 16%;">Referencia</th>
+                                                        <th style="width: 30%;">Empleado</th>
+                                                        <th style="width: 24%;">Punto de Venta</th>
+                                                        <th class="text-end" style="width: 12%;">Monto</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <t t-foreach="dpt['consumptions']" t-as="c">
+                                                        <tr>
+                                                            <td><t t-out="c.consumption_date.strftime('%d/%m/%Y %H:%M')"/></td>
+                                                            <td><t t-out="c.name"/></td>
+                                                            <td><t t-out="c.employee_id.name if c.employee_id else '-'"/></td>
+                                                            <td><t t-out="c.pos_config_id.name if c.pos_config_id else '-'"/></td>
+                                                            <td class="text-end"><t t-out="'${:,.2f}'.format(c.amount_total)"/></td>
+                                                        </tr>
+                                                    </t>
+                                                    <tr class="fw-bold table-active">
+                                                        <td colspan="4" class="text-end">TOTAL DEPARTAMENTO:</td>
+                                                        <td class="text-end"><t t-out="'${:,.2f}'.format(dpt['total_amount'])"/></td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </t>
+                                    </div>
+
+                                </div>
+                            </t>
+
+                            <!-- Resumen al final -->
+                            <t t-if="len(dept_data) > 1">
+                                <div style="margin-top: 24px; page-break-before: always;">
+                                    <h6 class="fw-bold text-center mb-2" style="font-size: 1.15rem;">RESUMEN GENERAL POR DEPARTAMENTO</h6>
+                                    <table class="table table-sm table-bordered">
+                                        <thead t-attf-style="background-color: #dddddd; color: #333;">
+                                            <tr>
+                                                <th>Departamento</th>
+                                                <th>Configuración</th>
+                                                <th class="text-end">Consumos</th>
+                                                <th class="text-end">Total</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <t t-foreach="dept_data" t-as="dpt">
+                                                <tr>
+                                                    <td><t t-out="dpt['department'].name"/></td>
+                                                    <td><t t-out="dpt['config'].name"/></td>
+                                                    <td class="text-end"><t t-out="dpt['total_consumptions']"/></td>
+                                                    <td class="text-end"><t t-out="'${:,.2f}'.format(dpt['total_amount'])"/></td>
+                                                </tr>
+                                            </t>
+                                            <tr class="fw-bold table-active">
+                                                <td colspan="3" class="text-end">TOTAL GENERAL:</td>
+                                                <td class="text-end"><t t-out="'${:,.2f}'.format(sum(d['total_amount'] for d in dept_data))"/></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </t>
+
+                        </div>
+                    </t>
+
+                    <!-- ======================================================= -->
+                    <!-- REPORTE POR CONTACTOS EMPRESA                           -->
+                    <!-- ======================================================= -->
+                    <t t-if="doc.report_type == 'partner'">
+                        <t t-set="partner_data" t-value="doc._get_consumptions_by_partner()"/>
+                        <div class="page">
+
+                            <h3 class="text-center" style="font-weight: bold; font-size: 1.5rem;">
+                                REPORTE DE CONSUMOS INTERNOS — POR CONTACTO EMPRESA
+                            </h3>
+                            <hr style="margin: 4px 0 8px 0;"/>
+
+                            <div class="d-flex justify-content-between" style="font-size: 1.0rem; margin-bottom: 16px; color: #444;">
+                                <div>
+                                    <strong>Período:</strong>
+                                    <t t-out="doc.date_from.strftime('%d/%m/%Y')"/> — <t t-out="doc.date_to.strftime('%d/%m/%Y')"/>
+                                </div>
+                                <div>
+                                    <strong>Emisión:</strong> <t t-out="doc.write_date.strftime('%d/%m/%Y %H:%M')"/>
+                                </div>
+                            </div>
+
+                            <t t-if="not partner_data">
+                                <p class="text-center text-muted"><em>Sin consumos para el período seleccionado.</em></p>
+                            </t>
+
+                            <t t-foreach="partner_data" t-as="prt">
+                                <div t-attf-style="#{'' if prt_index == 0 else 'page-break-before: always;'}">
+
+                                    <!-- Encabezado -->
+                                    <div t-attf-style="background-color: #{doc.env.company.primary_color}; color: white; padding: 5px 12px;">
+                                        <strong style="font-size: 1.2rem;">EMPRESA: <t t-out="prt['partner'].name"/></strong>
+                                    </div>
+
+                                    <!-- Detalles (sangría sin borde) -->
+                                    <div style="font-size: 1.0rem; padding: 5px 12px 6px 20px;">
+                                        <strong>Configuración:</strong> <t t-out="prt['config'].name"/><br/>
+                                        <strong>Empresa:</strong> <t t-out="prt['partner'].commercial_company_name or prt['partner'].name"/><br/>
+                                        <strong>Total consumos:</strong> <t t-out="prt['total_consumptions']"/> registros<br/>
+                                        <strong>Total:</strong> <t t-out="'${:,.2f}'.format(prt['total_amount'])"/>
+                                    </div>
+
+                                    <!-- Tabla -->
+                                    <div style="margin-left: 20px;">
+                                        <!-- Agrupado: totales por contacto hijo -->
+                                        <t t-if="doc.group_by_children and prt.get('children')">
+                                            <table class="table table-sm table-bordered mb-0">
+                                                <thead t-attf-style="background-color: #dddddd; color: #333;">
+                                                    <tr>
+                                                        <th>Contacto</th>
+                                                        <th class="text-end">Consumos</th>
+                                                        <th>Primer Consumo</th>
+                                                        <th>Último Consumo</th>
+                                                        <th class="text-end">Total</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <t t-foreach="prt['children']" t-as="child_row">
+                                                        <tr>
+                                                            <td><t t-out="child_row['partner'].name"/></td>
+                                                            <td class="text-end"><t t-out="child_row['total_count']"/></td>
+                                                            <td><t t-out="child_row['date_first'].strftime('%d/%m/%Y')"/></td>
+                                                            <td><t t-out="child_row['date_last'].strftime('%d/%m/%Y')"/></td>
+                                                            <td class="text-end"><t t-out="'${:,.2f}'.format(child_row['total_amount'])"/></td>
+                                                        </tr>
+                                                    </t>
+                                                    <tr class="fw-bold table-active">
+                                                        <td colspan="4" class="text-end">TOTAL EMPRESA:</td>
+                                                        <td class="text-end"><t t-out="'${:,.2f}'.format(prt['total_amount'])"/></td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </t>
+                                        <!-- Sin agrupación: detalle -->
+                                        <t t-else="">
+                                            <table class="table table-sm table-bordered mb-0">
+                                                <thead t-attf-style="background-color: #dddddd; color: #333;">
+                                                    <tr>
+                                                        <th style="width: 18%;">Fecha</th>
+                                                        <th style="width: 14%;">Referencia</th>
+                                                        <th style="width: 38%;">Contacto</th>
+                                                        <th style="width: 18%;">Punto de Venta</th>
+                                                        <th class="text-end" style="width: 12%;">Monto</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <t t-foreach="prt['consumptions']" t-as="c">
+                                                        <tr>
+                                                            <td><t t-out="c.consumption_date.strftime('%d/%m/%Y %H:%M')"/></td>
+                                                            <td><t t-out="c.name"/></td>
+                                                            <td><t t-out="c.partner_id.name"/></td>
+                                                            <td><t t-out="c.pos_config_id.name if c.pos_config_id else '-'"/></td>
+                                                            <td class="text-end"><t t-out="'${:,.2f}'.format(c.amount_total)"/></td>
+                                                        </tr>
+                                                    </t>
+                                                    <tr class="fw-bold table-active">
+                                                        <td colspan="4" class="text-end">TOTAL EMPRESA:</td>
+                                                        <td class="text-end"><t t-out="'${:,.2f}'.format(prt['total_amount'])"/></td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </t>
+                                    </div>
+
+                                </div>
+                            </t>
+
+                            <!-- Resumen al final -->
+                            <t t-if="len(partner_data) > 1">
+                                <div style="margin-top: 24px; page-break-before: always;">
+                                    <h6 class="fw-bold text-center mb-2" style="font-size: 1.15rem;">RESUMEN GENERAL POR EMPRESA</h6>
+                                    <table class="table table-sm table-bordered">
+                                        <thead t-attf-style="background-color: #dddddd; color: #333;">
+                                            <tr>
+                                                <th>Empresa</th>
+                                                <th>Configuración</th>
+                                                <th class="text-end">Consumos</th>
+                                                <th class="text-end">Total</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <t t-foreach="partner_data" t-as="prt">
+                                                <tr>
+                                                    <td><t t-out="prt['partner'].name"/></td>
+                                                    <td><t t-out="prt['config'].name"/></td>
+                                                    <td class="text-end"><t t-out="prt['total_consumptions']"/></td>
+                                                    <td class="text-end"><t t-out="'${:,.2f}'.format(prt['total_amount'])"/></td>
+                                                </tr>
+                                            </t>
+                                            <tr class="fw-bold table-active">
+                                                <td colspan="3" class="text-end">TOTAL GENERAL:</td>
+                                                <td class="text-end"><t t-out="'${:,.2f}'.format(sum(p['total_amount'] for p in partner_data))"/></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </t>
+
+                        </div>
+                    </t>
+
+                    <!-- ======================================================= -->
+                    <!-- REPORTE CONSOLIDADO                                      -->
+                    <!-- ======================================================= -->
+                    <t t-if="doc.report_type == 'consolidated'">
+                        <t t-set="dept_data" t-value="doc._get_consumptions_by_department()"/>
+                        <t t-set="partner_data" t-value="doc._get_consumptions_by_partner()"/>
+                        <div class="page">
+
+                            <h3 class="text-center" style="font-weight: bold; font-size: 1.5rem;">
+                                REPORTE CONSOLIDADO DE CONSUMOS INTERNOS
+                            </h3>
+                            <hr style="margin: 4px 0 8px 0;"/>
+
+                            <div class="d-flex justify-content-between" style="font-size: 1.0rem; margin-bottom: 16px; color: #444;">
+                                <div>
+                                    <strong>Período:</strong>
+                                    <t t-out="doc.date_from.strftime('%d/%m/%Y')"/> — <t t-out="doc.date_to.strftime('%d/%m/%Y')"/>
+                                </div>
+                                <div>
+                                    <strong>Emisión:</strong> <t t-out="doc.write_date.strftime('%d/%m/%Y %H:%M')"/>
+                                </div>
+                            </div>
+
+                            <!-- Departamentos -->
+                            <t t-if="dept_data">
+                                <h5 class="fw-bold mb-2">DEPARTAMENTOS INTERNOS</h5>
+                                <t t-foreach="dept_data" t-as="dpt">
+                                    <div style="margin-bottom: 14px;" t-attf-style="#{'' if dpt_index == 0 else 'page-break-before: always;'}">
+                                        <div t-attf-style="background-color: #{doc.env.company.primary_color}; color: white; padding: 4px 12px;">
+                                            <strong style="font-size: 1.2rem;">DPTO: <t t-out="dpt['department'].name"/></strong>
+                                        </div>
+                                        <div style="font-size: 1.0rem; padding: 4px 12px 5px 20px;">
+                                            <strong>Configuración:</strong> <t t-out="dpt['config'].name"/><br/>
+                                            <strong>Empresa:</strong> <t t-out="dpt['config'].company_id.name if dpt['config'].company_id else '-'"/><br/>
+                                            <strong>Total consumos:</strong> <t t-out="dpt['total_consumptions']"/> registros&#160;&#160;|&#160;&#160;<strong>Total:</strong> <t t-out="'${:,.2f}'.format(dpt['total_amount'])"/>
+                                        </div>
+                                        <div style="margin-left: 20px;">
+                                            <t t-if="doc.group_by_employees and dpt.get('employees')">
+                                                <table class="table table-sm table-bordered mt-1 mb-0">
+                                                    <thead t-attf-style="background-color: #dddddd; color: #333;">
+                                                        <tr>
+                                                            <th>Empleado</th>
+                                                            <th class="text-end">Consumos</th>
+                                                            <th>Primer Consumo</th>
+                                                            <th>Último Consumo</th>
+                                                            <th class="text-end">Total</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <t t-foreach="dpt['employees']" t-as="emp_row">
+                                                            <tr>
+                                                                <td><t t-out="emp_row['employee'].name"/></td>
+                                                                <td class="text-end"><t t-out="emp_row['total_count']"/></td>
+                                                                <td><t t-out="emp_row['date_first'].strftime('%d/%m/%Y')"/></td>
+                                                                <td><t t-out="emp_row['date_last'].strftime('%d/%m/%Y')"/></td>
+                                                                <td class="text-end"><t t-out="'${:,.2f}'.format(emp_row['total_amount'])"/></td>
+                                                            </tr>
+                                                        </t>
+                                                        <tr class="fw-bold table-active">
+                                                            <td colspan="4" class="text-end">TOTAL:</td>
+                                                            <td class="text-end"><t t-out="'${:,.2f}'.format(dpt['total_amount'])"/></td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </t>
+                                            <t t-else="">
+                                                <table class="table table-sm table-bordered mt-1 mb-0">
+                                                    <thead t-attf-style="background-color: #dddddd; color: #333;">
+                                                        <tr>
+                                                            <th style="width: 18%;">Fecha</th>
+                                                            <th style="width: 16%;">Referencia</th>
+                                                            <th style="width: 30%;">Empleado</th>
+                                                            <th style="width: 24%;">POS</th>
+                                                            <th class="text-end" style="width: 12%;">Monto</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <t t-foreach="dpt['consumptions']" t-as="c">
+                                                            <tr>
+                                                                <td><t t-out="c.consumption_date.strftime('%d/%m/%Y')"/></td>
+                                                                <td><t t-out="c.name"/></td>
+                                                                <td><t t-out="c.employee_id.name if c.employee_id else '-'"/></td>
+                                                                <td><t t-out="c.pos_config_id.name if c.pos_config_id else '-'"/></td>
+                                                                <td class="text-end"><t t-out="'${:,.2f}'.format(c.amount_total)"/></td>
+                                                            </tr>
+                                                        </t>
+                                                        <tr class="fw-bold table-active">
+                                                            <td colspan="4" class="text-end">TOTAL:</td>
+                                                            <td class="text-end"><t t-out="'${:,.2f}'.format(dpt['total_amount'])"/></td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </t>
+                                        </div>
+                                    </div>
+                                </t>
+                            </t>
+
+                            <!-- Contactos Externos -->
+                            <t t-if="partner_data">
+                                <h5 class="fw-bold mb-2" style="page-break-before: always;">CONTACTOS EXTERNOS (EMPRESAS)</h5>
+                                <t t-foreach="partner_data" t-as="prt">
+                                    <div style="margin-bottom: 14px;" t-attf-style="#{'' if prt_index == 0 else 'page-break-before: always;'}">
+                                        <div t-attf-style="background-color: #{doc.env.company.primary_color}; color: white; padding: 4px 12px;">
+                                            <strong style="font-size: 1.2rem;">EMPRESA: <t t-out="prt['partner'].name"/></strong>
+                                        </div>
+                                        <div style="font-size: 1.0rem; padding: 4px 12px 5px 20px;">
+                                            <strong>Configuración:</strong> <t t-out="prt['config'].name"/><br/>
+                                            <strong>Empresa:</strong> <t t-out="prt['partner'].commercial_company_name or prt['partner'].name"/><br/>
+                                            <strong>Total consumos:</strong> <t t-out="prt['total_consumptions']"/> registros&#160;&#160;|&#160;&#160;<strong>Total:</strong> <t t-out="'${:,.2f}'.format(prt['total_amount'])"/>
+                                        </div>
+                                        <div style="margin-left: 20px;">
+                                            <t t-if="doc.group_by_children and prt.get('children')">
+                                                <table class="table table-sm table-bordered mt-1 mb-0">
+                                                    <thead t-attf-style="background-color: #dddddd; color: #333;">
+                                                        <tr>
+                                                            <th>Contacto</th>
+                                                            <th class="text-end">Consumos</th>
+                                                            <th>Primer Consumo</th>
+                                                            <th>Último Consumo</th>
+                                                            <th class="text-end">Total</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <t t-foreach="prt['children']" t-as="child_row">
+                                                            <tr>
+                                                                <td><t t-out="child_row['partner'].name"/></td>
+                                                                <td class="text-end"><t t-out="child_row['total_count']"/></td>
+                                                                <td><t t-out="child_row['date_first'].strftime('%d/%m/%Y')"/></td>
+                                                                <td><t t-out="child_row['date_last'].strftime('%d/%m/%Y')"/></td>
+                                                                <td class="text-end"><t t-out="'${:,.2f}'.format(child_row['total_amount'])"/></td>
+                                                            </tr>
+                                                        </t>
+                                                        <tr class="fw-bold table-active">
+                                                            <td colspan="4" class="text-end">TOTAL:</td>
+                                                            <td class="text-end"><t t-out="'${:,.2f}'.format(prt['total_amount'])"/></td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </t>
+                                            <t t-else="">
+                                                <table class="table table-sm table-bordered mt-1 mb-0">
+                                                    <thead t-attf-style="background-color: #dddddd; color: #333;">
+                                                        <tr>
+                                                            <th style="width: 18%;">Fecha</th>
+                                                            <th style="width: 14%;">Referencia</th>
+                                                            <th style="width: 38%;">Contacto</th>
+                                                            <th style="width: 18%;">POS</th>
+                                                            <th class="text-end" style="width: 12%;">Monto</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <t t-foreach="prt['consumptions']" t-as="c">
+                                                            <tr>
+                                                                <td><t t-out="c.consumption_date.strftime('%d/%m/%Y')"/></td>
+                                                                <td><t t-out="c.name"/></td>
+                                                                <td><t t-out="c.partner_id.name"/></td>
+                                                                <td><t t-out="c.pos_config_id.name if c.pos_config_id else '-'"/></td>
+                                                                <td class="text-end"><t t-out="'${:,.2f}'.format(c.amount_total)"/></td>
+                                                            </tr>
+                                                        </t>
+                                                        <tr class="fw-bold table-active">
+                                                            <td colspan="4" class="text-end">TOTAL:</td>
+                                                            <td class="text-end"><t t-out="'${:,.2f}'.format(prt['total_amount'])"/></td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </t>
+                                        </div>
+                                    </div>
+                                </t>
+                            </t>
+
+                            <!-- Resumen ejecutivo al final -->
+                            <div style="page-break-before: always;">
+                                <h6 class="fw-bold text-center mb-2" style="font-size: 1.15rem;">RESUMEN EJECUTIVO</h6>
+                                <table class="table table-sm table-bordered">
+                                    <thead t-attf-style="background-color: #dddddd; color: #333;">
+                                        <tr>
+                                            <th>Categoría</th>
+                                            <th class="text-end">Grupos</th>
+                                            <th class="text-end">Registros</th>
+                                            <th class="text-end">Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>Departamentos Internos</td>
+                                            <td class="text-end"><t t-out="len(dept_data)"/></td>
+                                            <td class="text-end"><t t-out="sum(d['total_consumptions'] for d in dept_data)"/></td>
+                                            <td class="text-end"><t t-out="'${:,.2f}'.format(sum(d['total_amount'] for d in dept_data))"/></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Contactos Externos (Empresas)</td>
+                                            <td class="text-end"><t t-out="len(partner_data)"/></td>
+                                            <td class="text-end"><t t-out="sum(p['total_consumptions'] for p in partner_data)"/></td>
+                                            <td class="text-end"><t t-out="'${:,.2f}'.format(sum(p['total_amount'] for p in partner_data))"/></td>
+                                        </tr>
+                                        <tr class="fw-bold table-active">
+                                            <td>GRAN TOTAL</td>
+                                            <td class="text-end"><t t-out="len(dept_data) + len(partner_data)"/></td>
+                                            <td class="text-end"><t t-out="sum(d['total_consumptions'] for d in dept_data) + sum(p['total_consumptions'] for p in partner_data)"/></td>
+                                            <td class="text-end"><t t-out="'${:,.2f}'.format(sum(d['total_amount'] for d in dept_data) + sum(p['total_amount'] for p in partner_data))"/></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                        </div>
+                    </t>
+
+                </t>
+            </t>
+        </t>
+    </template>
+
+</odoo>

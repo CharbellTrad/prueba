@@ -17,8 +17,8 @@
         <field name="name">Reporte de Estado de Configuraciones</field>
         <field name="model">internal.consumption.config.report.wizard</field>
         <field name="report_type">qweb-pdf</field>
-        <field name="report_name">account_internal_consumption.report_config_status_document</field>
-        <field name="report_file">account_internal_consumption.report_config_status_document</field>
+        <field name="report_name">account_internal_consumption.report_config_status_document_fixed</field>
+        <field name="report_file">account_internal_consumption.report_config_status_document_fixed</field>
         <field name="binding_model_id" ref="model_internal_consumption_config_report_wizard"/>
         <field name="binding_type">report</field>
         <field name="paperformat_id" ref="base.paperformat_us"/>

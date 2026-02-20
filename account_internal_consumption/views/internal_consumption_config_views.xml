@@ -52,8 +52,8 @@
                             <field name="available_limit"/>
                             <label for="period_value" string="Período de Reinicio"/>
                             <div class="d-flex gap-2 align-items-center">
-                                <field name="period_value" class="oe_inline"/>
-                                <field name="period_type" class="oe_inline"/>
+                                <field name="period_value" class="oe_inline" readonly="audit_count &gt; 0"/>
+                                <field name="period_type" class="oe_inline" readonly="audit_count &gt; 0"/>
                             </div>
                         </group>
                     </group>

@@ -27,11 +27,11 @@ class InternalConsumptionConfigReportWizard(models.TransientModel):
     # Selección de configuración
     config_id = fields.Many2one(
         'internal.consumption.config',
-        string='Configuración',
+        string='Configuración Específica',
         help='Seleccione una configuración específica o deje vacío para todas.',
     )
     report_all = fields.Boolean(
-        string='Reportar Todas las Configuraciones',
+        string='Todas las Configuraciones',
         default=False,
         help='Generar reporte de todas las configuraciones activas. Si se marca, solo se mostrará el período actual.',
     )
@@ -70,12 +70,16 @@ class InternalConsumptionConfigReportWizard(models.TransientModel):
         Calcula y genera los períodos históricos disponibles para la configuración seleccionada.
         Genera DATETIMES con zona horaria correcta para coincidir con la lógica del modelo config.
         """
-        self.report_all = False
+        # Limpiar periodos siempre
         self.selected_period_id = False
         self.available_period_ids = [(5, 0, 0)]  # Limpiar anteriores
         
         if not self.config_id:
+            # Si config_id está vacío, no tocamos report_all (evita revertir si fue report_all)
             return
+
+        # Solo si hay configuración seleccionada, desactivamos "Reportar Todas"
+        self.report_all = False
 
         config = self.config_id
         
@@ -179,9 +183,6 @@ class InternalConsumptionConfigReportWizard(models.TransientModel):
         """Genera el reporte PDF de configuraciones"""
         self.ensure_one()
         
-        # Validación implícita por 'required' en la vista XML o aquí si fallara
-        # (El usuario pidió quitar UserError explícito si se puede manejar con required)
-        
         return self.env.ref('account_internal_consumption.action_report_config_status').report_action(self)
 
     def _get_config_data(self):
@@ -249,7 +250,7 @@ class InternalConsumptionConfigReportWizard(models.TransientModel):
             'period_start': start_dt,
             'period_end': end_dt,
             'is_current_period': is_current,
-            'period_type_label': period_name, # Para mostrar en el reporte ej: "Enero 2025"
+            'period_type_label': period_name, 
             'include_changelog': self.include_changelog,
         }
 

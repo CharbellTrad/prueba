@@ -54,7 +54,6 @@ class InternalConsumptionReportWizard(models.TransientModel):
         default=lambda self: self._default_date_to(),
     )
 
-    # "Agrupar" en lugar de "Desglosar"
     group_by_employees = fields.Boolean(
         string='Agrupar por Empleados',
         default=False,
@@ -94,7 +93,7 @@ class InternalConsumptionReportWizard(models.TransientModel):
         self.group_by_employees = False
         self.group_by_children = False
 
-    @api.depends('report_type')  # Depende de report_type para recargar si es necesario, o solo al abrir
+    @api.depends('report_type')  
     def _compute_allowed_ids(self):
         """Calcula los departamentos y empresas que tienen configuración activa."""
         for rec in self:
