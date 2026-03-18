@@ -1,0 +1,77 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<odoo>
+	<!-- Lista de facturas: columna de total en moneda operativa -->
+	<record id="view_invoice_tree_ref" model="ir.ui.view">
+		<field name="name">account.invoice.tree.ref</field>
+		<field name="model">account.move</field>
+		<field name="inherit_id" ref="account.view_invoice_tree"/>
+		<field name="arch" type="xml">
+			<field name="amount_residual_signed" position="after">
+				<field name="currency_ref_id" invisible="1"/>
+				<field name="amount_total_ref" sum="Total ope." optional="show"/>
+				<field name="amount_residual_ref" sum="Adeudado ope." optional="hide"/>
+			</field>
+		</field>
+	</record>
+
+	<!-- Vista de apuntes contables (Journal Items): columnas débito y crédito operativo -->
+	<record id="view_move_line_tree_ref" model="ir.ui.view">
+		<field name="name">account.move.line.tree.ref</field>
+		<field name="model">account.move.line</field>
+		<field name="inherit_id" ref="account.view_move_line_tree"/>
+		<field name="arch" type="xml">
+			<field name="credit" position="after">
+				<field name="debit_ref" sum="Total Débito ope." readonly="1"/>
+				<field name="credit_ref" sum="Total Crédito ope." readonly="1"/>
+			</field>
+		</field>
+	</record>
+
+
+	<!-- Formulario de facturas: totales en moneda operativa -->
+	<record id="view_move_form_ref" model="ir.ui.view">
+		<field name="name">account.move.form.ref</field>
+		<field name="model">account.move</field>
+		<field name="inherit_id" ref="account.view_move_form"/>
+		<field name="arch" type="xml">
+			<!-- Tasa de cambio en cabecera derecha -->
+			<xpath expr="//group[@id='header_right_group']/field[@name='currency_id'][last()]" position="after">
+				<field name="currency_ref_id" invisible="1"/>
+				<field name="global_rate_ref"/>
+				<field name="currency_rate_ref"
+					   domain="[('company_id','=',allowed_company_ids[0])]"
+					   attrs="{'invisible': ['|', ('currency_ref_id', '=', False), ('global_rate_ref', '=', False)]}"
+					   options="{'no_create': 1, 'no_open': 1}"/>
+			</xpath>
+			<!-- Totales operativos: widget idéntico a tax_totals pero en VES -->
+			<xpath expr="//field[@name='tax_totals']" position="after">
+				<field name="currency_ref_id" invisible="1"/>
+				<field name="tax_totals_ref"
+					   widget="tax-totals-ref-field"
+					   nolabel="1" colspan="2"
+					   attrs="{'invisible': ['|',
+					       ('move_type', 'not in', ('out_invoice','out_refund','in_invoice','in_refund','out_receipt','in_receipt')),
+					       ('currency_rate_ref', '=', False)]}"/>
+
+			</xpath>
+			<!-- Columnas operativas en la pestaña de Apuntes Contables (line_ids) -->
+			<xpath expr="//field[@name='line_ids']/tree/field[@name='credit']" position="after">
+				<field name="currency_ref_id" invisible="1"/>
+				<field name="currency_rate_ref" attrs="{'column_invisible': [('parent.global_rate_ref', '=', True)]}" optional="show"/>
+				<field name="debit_ref" sum="Total Débito ope." readonly="1" optional="show"/>
+				<field name="credit_ref" sum="Total Crédito ope." readonly="1" optional="show"/>
+			</xpath>
+			<!-- Importe adeudado en moneda operativa, justo debajo del nativo en USD -->
+			<xpath expr="//field[@name='amount_residual']" position="after">
+				<field name="currency_ref_id" invisible="1"/>
+				<field name="amount_residual_ref"
+				       widget="monetary"
+					   class="oe_subtotal_footer_separator"
+				       options="{'currency_field': 'currency_ref_id'}"
+				       attrs="{'invisible': ['|',
+				           ('currency_rate_ref', '=', False),
+				           ('state', '=', 'draft')]}"/>
+			</xpath>
+		</field>
+	</record>
+</odoo>

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <data>
+    
+        <record id="account_bank_statement_line_view_kanban_inherit_rate_ve" model="ir.ui.view">
+            <field name="name">account.bank.statement.line.view.kanban.inherit.rate.ve</field>
+            <field name="model">account.bank.statement.line</field>
+            <field name="inherit_id" ref="account_accountant.view_bank_statement_line_kanban_bank_rec_widget"/>
+            <field name="arch" type="xml">
+                <xpath expr="//div[@class='flex_row'][2]" position="before">
+                    <div class="flex_row">
+                        <div id="row3_col1" class="text-truncate">
+                            <strong attrs="{'invisible':[('rate_id','=',False)]}">Tasa de cambio: </strong>
+                            <field name="rate_id" attrs="{'invisible':[('rate_id','=',False)]}"/>
+                        </div>
+                    </div>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="account_bank_statement_line_view_tree_inherit_rate_ve" model="ir.ui.view">
+            <field name="name">account.bank.statement.line.view.tree.inherit.rate.ve</field>
+            <field name="model">account.bank.statement.line</field>
+            <field name="inherit_id" ref="account_accountant.view_bank_statement_line_tree_bank_rec_widget"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='payment_ref']" position="after">
+                    <field name="rate_id" options="{'no_quick_create': True}" attrs="{'readonly': [('is_reconciled', '=', True),('payment_ref', '!=', 0)]}"/>
+                </xpath>
+            </field>
+        </record>
+        <record id="view_bank_statement_line_form_bank_rec_widget_account_accountant" model="ir.ui.view">
+            <field name="name">account.bank.statement.line.view.form.inherit.rate.ve</field>
+            <field name="model">account.bank.statement.line</field>
+            <field name="inherit_id" ref="account_accountant.view_bank_statement_line_form_bank_rec_widget"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='payment_ref']" position="after">
+                    <field name="rate_id" attrs="{'readonly': [('is_reconciled', '=', True)]}"/>
+                </xpath>
+            </field>
+        </record>
+    </data>
+    
+
+</odoo>

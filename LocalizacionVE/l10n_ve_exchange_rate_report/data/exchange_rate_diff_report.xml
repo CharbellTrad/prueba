@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+	<record id="exchange_rate_diff_report" model="account.report">
+		<field name="name">Diferencial Cambiario</field>
+		<field name="filter_period_comparison" eval="False"/>
+		<field name="filter_show_draft" eval="False"/>
+		<field name="filter_currency" eval="False"/>
+		<field name="default_opening_date_filter">this_month</field>
+		<field name="custom_handler_model_id" ref="model_exchange_rate_diff_report_handler"/>
+		<field name="column_ids">
+			<record id="col_date" model="account.report.column">
+				<field name="name">Fecha</field>
+				<field name="expression_label">date</field>
+			</record>
+			<record id="col_partner" model="account.report.column">
+				<field name="name">Cliente</field>
+				<field name="expression_label">partner</field>
+			</record>
+			<record id="col_product" model="account.report.column">
+				<field name="name">Producto</field>
+				<field name="expression_label">product</field>
+			</record>
+			<record id="col_quantity" model="account.report.column">
+				<field name="name">Cantidad</field>
+				<field name="expression_label">quantity</field>
+			</record>
+			<record id="col_purchase_rate" model="account.report.column">
+				<field name="name">Tasa compra</field>
+				<field name="expression_label">purchase_rate</field>
+			</record>
+			<record id="col_sale_rate" model="account.report.column">
+				<field name="name">Tasa venta</field>
+				<field name="expression_label">sale_rate</field>
+			</record>
+			<record id="col_unit_cost" model="account.report.column">
+				<field name="name">Costo base</field>
+				<field name="expression_label">unit_cost</field>
+			</record>
+			<record id="col_diff_unit" model="account.report.column">
+				<field name="name">Dif. unitaria</field>
+				<field name="expression_label">diff_unit</field>
+			</record>
+			<record id="col_diff_total" model="account.report.column">
+				<field name="name">Dif. total</field>
+				<field name="expression_label">diff_total</field>
+			</record>
+			<record id="col_result" model="account.report.column">
+				<field name="name">Resultado</field>
+				<field name="expression_label">result</field>
+			</record>
+		</field>
+	</record>
+
+	<record id="action_exchange_rate_diff_report" model="ir.actions.client">
+		<field name="name">Diferencial Cambiario</field>
+		<field name="tag">account_report</field>
+		<field name="context" eval="{'report_id': ref('l10n_ve_exchange_rate_report.exchange_rate_diff_report')}"/>
+	</record>
+
+	<menuitem id="menu_exchange_rate_diff_report"
+			  parent="l10n_ve_config_account.menu_l10n_ve_reports"
+			  action="action_exchange_rate_diff_report"
+			  sequence="30"/>
+</odoo>

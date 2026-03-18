@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+	<record id="purchase_order_form" model="ir.ui.view">
+		<field name="name">purchase.order.form</field>
+		<field name="model">purchase.order</field>
+		<field name="inherit_id" ref="purchase.purchase_order_form"/>
+		<field name="arch" type="xml">
+			<!-- Selector de tasa -->
+			<xpath expr="//sheet/group/group[1]/field[@name='currency_id'][1]" position="after">
+				<field name="currency_ref_id" invisible="1"/>
+				<field name="currency_rate_ref" domain="[('company_id','=',allowed_company_ids[0])]" options="{'no_create': 1, 'no_open': 1}"/>
+			</xpath>
+			<!-- Totales en moneda operativa -->
+			<xpath expr="//field[@name='tax_totals']" position="after">
+				<field name="currency_ref_id" invisible="1"/>
+				<field name="tax_totals_ref" widget="tax-totals-ref-field" nolabel="1" colspan="2" readonly="1" attrs="{'invisible': [('currency_rate_ref', '=', False)]}"/>
+			</xpath>
+		</field>
+	</record>
+</odoo>

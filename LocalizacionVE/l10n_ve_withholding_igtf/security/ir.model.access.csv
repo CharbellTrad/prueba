@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_pay_igtf_wizard,pay.igtf.wizard,model_pay_igtf_wizard,base.group_user,1,1,1,1
+access_pay_manual_igtf_wizard,pay.manual.igtf.wizard,model_pay_manual_igtf_wizard,base.group_user,1,1,1,1

@@ -1,0 +1,28 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<odoo>
+	<record id="pos_config_view_form_igtf" model="ir.ui.view">
+		<field name="name">pos.config.form.igtf</field>
+		<field name="model">pos.config</field>
+		<field name="inherit_id" ref="point_of_sale.pos_config_view_form"/>
+		<field name="arch" type="xml">
+			<xpath expr="//div[@id='other_devices']" position="after">
+				<div class="col-12 col-lg-6 o_setting_box" id="igtf_settings">
+					<div class="o_setting_left_pane">
+						<field name="apply_igtf"/>
+					</div>
+					<div class="o_setting_right_pane">
+						<label for="apply_igtf"/>
+						<div class="text-muted">
+							Habilita el cobro del Impuesto a las Grandes Transacciones Financieras (IGTF) en esta caja.
+						</div>
+						<div attrs="{'invisible': [('apply_igtf', '=', False)]}">
+							<label for="igtf_percentage" string="Porcentaje IGTF"/>
+							<field name="igtf_percentage" class="oe_inline"/>
+							<span>%</span>
+						</div>
+					</div>
+				</div>
+			</xpath>
+		</field>
+	</record>
+</odoo>

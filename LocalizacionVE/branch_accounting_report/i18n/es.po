@@ -1,0 +1,99 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* branch_accounting_report
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 16.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-01-17 22:00+0000\n"
+"PO-Revision-Date: 2026-01-17 22:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: Spanish\n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#. module: branch_accounting_report
+#: model:ir.model,name:branch_accounting_report.model_account_report
+msgid "Account Report"
+msgstr "Informe Contable"
+
+#. module: branch_accounting_report
+#: model:ir.model.fields,field_description:branch_accounting_report.field_account_report__filter_branch
+msgid "Filter Branch"
+msgstr "Filtrar por Sucursal"
+
+#. module: branch_accounting_report
+#: model:account.report.column,name:branch_accounting_report.general_ledger_report_branch_name
+#: model:account.report.column,name:branch_accounting_report.aged_receivable_report_branch_name
+#: model:account.report.column,name:branch_accounting_report.aged_payable_report_branch_name
+#: model:account.report.column,name:branch_accounting_report.partner_ledger_report_branch_name
+#: model_terms:ir.ui.view,arch_db:branch_accounting_report.search_template_branch
+#: model_terms:ir.ui.view,arch_db:branch_accounting_report.filter_info_template_branch_audit_report
+msgid "Branch"
+msgstr "Sucursal"
+
+#. module: branch_accounting_report
+#: model_terms:ir.ui.view,arch_db:branch_accounting_report.filter_info_template_branch_audit_report
+msgid "Branch:"
+msgstr "Sucursal:"
+
+#. module: branch_accounting_report
+#: model_terms:ir.ui.view,arch_db:branch_accounting_report.filter_info_template_branch_audit_report
+msgid "All"
+msgstr "Todas"
+
+#. module: branch_accounting_report
+#: model:ir.model,name:branch_accounting_report.model_account_general_ledger_report_handler
+msgid "Account General Ledger Report Handler"
+msgstr "Manejador de Informe de Libro Mayor"
+
+#. module: branch_accounting_report
+#: model:ir.model,name:branch_accounting_report.model_account_partner_ledger_report_handler
+msgid "Account Partner Ledger Report Handler"
+msgstr "Manejador de Informe de Libro de Terceros"
+
+#. module: branch_accounting_report
+#: model:ir.model,name:branch_accounting_report.model_account_aged_partner_balance_report_handler
+msgid "Account Aged Partner Balance Report Handler"
+msgstr "Manejador de Informe de Saldos por Antigüedad"
+
+#. module: branch_accounting_report
+#: model:ir.model,name:branch_accounting_report.model_account_cash_flow_report_handler
+msgid "Account Cash Flow Report Handler"
+msgstr "Manejador de Informe de Flujo de Efectivo"
+
+#. module: branch_accounting_report
+#: model:ir.model,name:branch_accounting_report.model_account_bank_statement
+msgid "Bank Statement"
+msgstr "Extracto Bancario"
+
+#. module: branch_accounting_report
+#: model:ir.model,name:branch_accounting_report.model_account_bank_statement_line
+msgid "Bank Statement Line"
+msgstr "Línea de Extracto Bancario"
+
+#. module: branch_accounting_report
+#: model:ir.model,name:branch_accounting_report.model_account_consolidated_journals
+msgid "Account Consolidated Journals"
+msgstr "Diarios Consolidados"
+
+#. module: branch_accounting_report
+#: model:ir.model,name:branch_accounting_report.model_account_trial_balance_report
+msgid "Account Trial Balance Report"
+msgstr "Informe de Balance de Comprobación"
+
+#. module: branch_accounting_report
+#: model:ir.model.fields,field_description:branch_accounting_report.field_account_move__branch_id
+#: model:ir.model.fields,field_description:branch_accounting_report.field_account_move_line__branch_id
+msgid "Branch"
+msgstr "Sucursal"
+
+#. module: branch_accounting_report
+#: code:addons/branch_accounting_report/models/inherited_account_reports.py:0
+#, python-format
+msgid "Branch:"
+msgstr "Sucursal:"
