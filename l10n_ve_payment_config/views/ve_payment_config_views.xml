@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ═══════════════════════════════════════════════════════════════
+         VISTA FORMULARIO — Configuración Principal
+    ═══════════════════════════════════════════════════════════════ -->
+    <record id="view_ve_payment_gateway_config_form" model="ir.ui.view">
+        <field name="name">ve.payment.gateway.config.form</field>
+        <field name="model">ve.payment.gateway.config</field>
+        <field name="arch" type="xml">
+            <form string="Pasarela de Pagos">
+                <header>
+                    <button name="action_test_connection" type="object"
+                            string="Probar Conexion" class="btn-primary"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="Ej: Principal, Caja 1..."/></h1>
+                    </div>
+                    <group>
+                        <group string="Datos Generales">
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="active"/>
+                        </group>
+                        <group string="Estadísticas">
+                            <field name="service_count"/>
+                            <field name="active_service_count"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Credenciales" name="credentials">
+                            <group>
+                                <group>
+                                    <field name="base_url" placeholder="https://e-payment.megasoft.com.ve"/>
+                                    <field name="usuario"/>
+                                    <field name="password" password="True"/>
+                                </group>
+                                <group>
+                                    <field name="codafiliacion"/>
+                                    <field name="timeout"/>
+                                </group>
+                            </group>
+                            <div class="alert alert-info" role="alert">
+                                <strong>Nota:</strong> Las credenciales son proporcionadas por el proveedor de la pasarela de pagos.
+                                Use el botón "Probar Conexión" para verificar el acceso.
+                            </div>
+                        </page>
+
+                        <page string="Servicios" name="services">
+                            <field name="service_ids" widget="one2many_list" mode="tree">
+                                <tree editable="bottom" decoration-muted="active == False">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="service_type"/>
+                                    <field name="active" widget="boolean_toggle"/>
+                                    <field name="bank_count" string="Bancos"/>
+                                    <field name="notes" optional="hide"/>
+                                </tree>
+                            </field>
+                            <div class="alert alert-warning mt-2" role="alert">
+                                Haz <strong>doble clic</strong> en un servicio para ver y editar sus bancos habilitados.
+                            </div>
+                        </page>
+
+                        <page string="Diarios Bancarios" name="journals">
+                            <field name="journal_ids" widget="many2many_tags"
+                                   domain="[('type','=','bank')]"
+                                   placeholder="Seleccione los diarios bancarios que usan esta configuración..."/>
+                            <div class="alert alert-info mt-2" role="alert">
+                                Los diarios seleccionados podrán sincronizar transacciones de esta pasarela.
+                            </div>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- VISTA ÁRBOL -->
+    <record id="view_ve_payment_gateway_config_tree" model="ir.ui.view">
+        <field name="name">ve.payment.gateway.config.tree</field>
+        <field name="model">ve.payment.gateway.config</field>
+        <field name="arch" type="xml">
+            <tree string="Pasarelas de Pago" decoration-muted="active == False">
+                <field name="name"/>
+                <field name="base_url"/>
+                <field name="codafiliacion"/>
+                <field name="active_service_count" string="Servicios Activos"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="active" widget="boolean_toggle"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- ACCIÓN VENTANA -->
+    <record id="action_ve_payment_gateway_config" model="ir.actions.act_window">
+        <field name="name">Configuración Pasarela de Pagos</field>
+        <field name="res_model">ve.payment.gateway.config</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+</odoo>

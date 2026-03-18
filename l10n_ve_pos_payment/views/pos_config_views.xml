@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!--
+        Vista heredada de los ajustes del POS en Odoo 16.
+        Se inserta después de la sección "Payment" (id="pos_payment_section").
+    -->
+    <record id="view_pos_config_form_ve_payment" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.ve_payment</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="point_of_sale.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <div id="pos_payment_section" position="after">
+                <h2>Pasarela de Pagos Bancaria VE</h2>
+                <div class="row mt16 o_settings_container" id="ve_payment_section">
+                    <!-- Activar pasarela -->
+                    <div class="col-12 col-lg-6 o_setting_box">
+                        <div class="o_setting_left_pane">
+                            <field name="ve_payment_enabled" widget="boolean_toggle"/>
+                        </div>
+                        <div class="o_setting_right_pane">
+                            <label for="ve_payment_enabled" string="Activar Pasarela de Pagos"/>
+                            <div class="text-muted">
+                                Muestra el boton de pagos bancarios en la pantalla de cobro
+                            </div>
+                            <div class="content-group mt8"
+                                 attrs="{'invisible': [('ve_payment_enabled','=',False)]}">
+                                <div class="row mt8">
+                                    <label for="ve_payment_config_id" string="Configuracion"
+                                           class="col-lg-4 o_light_label"/>
+                                    <field name="ve_payment_config_id"
+                                           placeholder="Seleccione la pasarela..."/>
+                                </div>
+                                <div class="row mt8">
+                                    <label for="ve_pos_journal_id" string="Diario Bancario"
+                                           class="col-lg-4 o_light_label"/>
+                                    <field name="ve_pos_journal_id"
+                                           placeholder="Diario para registros bancarios..."/>
+                                </div>
+                                <div class="row mt8">
+                                    <field name="ve_pos_auto_register" class="oe_inline"/>
+                                    <label for="ve_pos_auto_register"
+                                           string="Registrar en Extracto Automaticamente"
+                                           class="oe_inline ms-1"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Servicios visibles -->
+                    <div class="col-12 col-lg-6 o_setting_box"
+                         attrs="{'invisible': [('ve_payment_enabled','=',False)]}">
+                        <div class="o_setting_right_pane">
+                            <span class="o_form_label">Servicios visibles en el POS</span>
+                            <div class="text-muted">
+                                Seleccione que metodos de pago mostrar en la pantalla de cobro
+                            </div>
+                            <div class="content-group mt8">
+                                <div class="row mt4">
+                                    <field name="ve_pos_show_c2p" class="oe_inline"/>
+                                    <label for="ve_pos_show_c2p" string="Pago Movil C2P" class="oe_inline ms-1"/>
+                                </div>
+                                <div class="row mt4">
+                                    <field name="ve_pos_show_p2c" class="oe_inline"/>
+                                    <label for="ve_pos_show_p2c" string="Pago Movil P2C" class="oe_inline ms-1"/>
+                                </div>
+                                <div class="row mt4">
+                                    <field name="ve_pos_show_vuelto" class="oe_inline"/>
+                                    <label for="ve_pos_show_vuelto" string="Vuelto por Pago Movil" class="oe_inline ms-1"/>
+                                </div>
+                                <div class="row mt4">
+                                    <field name="ve_pos_show_zelle" class="oe_inline"/>
+                                    <label for="ve_pos_show_zelle" string="Zelle" class="oe_inline ms-1"/>
+                                </div>
+                                <div class="row mt4">
+                                    <field name="ve_pos_show_tarjeta" class="oe_inline"/>
+                                    <label for="ve_pos_show_tarjeta" string="Tarjeta Credito/Debito" class="oe_inline ms-1"/>
+                                </div>
+                                <div class="row mt4">
+                                    <field name="ve_pos_show_crypto" class="oe_inline"/>
+                                    <label for="ve_pos_show_crypto" string="Criptomonedas" class="oe_inline ms-1"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </field>
+    </record>
+</odoo>

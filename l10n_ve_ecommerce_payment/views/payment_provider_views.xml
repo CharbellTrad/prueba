@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Heredar formulario del proveedor de pago -->
+    <record id="view_payment_provider_form_ve_gateway" model="ir.ui.view">
+        <field name="name">payment.provider.form.ve.gateway</field>
+        <field name="model">payment.provider</field>
+        <field name="inherit_id" ref="payment.payment_provider_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group[@name='provider_credentials']" position="after">
+                <div attrs="{'invisible': [('code', '!=', 've_payment_gateway')]}">
+                    <group string="Configuracion Pasarela VE" col="2">
+                        <field name="ve_gateway_config_id"/>
+                        <field name="ve_gateway_journal_id"/>
+                        <field name="ve_gateway_mode_card"/>
+                        <field name="ve_gateway_currency"/>
+                    </group>
+                    <div class="alert alert-warning" role="alert">
+                        <strong>Seguridad:</strong>
+                        Los datos de tarjeta del cliente <strong>NO se almacenan en Odoo</strong>.
+                        Se transmiten directamente a la pasarela de pagos vía HTTPS.
+                        Asegúrese de tener HTTPS activo en producción.
+                    </div>
+                    <div class="alert alert-info" role="alert">
+                        <strong>Formulario de tarjeta en el checkout:</strong>
+                        El cliente verá un formulario donde ingresará:
+                        Número de tarjeta, CVV, fecha de vencimiento, nombre y cédula.
+                    </div>
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>

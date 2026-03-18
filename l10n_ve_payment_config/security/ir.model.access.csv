@@ -1,0 +1,7 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_ve_payment_gateway_config,ve.payment.gateway.config,model_ve_payment_gateway_config,base.group_user,1,0,0,0
+access_ve_payment_gateway_config_manager,ve.payment.gateway.config manager,model_ve_payment_gateway_config,account.group_account_manager,1,1,1,1
+access_ve_payment_service,ve.payment.service,model_ve_payment_service,base.group_user,1,0,0,0
+access_ve_payment_service_manager,ve.payment.service manager,model_ve_payment_service,account.group_account_manager,1,1,1,1
+access_ve_payment_service_bank,ve.payment.service.bank,model_ve_payment_service_bank,base.group_user,1,0,0,0
+access_ve_payment_service_bank_manager,ve.payment.service.bank manager,model_ve_payment_service_bank,account.group_account_manager,1,1,1,1

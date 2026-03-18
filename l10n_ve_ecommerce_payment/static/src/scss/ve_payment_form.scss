@@ -1,0 +1,154 @@
+/* Pasarela de Pagos VE — Formulario de Tarjeta E-commerce */
+
+.ve-card-payment-wrap {
+    max-width: 420px;
+    margin: 0 auto;
+    padding: 24px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+    font-family: 'Inter', 'Roboto', sans-serif;
+}
+
+.ve-card-header {
+    text-align: center;
+    margin-bottom: 20px;
+
+    h4 {
+        color: #1a3a5c;
+        margin: 0 0 4px;
+        font-size: 1.1rem;
+    }
+
+    p {
+        color: #64748b;
+        font-size: 0.82rem;
+        margin: 0;
+    }
+}
+
+.ve-card-icon-row {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 16px;
+    font-size: 1.6rem;
+}
+
+.ve-card-icon {
+    font-size: 0.85rem;
+    color: #2563eb;
+    font-weight: 600;
+    text-align: right;
+    min-height: 20px;
+}
+
+.ve-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 14px;
+
+    label {
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: #374151;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+}
+
+.ve-form-row {
+    display: flex;
+    gap: 12px;
+
+    .ve-form-group {
+        flex: 1;
+    }
+}
+
+.ve-card-input {
+    border: 1.5px solid #d1d5db;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 0.95rem;
+    outline: none;
+    width: 100%;
+    box-sizing: border-box;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    letter-spacing: 0.5px;
+
+    &:focus {
+        border-color: #2563eb;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    &::placeholder {
+        color: #9ca3af;
+    }
+}
+
+.ve-security-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #f0fdf4;
+    border: 1px solid #86efac;
+    border-radius: 8px;
+    padding: 8px 14px;
+    margin-bottom: 16px;
+    font-size: 0.78rem;
+    color: #15803d;
+}
+
+.ve-pay-button {
+    width: 100%;
+    background: linear-gradient(135deg, #1a3a5c, #2563eb);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 14px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.3px;
+
+    &:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(37, 99, 235, 0.35);
+    }
+
+    &:disabled {
+        opacity: 0.65;
+        cursor: not-allowed;
+        transform: none;
+    }
+}
+
+.ve-payment-result {
+    display: none;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 0.88rem;
+    font-weight: 500;
+    margin-top: 12px;
+
+    &.ve-result-success {
+        background: #dcfce7;
+        color: #15803d;
+        border: 1px solid #86efac;
+    }
+
+    &.ve-result-error {
+        background: #fef2f2;
+        color: #b91c1c;
+        border: 1px solid #fca5a5;
+    }
+
+    &.ve-result-info {
+        background: #eff6ff;
+        color: #1d4ed8;
+        border: 1px solid #93c5fd;
+    }
+}

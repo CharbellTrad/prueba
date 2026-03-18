@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_ve_payment_root"
+              name="Pasarela de Pagos"
+              parent="account.menu_finance_configuration"
+              sequence="100"/>
+
+    <menuitem id="menu_ve_payment_config"
+              name="Configuración Gateway"
+              parent="menu_ve_payment_root"
+              action="action_ve_payment_gateway_config"
+              sequence="10"/>
+
+    <menuitem id="menu_ve_payment_service"
+              name="Servicios de Pago"
+              parent="menu_ve_payment_root"
+              action="action_ve_payment_service"
+              sequence="20"/>
+</odoo>

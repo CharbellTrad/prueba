@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!--
+        Datos de ejemplo de bancos venezolanos y Zelle para una configuración
+        estándar. Se cargan solo una vez (noupdate="1").
+        El usuario puede modificarlos después de la instalación.
+    -->
+    <!-- Nota: Los bancos se configuran directamente en la UI -->
+    <!-- Este archivo existe para futuras cargas de datos predefinidos -->
+</odoo>

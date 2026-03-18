@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- FORMULARIO SERVICIO -->
+    <record id="view_ve_payment_service_form" model="ir.ui.view">
+        <field name="name">ve.payment.service.form</field>
+        <field name="model">ve.payment.service</field>
+        <field name="arch" type="xml">
+            <form string="Servicio de Pago">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="service_type"/>
+                        <h1><field name="service_type" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group string="Configuración">
+                            <field name="gateway_config_id"/>
+                            <field name="service_type"/>
+                            <field name="active" string="Habilitado"/>
+                        </group>
+                        <group string="Resumen">
+                            <field name="bank_count" string="Bancos habilitados"/>
+                        </group>
+                    </group>
+
+                    <group string="Instrucciones para el Cajero">
+                        <field name="notes" nolabel="1" colspan="2"
+                               placeholder="Ej: Solicite al cliente la referencia de 8 dígitos que le envió el banco..."/>
+                    </group>
+
+                    <separator string="Bancos / Plataformas Habilitadas"/>
+                    <field name="bank_ids">
+                        <tree editable="bottom" decoration-muted="active == False">
+                            <field name="sequence" widget="handle"/>
+                            <field name="bank_code" string="Banco / Plataforma"/>
+                            <field name="bank_name" string="Nombre" readonly="1"/>
+                            <field name="account_number" string="Cuenta Destino"
+                                   attrs="{'column_invisible': [('parent.service_type', 'not in', ['transferencia','deposito'])]}"/>
+                            <field name="phone_number" string="Teléfono Comercio"
+                                   attrs="{'column_invisible': [('parent.service_type', 'not in', ['c2p','p2c','transferencia'])]}"/>
+                            <field name="zelle_email" string="Email/Alias Zelle"
+                                   attrs="{'column_invisible': [('parent.service_type', '!=', 'zelle')]}"/>
+                            <field name="crypto_preferred_coin" string="Moneda Crypto"
+                                   attrs="{'column_invisible': [('parent.service_type', '!=', 'crypto')]}"/>
+                            <field name="notes" string="Nota" optional="hide"/>
+                            <field name="is_default" string="Principal" widget="boolean_toggle"/>
+                            <field name="active" string="Activo" widget="boolean_toggle"/>
+                        </tree>
+                    </field>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ÁRBOL SERVICIOS -->
+    <record id="view_ve_payment_service_tree" model="ir.ui.view">
+        <field name="name">ve.payment.service.tree</field>
+        <field name="model">ve.payment.service</field>
+        <field name="arch" type="xml">
+            <tree string="Servicios de Pago" decoration-muted="active == False">
+                <field name="sequence" widget="handle"/>
+                <field name="gateway_config_id" string="Configuración"/>
+                <field name="service_type" string="Tipo de Servicio"/>
+                <field name="bank_count" string="Bancos"/>
+                <field name="notes_short" string="Instrucciones" optional="show"/>
+                <field name="active" string="Habilitado" widget="boolean_toggle"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_ve_payment_service" model="ir.actions.act_window">
+        <field name="name">Servicios de Pago</field>
+        <field name="res_model">ve.payment.service</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+</odoo>
