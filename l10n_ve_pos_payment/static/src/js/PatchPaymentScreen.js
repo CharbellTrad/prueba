@@ -20,10 +20,10 @@ odoo.define('l10n_ve_pos_payment.PaymentScreenPatch', function (require) {
             });
 
             if (confirmed && payload) {
-                this.env.services.notification.add(
-                    'Transaccion bancaria aprobada y registrada.',
-                    { type: 'success', sticky: false }
-                );
+                this.showPopup('ErrorPopup', {
+                    title: '✅ Pago Aprobado',
+                    body: 'Transacción bancaria aprobada y registrada.',
+                });
             }
         }
     };

@@ -1,15 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <templates id="template" xml:space="preserve">
 
-<!-- ═══════════════════════════════════════════════════════════
-     POPUP PRINCIPAL — Pagos Bancarios VE (Odoo 16 Style)
-════════════════════════════════════════════════════════════ -->
 <t t-name="l10n_ve_pos_payment.PaymentGatewayPopup" owl="1">
-    <div class="popup ve-payment-popup">
-        
+    <div t-att-class="'popup ve-payment-popup' + (tabs.length > 6 ? ' ve-many-tabs' : '')">
+
         <!-- HEADER ODOO POS -->
         <header class="title ve-payment-header">
             <h3><i class="fa fa-university"/> Pagos Bancarios</h3>
+            <div class="ve-rate-display" style="font-size:0.85em;color:#64748b;margin-left:auto;">
+                <i class="fa fa-exchange"/> Tasa: <strong t-esc="_getRateLabel()"/>
+            </div>
+            <button class="ve-reload-btn"
+                    t-on-click="_loadFreshConfig"
+                    t-att-disabled="state.configLoading"
+                    title="Recargar configuraci&#243;n desde el servidor"
+                    style="background:none;border:none;cursor:pointer;color:#64748b;padding:4px 8px;">
+                <i class="fa fa-refresh"
+                   t-att-class="{'fa-spin': state.configLoading}"/>
+            </button>
         </header>
 
         <!-- TABS BAR -->
@@ -17,31 +25,51 @@
             <t t-foreach="tabs" t-as="tab" t-key="tab.id">
                 <button class="ve-tab-btn"
                         t-att-class="{ 'active': state.activeTab === tab.id }"
-                        t-on-click="() => this.setTab(tab.id)">
+                        t-on-click="() =&gt; this.setTab(tab.id)">
                     <t t-esc="tab.label"/>
                 </button>
             </t>
         </div>
 
+        <!-- Overlay de carga -->
+        <t t-if="state.configLoading">
+            <div class="ve-tab-content" style="text-align:center;padding:40px;">
+                <i class="fa fa-spinner fa-spin" style="font-size:2rem;color:#71639e;"/>
+                <p style="margin-top:12px;color:#64748b;">Cargando configuraci&#243;n...</p>
+            </div>
+        </t>
+
+        <!-- Sin servicios -->
+        <t t-elif="tabs.length === 0">
+            <div class="ve-tab-content" style="text-align:center;padding:40px;">
+                <i class="fa fa-exclamation-triangle fa-2x text-warning"/>
+                <p class="mt-2" t-esc="state.noServicesMsg"/>
+                <button class="btn btn-outline-primary btn-sm mt-2" t-on-click="_loadFreshConfig">
+                    Reintentar
+                </button>
+            </div>
+        </t>
+
+        <t t-else="">
         <!-- MAIN BODY -->
         <main class="body ve-tab-content">
 
-            <!-- ─── TAB: PAGO MÓVIL C2P ─── -->
+            <!-- TAB: PAGO M&#211;VIL C2P -->
             <t t-if="state.activeTab === 'c2p'">
                 <div class="ve-form">
-                    <div class="ve-help-text">El banco cobra directamente al cliente. Solicite su teléfono, banco y clave C2P.</div>
-                    
+                    <div class="ve-help-text">El banco cobra directamente al cliente. Solicite su tel&#233;fono, banco y clave C2P.</div>
+
                     <div class="ve-row flex-row gap-form" style="flex-direction: row !important;">
                         <div class="flex-1 ve-row">
-                            <label>Cédula / Doc.</label>
+                            <label>C&#233;dula / Doc.</label>
                             <input type="text" t-model="state.cid" placeholder="V12345678" class="ve-input"/>
                         </div>
                         <div class="flex-1 ve-row">
-                            <label>Teléfono Cliente</label>
+                            <label>Tel&#233;fono Cliente</label>
                             <input type="tel" t-model="state.telefono" placeholder="04241234567" class="ve-input"/>
                         </div>
                     </div>
-                    
+
                     <div class="ve-row flex-row gap-form" style="flex-direction: row !important;">
                         <div class="flex-1 ve-row">
                             <label>Banco Cliente</label>
@@ -53,23 +81,24 @@
                             </select>
                         </div>
                         <div class="flex-1 ve-row">
-                            <label>Código C2P</label>
+                            <label>C&#243;digo C2P</label>
                             <input type="text" t-model="state.c2p_codigoc2p" placeholder="12345678" maxlength="8" class="ve-input"/>
                         </div>
                     </div>
 
                     <div class="ve-row flex-row gap-form" style="flex-direction: row !important;">
                         <div class="flex-1 ve-row">
-                            <label>Monto a Cobrar</label>
-                            <input type="number" t-model="state.amount" min="0" step="0.01" class="ve-input" style="font-weight: bold; color: #71639e;"/>
-                        </div>
-                        <div class="flex-1 ve-row">
-                            <label>Moneda a Procesar</label>
-                            <select t-model="state.p2c_tipoPago" class="ve-select">
-                                <option value="10">Bolívares (Bs)</option>
-                                <option value="40">Dólares (USD)</option>
-                                <option value="90">Euros (EUR)</option>
-                            </select>
+                            <label>Monto a Cobrar (Bs)</label>
+                            <div class="ve-amount-group">
+                                <input type="number" t-att-value="state.amount_bs.toFixed(2)"
+                                       min="0" step="0.01"
+                                       class="ve-input" style="font-weight: bold; color: #71639e;"
+                                       t-on-change="onAmountBsChange"/>
+                                <div t-if="state.amount_bs &gt; 0" class="ve-amount-preview"
+                                     style="font-size:0.8em;color:#64748b;margin-top:2px;">
+                                    &#8776; $ <t t-esc="state.amount_usd.toFixed(2)"/> USD
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -81,14 +110,14 @@
                 </div>
             </t>
 
-            <!-- ─── TAB: PAGO MÓVIL P2C ─── -->
+            <!-- TAB: PAGO M&#211;VIL P2C -->
             <t t-if="state.activeTab === 'p2c'">
                 <div class="ve-form">
-                    <div class="ve-help-text">El cliente transfirió al comercio. Verifique los datos de envío.</div>
-                    
+                    <div class="ve-help-text">El cliente transfiri&#243; al comercio. Verifique los datos de env&#237;o.</div>
+
                     <div class="ve-row flex-row gap-form" style="flex-direction: row !important;">
                         <div class="flex-1 ve-row">
-                            <label>Teléfono Cliente</label>
+                            <label>Tel&#233;fono Cliente</label>
                             <input type="tel" t-model="state.p2c_telefonoCliente" placeholder="04121234567" class="ve-input"/>
                         </div>
                         <div class="flex-1 ve-row">
@@ -106,24 +135,34 @@
                             <label>Banco Comercio</label>
                             <select t-model="state.p2c_codigobancoComercio" class="ve-select">
                                 <option value="">--Seleccionar--</option>
-                                <t t-foreach="state.banks.p2c" t-as="bank" t-key="bank.id">
+                                <t t-foreach="state.banks.p2c" t-as="bank" t-key="bank.bank_code">
                                     <option t-att-value="bank.bank_code"><t t-esc="bank.bank_name"/></option>
                                 </t>
                             </select>
                         </div>
                         <div class="flex-1 ve-row">
-                            <label>Monto Pagado</label>
-                            <input type="number" t-model="state.amount" min="0" step="0.01" class="ve-input" style="font-weight: bold; color: #71639e;"/>
+                            <label>Monto Pagado (Bs)</label>
+                            <div class="ve-amount-group">
+                                <input type="number" t-att-value="state.amount_bs.toFixed(2)"
+                                       min="0" step="0.01"
+                                       class="ve-input" style="font-weight: bold; color: #71639e;"
+                                       t-on-change="onAmountBsChange"/>
+                                <div t-if="state.amount_bs &gt; 0" class="ve-amount-preview"
+                                     style="font-size:0.8em;color:#64748b;margin-top:2px;">
+                                    &#8776; $ <t t-esc="state.amount_usd.toFixed(2)"/> USD
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="ve-row">
                         <label>Moneda Recibida</label>
                         <select t-model="state.p2c_tipoPago" class="ve-select">
-                            <option value="10">Bolívares (Bs)</option>
-                            <option value="40">Dólares (USD)</option>
+                            <option value="10">Bol&#237;vares (Bs)</option>
+                            <option value="40">D&#243;lares (USD)</option>
                             <option value="90">Euros (EUR)</option>
                         </select>
                     </div>
+
                     <button class="ve-confirm-btn" t-on-click="onConfirmP2C" t-att-disabled="state.loading">
                         <i t-if="state.loading" class="fa fa-spinner fa-spin"/>
                         <i t-else="" class="fa fa-check-circle"/>
@@ -132,18 +171,18 @@
                 </div>
             </t>
 
-            <!-- ─── TAB: VUELTO PAGO MÓVIL ─── -->
+            <!-- TAB: VUELTO PAGO M&#211;VIL -->
             <t t-if="state.activeTab === 'vuelto'">
                 <div class="ve-form">
-                    <div class="ve-help-text">Devuelva el cambio al cliente por Pago Móvil.</div>
-                    
+                    <div class="ve-help-text">Devuelva el cambio al cliente por Pago M&#243;vil.</div>
+
                     <div class="ve-row flex-row gap-form" style="flex-direction: row !important;">
                         <div class="flex-1 ve-row">
-                            <label>Cédula Cliente</label>
+                            <label>C&#233;dula Cliente</label>
                             <input type="text" t-model="state.cid" placeholder="V12345678" class="ve-input"/>
                         </div>
                         <div class="flex-1 ve-row">
-                            <label>Teléfono Cliente</label>
+                            <label>Tel&#233;fono Cliente</label>
                             <input type="tel" t-model="state.telefono" placeholder="04241234567" class="ve-input"/>
                         </div>
                     </div>
@@ -158,16 +197,8 @@
                     </div>
                     <div class="ve-row flex-row gap-form" style="flex-direction: row !important;">
                         <div class="flex-1 ve-row">
-                            <label>Monto Vuelto</label>
+                            <label>Monto Vuelto (Bs)</label>
                             <input type="number" t-model="state.vuelto_amount" min="0" step="0.01" class="ve-input" style="font-weight: bold; color: #71639e;"/>
-                        </div>
-                        <div class="flex-1 ve-row">
-                            <label>Moneda</label>
-                            <select t-model="state.vuelto_tipomoneda" class="ve-select">
-                                <option value="0">Bolívares (Bs)</option>
-                                <option value="840">Dólares (USD)</option>
-                                <option value="978">Euros (EUR)</option>
-                            </select>
                         </div>
                     </div>
                     <button class="ve-confirm-btn" t-on-click="onConfirmVuelto" t-att-disabled="state.loading">
@@ -178,27 +209,36 @@
                 </div>
             </t>
 
-            <!-- ─── TAB: ZELLE ─── -->
+            <!-- TAB: ZELLE -->
             <t t-if="state.activeTab === 'zelle'">
                 <div class="ve-form">
-                    <div class="ve-help-text">Verifique el pago recibido por Zelle con su referencia de confirmación.</div>
-                    
+                    <div class="ve-help-text">Verifique el pago recibido por Zelle con su referencia de confirmaci&#243;n.</div>
+
                     <div class="ve-row flex-row gap-form" style="flex-direction: row !important;">
                         <div class="flex-1 ve-row">
-                            <label>Monto Pagado</label>
-                            <input type="number" t-model="state.amount" min="0" step="0.01" class="ve-input" style="font-weight: bold; color: #71639e;"/>
+                            <label>Monto Pagado (USD)</label>
+                            <div class="ve-amount-group">
+                                <input type="number" t-att-value="state.amount_usd.toFixed(2)"
+                                       min="0" step="0.01"
+                                       class="ve-input" style="font-weight: bold; color: #71639e;"
+                                       t-on-change="onAmountUsdChange"/>
+                                <div t-if="state.amount_usd &gt; 0" class="ve-amount-preview"
+                                     style="font-size:0.8em;color:#64748b;margin-top:2px;">
+                                    &#8776; Bs <t t-esc="state.amount_bs.toFixed(2)"/>
+                                </div>
+                            </div>
                         </div>
                         <div class="flex-1 ve-row">
                             <label>Moneda</label>
                             <select class="ve-select" disabled="1">
-                                <option value="USD">Dólares (USD)</option>
+                                <option value="USD">D&#243;lares (USD)</option>
                             </select>
                         </div>
                     </div>
 
                     <div class="ve-row flex-row gap-form" style="flex-direction: row !important;">
                         <div class="flex-1 ve-row">
-                            <label>Cédula / ID</label>
+                            <label>C&#233;dula / ID</label>
                             <input type="text" t-model="state.cid" placeholder="V12345678" class="ve-input"/>
                         </div>
                         <div class="flex-1 ve-row">
@@ -208,10 +248,11 @@
                     </div>
                     <div class="ve-row flex-row gap-form" style="flex-direction: row !important;">
                         <div class="flex-1 ve-row">
-                            <label>Banco Zelle</label>
+                            <label>Banco Comercio (Zelle)</label>
                             <select t-model="state.zelle_banco" class="ve-select">
-                                <t t-foreach="state.allBanksZelle" t-as="bank" t-key="bank.code">
-                                    <option t-att-value="bank.code"><t t-esc="bank.name"/></option>
+                                <option value="">-- Seleccionar --</option>
+                                <t t-foreach="state.banks.zelle" t-as="bank" t-key="bank.bank_code">
+                                    <option t-att-value="bank.bank_code"><t t-esc="bank.bank_name"/> (<t t-esc="bank.zelle_email"/>)</option>
                                 </t>
                             </select>
                         </div>
@@ -224,6 +265,7 @@
                         <label>Email Remitente (Opcional)</label>
                         <input type="email" t-model="state.zelle_email" placeholder="john@email.com" class="ve-input"/>
                     </div>
+
                     <button class="ve-confirm-btn" t-on-click="onConfirmZelle" t-att-disabled="state.loading">
                         <i t-if="state.loading" class="fa fa-spinner fa-spin"/>
                         <i t-else="" class="fa fa-money"/>
@@ -232,57 +274,296 @@
                 </div>
             </t>
 
-            <!-- ─── TAB: CRIPTOMONEDAS ─── -->
-            <t t-if="state.activeTab === 'crypto'">
+            <!-- TAB: TARJETA -->
+            <t t-if="state.activeTab === 'tarjeta'">
                 <div class="ve-form">
-                    <t t-if="!state.crypto_qrurl">
-                        <div class="ve-help-text">Seleccione la base para generar el QR local.</div>
-                        <div class="ve-row">
-                            <label>Criptomoneda</label>
-                            <select t-model="state.crypto_tipomoneda" class="ve-select">
-                                <option value="BNB">Binance Coin (BNB)</option>
-                                <option value="USDT">Tether (USDT)</option>
-                                <option value="BTC">Bitcoin (BTC)</option>
-                                <option value="ETH">Ethereum (ETH)</option>
-                                <option value="LTC">Litecoin (LTC)</option>
+                    <div class="ve-help-text">Procese un cobro con tarjeta de d&#233;bito o cr&#233;dito del cliente.</div>
+
+                    <div class="ve-row flex-row gap-form" style="flex-direction: row !important;">
+                        <div class="flex-1 ve-row">
+                            <label>C&#233;dula / RIF</label>
+                            <input type="text" t-model="state.cid" placeholder="V12345678" class="ve-input"/>
+                        </div>
+                        <div class="flex-1 ve-row">
+                            <label>Nombre del Tarjetahabiente</label>
+                            <input type="text" t-model="state.tarjeta_clientName" class="ve-input"/>
+                        </div>
+                    </div>
+                    <div class="ve-row">
+                        <label>N&#250;mero de Tarjeta</label>
+                        <input type="text" t-model="state.tarjeta_pan" placeholder="4111 1111 1111 1111" maxlength="19" class="ve-input"/>
+                    </div>
+                    <div class="ve-row flex-row gap-form" style="flex-direction: row !important;">
+                        <div class="flex-1 ve-row">
+                            <label>Vencimiento (MMAA)</label>
+                            <input type="text" t-model="state.tarjeta_expdate" placeholder="1226" maxlength="4" class="ve-input"/>
+                        </div>
+                        <div class="flex-1 ve-row">
+                            <label>CVV</label>
+                            <input type="password" t-model="state.tarjeta_cvv" placeholder="&#8226;&#8226;&#8226;" maxlength="4" class="ve-input" autocomplete="off"/>
+                        </div>
+                    </div>
+                    <div class="ve-row flex-row gap-form" style="flex-direction: row !important;">
+                        <div class="flex-1 ve-row">
+                            <label>Moneda</label>
+                            <select t-model="state.tarjeta_tipoPago" class="ve-select">
+                                <option value="10">Bol&#237;vares (Bs)</option>
+                                <option value="40">D&#243;lares (USD)</option>
+                                <option value="90">Euros (EUR)</option>
                             </select>
                         </div>
-                        <button class="ve-confirm-btn" t-on-click="onSolicitarCrypto" t-att-disabled="state.loading">
+                        <div class="flex-1 ve-row">
+                            <label>Monto</label>
+                            <input type="number" t-att-value="state.amount_bs.toFixed(2)"
+                                   min="0" step="0.01"
+                                   class="ve-input" style="font-weight: bold; color: #71639e;"
+                                   t-on-change="onAmountBsChange"/>
+                        </div>
+                    </div>
+
+                    <button class="ve-confirm-btn" t-on-click="onConfirmTarjeta" t-att-disabled="state.loading">
+                        <i t-if="state.loading" class="fa fa-spinner fa-spin"/>
+                        <i t-else="" class="fa fa-credit-card"/>
+                        <t t-esc="state.loading ? 'Procesando...' : 'Procesar Tarjeta'"/>
+                    </button>
+                </div>
+            </t>
+
+            <!-- TAB: D&#201;BITO INMEDIATO -->
+            <t t-if="state.activeTab === 'debito_inmediato'">
+                <div class="ve-form">
+                    <div class="ve-help-text">D&#233;bito directo a la cuenta del cliente. Requiere OTP de confirmaci&#243;n.</div>
+
+                    <!-- Paso 1: Solicitud -->
+                    <t t-if="state.debito_step === 'solicitud'">
+                        <div class="ve-row flex-row gap-form" style="flex-direction: row !important;">
+                            <div class="flex-1 ve-row">
+                                <label>C&#233;dula / Doc.</label>
+                                <input type="text" t-model="state.cid" placeholder="V12345678" class="ve-input"/>
+                            </div>
+                            <div class="flex-1 ve-row">
+                                <label>Tel&#233;fono Cliente</label>
+                                <input type="tel" t-model="state.telefono" placeholder="04241234567" class="ve-input"/>
+                            </div>
+                        </div>
+                        <div class="ve-row flex-row gap-form" style="flex-direction: row !important;">
+                            <div class="flex-1 ve-row">
+                                <label>Banco</label>
+                                <select t-model="state.debito_codigobanco" class="ve-select">
+                                    <option value="">-- Seleccionar --</option>
+                                    <t t-foreach="state.allBanksVE" t-as="bank" t-key="bank.code">
+                                        <option t-att-value="bank.code"><t t-esc="bank.name"/></option>
+                                    </t>
+                                </select>
+                            </div>
+                            <div class="flex-1 ve-row">
+                                <label>Cuenta Origen (20 d&#237;gitos)</label>
+                                <input type="text" t-model="state.debito_cuentaOrigen" placeholder="01340000000000000000" maxlength="20" class="ve-input"/>
+                            </div>
+                        </div>
+                        <div class="ve-row">
+                            <label>Monto (Bs)</label>
+                            <div class="ve-amount-group">
+                                <input type="number" t-att-value="state.amount_bs.toFixed(2)"
+                                       min="0" step="0.01"
+                                       class="ve-input" style="font-weight: bold; color: #71639e;"
+                                       t-on-change="onAmountBsChange"/>
+                                <div t-if="state.amount_bs &gt; 0" class="ve-amount-preview"
+                                     style="font-size:0.8em;color:#64748b;margin-top:2px;">
+                                    &#8776; $ <t t-esc="state.amount_usd.toFixed(2)"/> USD
+                                </div>
+                            </div>
+                        </div>
+                        <button class="ve-confirm-btn" t-on-click="onSolicitarDebito" t-att-disabled="state.loading">
                             <i t-if="state.loading" class="fa fa-spinner fa-spin"/>
-                            <i t-else="" class="fa fa-qrcode"/>
-                            <t t-esc="state.loading ? 'Generando...' : 'Generar QR de Pago'"/>
+                            <i t-else="" class="fa fa-bolt"/>
+                            <t t-esc="state.loading ? 'Enviando...' : 'Solicitar D&#233;bito'"/>
                         </button>
                     </t>
 
-                    <t t-if="state.crypto_qrurl">
-                        <div class="ve-crypto-qr">
-                            <img t-att-src="state.crypto_qrurl" alt="QR Code" class="ve-qr-image"/>
-                            <div class="ve-crypto-amount">
-                                Monto a pagar:<br/>
-                                <strong><t t-esc="state.crypto_montocrypto"/> <t t-esc="state.crypto_tipomoneda"/></strong>
-                                <p style="font-size: 0.8rem; font-weight: 400; color: #64748b; margin-top: 5px;">Muestre este código al cliente</p>
-                            </div>
+                    <!-- Paso 2: OTP -->
+                    <t t-if="state.debito_step === 'otp'">
+                        <div class="ve-help-text" style="background:#f0fdf4;border-color:#86efac;">
+                            Solicite al cliente el <strong>c&#243;digo OTP</strong> que recibi&#243; de su banco.
                         </div>
-                        <button class="ve-confirm-btn" t-on-click="onConfirmarCrypto" t-att-disabled="state.loading" style="background: #10b981;">
+                        <div class="ve-row">
+                            <label>C&#243;digo OTP</label>
+                            <input type="text" t-model="state.debito_otp" placeholder="123456" maxlength="12"
+                                   class="ve-input" style="font-size:1.3rem;font-weight:700;text-align:center;letter-spacing:4px;"/>
+                        </div>
+                        <button class="ve-confirm-btn" t-on-click="onConfirmarDebito" t-att-disabled="state.loading" style="background:#10b981;">
                             <i t-if="state.loading" class="fa fa-spinner fa-spin"/>
                             <i t-else="" class="fa fa-check-circle"/>
-                            <t t-esc="'Confirmar Pago'"/>
-                        </button>
-                        <button class="ve-cancel-btn" t-on-click="() => { state.crypto_qrurl = null; }" 
-                                style="margin-top: 8px; width: 100%; border: 1px solid #e2e8f0; border-radius: 6px;">
-                            Elegir otra Criptomoneda
+                            <t t-esc="state.loading ? 'Confirmando...' : 'Confirmar D&#233;bito'"/>
                         </button>
                     </t>
                 </div>
             </t>
 
-            <!-- RESULT MESSAGE -->
+            <!-- TAB: BANPLUS PAY -->
+            <t t-if="state.activeTab === 'banplus_pay'">
+                <div class="ve-form">
+                    <div class="ve-help-text">Pago mediante la app Banplus del cliente. Requiere OTP.</div>
+
+                    <div class="ve-row flex-row gap-form" style="flex-direction: row !important;">
+                        <div class="flex-1 ve-row">
+                            <label>C&#233;dula / RIF</label>
+                            <input type="text" t-model="state.cid" placeholder="V12345678" class="ve-input"/>
+                        </div>
+                        <div class="flex-1 ve-row">
+                            <label>Tel&#233;fono Banplus del Cliente</label>
+                            <input type="tel" t-model="state.banplus_telefono" placeholder="04241234567" class="ve-input"/>
+                        </div>
+                    </div>
+
+                    <!-- Paso 1 -->
+                    <t t-if="state.banplus_step === 'solicitud'">
+                        <div class="ve-row">
+                            <label>Monto (Bs)</label>
+                            <div class="ve-amount-group">
+                                <input type="number" t-att-value="state.amount_bs.toFixed(2)"
+                                       min="0" step="0.01"
+                                       class="ve-input" style="font-weight: bold; color: #71639e;"
+                                       t-on-change="onAmountBsChange"/>
+                                <div t-if="state.amount_bs &gt; 0" class="ve-amount-preview"
+                                     style="font-size:0.8em;color:#64748b;margin-top:2px;">
+                                    &#8776; $ <t t-esc="state.amount_usd.toFixed(2)"/> USD
+                                </div>
+                            </div>
+                        </div>
+                        <button class="ve-confirm-btn" t-on-click="onSolicitarBanplus" t-att-disabled="state.loading">
+                            <i t-if="state.loading" class="fa fa-spinner fa-spin"/>
+                            <i t-else="" class="fa fa-mobile"/>
+                            <t t-esc="state.loading ? 'Enviando...' : 'Solicitar Banplus Pay'"/>
+                        </button>
+                    </t>
+
+                    <!-- Paso 2: OTP -->
+                    <t t-if="state.banplus_step === 'otp'">
+                        <div class="ve-help-text" style="background:#f0fdf4;border-color:#86efac;">
+                            Solicite al cliente el <strong>c&#243;digo OTP</strong> de Banplus.
+                        </div>
+                        <div class="ve-row">
+                            <label>C&#243;digo OTP</label>
+                            <input type="text" t-model="state.banplus_otp" placeholder="123456" maxlength="12"
+                                   class="ve-input" style="font-size:1.3rem;font-weight:700;text-align:center;letter-spacing:4px;"/>
+                        </div>
+                        <button class="ve-confirm-btn" t-on-click="onConfirmarBanplus" t-att-disabled="state.loading" style="background:#10b981;">
+                            <i t-if="state.loading" class="fa fa-spinner fa-spin"/>
+                            <i t-else="" class="fa fa-check-circle"/>
+                            <t t-esc="state.loading ? 'Confirmando...' : 'Confirmar Banplus Pay'"/>
+                        </button>
+                    </t>
+                </div>
+            </t>
+
+            <!-- TAB: CRIPTOMONEDAS -->
+            <t t-if="state.activeTab === 'crypto'">
+                <div class="ve-form">
+                    <t t-if="!state.crypto_qrurl">
+
+                        <t t-if="state.crypto_loading_monedas">
+                            <div class="ve-help-text" style="justify-content:center;">
+                                <i class="fa fa-spinner fa-spin"/>
+                                Consultando monedas disponibles...
+                            </div>
+                        </t>
+
+                        <t t-else="">
+                            <div class="ve-help-text">
+                                Seleccione la criptomoneda Y la red de transmisi&#243;n.
+                                Redes distintas tienen direcciones distintas &#8212; confirme con el cliente.
+                            </div>
+
+                            <div class="ve-row">
+                                <label>Criptomoneda y Red de Transmisi&#243;n</label>
+                                <select t-model="state.crypto_codigo_api" class="ve-select">
+                                    <option value="">-- Seleccione --</option>
+                                    <t t-foreach="state.crypto_monedas" t-as="m" t-key="m.codigo">
+                                        <option t-att-value="m.codigo">
+                                            <t t-esc="m.display"/> &#8212; <t t-esc="m.red"/>
+                                        </option>
+                                    </t>
+                                </select>
+                            </div>
+
+                            <t t-if="state.crypto_codigo_api">
+                                <div class="ve-help-text" style="background:#f0fdf4;border-color:#86efac;">
+                                    <i class="fa fa-check"/> Red: <strong><t t-esc="getCryptoRedDisplay()"/></strong>
+                                    &#8212; Aseg&#250;rese de que el cliente env&#237;e a la red correcta.
+                                </div>
+                            </t>
+
+                            <div class="ve-row">
+                                <label>Monto a Cobrar (USD)</label>
+                                <div class="ve-amount-group">
+                                    <input type="number" t-att-value="state.amount_usd.toFixed(2)"
+                                           min="0" step="0.01"
+                                           class="ve-input" style="font-weight:bold;color:#71639e;"
+                                           t-on-change="onAmountUsdChange"/>
+                                    <div t-if="state.amount_usd &gt; 0" class="ve-amount-preview"
+                                         style="font-size:0.8em;color:#64748b;margin-top:2px;">
+                                        &#8776; Bs <t t-esc="state.amount_bs.toFixed(2)"/>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button class="ve-confirm-btn"
+                                    t-on-click="onSolicitarCrypto"
+                                    t-att-disabled="!state.crypto_codigo_api || state.loading">
+                                <i t-if="state.loading" class="fa fa-spinner fa-spin"/>
+                                <i t-else="" class="fa fa-qrcode"/>
+                                <t t-esc="state.loading ? 'Generando...' : 'Generar QR de Pago'"/>
+                            </button>
+                        </t>
+                    </t>
+
+                    <!-- QR generado -->
+                    <t t-if="state.crypto_qrurl">
+                        <div class="ve-crypto-qr">
+                            <img t-att-src="state.crypto_qrurl" alt="QR Code" class="ve-qr-image"/>
+                            <div class="ve-crypto-amount">
+                                Monto a pagar:<br/>
+                                <strong>
+                                    <t t-esc="state.crypto_montocrypto"/>
+                                    <t t-esc="state.crypto_codigo_api"/>
+                                </strong>
+                                <p style="font-size:0.8rem;font-weight:400;color:#64748b;margin-top:5px;">
+                                    Red: <t t-esc="getCryptoRedDisplay()"/>
+                                </p>
+                                <p style="font-size:0.8rem;font-weight:400;color:#64748b;">
+                                    Muestre este c&#243;digo al cliente y espere la confirmaci&#243;n
+                                </p>
+                            </div>
+                        </div>
+                        <button class="ve-confirm-btn"
+                                t-on-click="onConfirmarCrypto"
+                                t-att-disabled="state.loading"
+                                style="background:#10b981;">
+                            <i t-if="state.loading" class="fa fa-spinner fa-spin"/>
+                            <i t-else="" class="fa fa-check-circle"/>
+                            Confirmar Pago Recibido
+                        </button>
+                        <button style="margin-top:8px;width:100%;border:1px solid #e2e8f0;border-radius:6px;background:#fff;padding:10px;cursor:pointer;"
+                                t-on-click="() =&gt; { state.crypto_qrurl = null; state.crypto_codigo_api = ''; }">
+                            Elegir otra Criptomoneda / Red
+                        </button>
+                    </t>
+                </div>
+            </t>
+
+            <!-- VALIDACIONES Y RESULTADO -->
+            <div t-if="state.validationError" class="ve-help-text" style="background:#fef3c7;border-color:#fbbf24;">
+                <i class="fa fa-warning" style="color:#92400e;"/> <t t-esc="state.validationError"/>
+            </div>
             <t t-if="state.result">
                 <div class="ve-result" t-att-class="'ve-result-' + state.resultType">
                     <t t-esc="state.result"/>
                 </div>
             </t>
         </main>
+
+        </t>
 
         <!-- FOOTER ODOO NATIVO -->
         <div class="footer">

@@ -9,6 +9,12 @@
     background: #ffffff !important;
     display: flex !important;
     flex-direction: column !important;
+
+    &.ve-many-tabs {
+        min-width: 700px !important;
+        max-width: 850px !important;
+        width: 800px !important;
+    }
 }
 
 .ve-payment-header {
@@ -62,7 +68,15 @@
     border-right: none !important;
     padding: 0 12px !important;
     margin: 0 !important;
-    overflow: hidden !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    -webkit-overflow-scrolling: touch !important;
+
+    /* Ocultar scrollbar pero mantener scroll */
+    scrollbar-width: none !important;
+    &::-webkit-scrollbar {
+        display: none !important;
+    }
 }
 
 .ve-tab-btn {

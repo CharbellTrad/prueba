@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ═══════════════════════════════════════════════════════════
+         VISTA FORMULARIO — Log de Transacciones
+    ═══════════════════════════════════════════════════════════ -->
+    <record id="view_ve_bank_transaction_log_form" model="ir.ui.view">
+        <field name="name">ve.bank.transaction.log.form</field>
+        <field name="model">ve.bank.transaction.log</field>
+        <field name="arch" type="xml">
+            <form string="Transacción Pasarela" create="0">
+                <header>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="success,failed"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group string="Datos de la Transacción">
+                            <field name="gateway_config_id"/>
+                            <field name="service_type_id"/>
+                            <field name="amount"/>
+                            <field name="partner_name"/>
+                        </group>
+                        <group string="Respuesta del Gateway">
+                            <field name="control"/>
+                            <field name="referencia"/>
+                            <field name="codigo"/>
+                            <field name="descripcion"/>
+                            <field name="authid"/>
+                            <field name="factura"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Voucher" name="voucher">
+                            <div class="alert alert-info" role="alert">
+                                <strong>Requisito MegaSoft:</strong>
+                                Este voucher debe ser mostrado y/o impreso para el cliente
+                                como comprobante de la transacción.
+                            </div>
+                            <field name="voucher" readonly="1"
+                                   widget="text"
+                                   placeholder="Sin voucher disponible"/>
+                        </page>
+                        <page string="XML Respuesta" name="xml_response">
+                            <div class="alert alert-warning" role="alert">
+                                <strong>XML Original:</strong>
+                                Respuesta XML cruda devuelta por la pasarela de pagos MegaSoft.
+                                Útil para depuración y auditoría.
+                            </div>
+                            <field name="gateway_response_xml" readonly="1"
+                                   widget="text"
+                                   placeholder="Sin XML disponible"/>
+                        </page>
+                        <page string="Respuesta Completa" name="raw">
+                            <field name="gateway_response_raw" readonly="1"
+                                   widget="text"/>
+                        </page>
+                        <page string="Otros" name="other">
+                            <group>
+                                <field name="company_id" groups="base.group_multi_company"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- VISTA ÁRBOL -->
+    <record id="view_ve_bank_transaction_log_tree" model="ir.ui.view">
+        <field name="name">ve.bank.transaction.log.tree</field>
+        <field name="model">ve.bank.transaction.log</field>
+        <field name="arch" type="xml">
+            <tree string="Transacciones Pasarela"
+                  decoration-success="state == 'success'"
+                  decoration-danger="state == 'failed'"
+                  create="0">
+                <field name="create_date" string="Fecha"/>
+                <field name="name" string="Ref"/>
+                <field name="service_type_id" string="Tipo"/>
+                <field name="partner_name"/>
+                <field name="amount" string="Monto"/>
+                <field name="codigo" string="Código"/>
+                <field name="descripcion"/>
+                <field name="referencia" string="Ref. Banco"/>
+                <field name="control" string="Control" optional="hide"/>
+                <field name="state"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- FILTROS -->
+    <record id="view_ve_bank_transaction_log_search" model="ir.ui.view">
+        <field name="name">ve.bank.transaction.log.search</field>
+        <field name="model">ve.bank.transaction.log</field>
+        <field name="arch" type="xml">
+            <search string="Buscar Transacciones">
+                <field name="name"/>
+                <field name="partner_name"/>
+                <field name="referencia"/>
+                <field name="control"/>
+                <field name="factura"/>
+                <field name="service_type_id"/>
+                <filter string="Exitosas" name="success"
+                        domain="[('state', '=', 'success')]"/>
+                <filter string="Fallidas" name="failed"
+                        domain="[('state', '=', 'failed')]"/>
+                <separator/>
+                <filter string="Hoy" name="today"
+                        domain="[('create_date', '&gt;=', (context_today()).strftime('%Y-%m-%d'))]"/>
+                <separator/>
+                <filter string="C2P" name="filter_c2p"
+                        domain="[('service_type_code', '=', 'c2p')]"/>
+                <filter string="P2C" name="filter_p2c"
+                        domain="[('service_type_code', '=', 'p2c')]"/>
+                <filter string="Zelle" name="filter_zelle"
+                        domain="[('service_type_code', '=', 'zelle')]"/>
+                <filter string="Tarjeta" name="filter_tarjeta"
+                        domain="[('service_type_code', '=', 'tarjeta')]"/>
+                <filter string="Crypto" name="filter_crypto"
+                        domain="[('service_type_code', '=', 'crypto')]"/>
+                <group string="Agrupar por">
+                    <filter string="Tipo" name="group_service"
+                            context="{'group_by': 'service_type_id'}"/>
+                    <filter string="Estado" name="group_state"
+                            context="{'group_by': 'state'}"/>
+                    <filter string="Fecha" name="group_date"
+                            context="{'group_by': 'create_date:day'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ACCIÓN -->
+    <record id="action_ve_bank_transaction_log" model="ir.actions.act_window">
+        <field name="name">Log de Transacciones</field>
+        <field name="res_model">ve.bank.transaction.log</field>
+        <field name="view_mode">tree,form</field>
+        <field name="context">{'search_default_success': 1}</field>
+    </record>
+</odoo>

@@ -53,7 +53,8 @@ document.addEventListener('DOMContentLoaded', function () {
         resultDiv.style.display = 'block';
     }
 
-    form?.addEventListener('submit', async function (e) {
+    // Fix: div containers don't emit 'submit' events — use click on button
+    submitBtn?.addEventListener('click', async function (e) {
         e.preventDefault();
 
         const pan = panInput?.value.replace(/\s/g, '') || '';
@@ -65,6 +66,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (!pan || !cvv2 || !expdateRaw || !txId) {
             showResult('Complete todos los campos de la tarjeta.', 'error');
+            return;
+        }
+        if (!cid) {
+            showResult('Ingrese su cédula o RIF.', 'error');
             return;
         }
 
@@ -94,7 +99,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 submitBtn.textContent = '✅ Pago Aprobado';
                 // Redirigir a confirmación del pedido
                 setTimeout(() => {
-                    window.location.href = '/shop/confirmation';
+                    window.location.href = '/shop/payment/validate';
                 }, 2000);
             } else if (result.requires_3ds && result.redirect_url) {
                 showResult('🔐 Redirigiendo a autenticación segura 3D Secure...', 'info');

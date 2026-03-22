@@ -48,10 +48,12 @@
                         </page>
 
                         <page string="Servicios" name="services">
-                            <field name="service_ids" widget="one2many_list" mode="tree">
-                                <tree editable="bottom" decoration-muted="active == False">
+                            <field name="used_service_type_ids" invisible="1"/>
+                            <field name="service_ids" mode="tree">
+                                <tree decoration-muted="active == False"
+                                      create="0" delete="0">
                                     <field name="sequence" widget="handle"/>
-                                    <field name="service_type"/>
+                                    <field name="service_type_id"/>
                                     <field name="active" widget="boolean_toggle"/>
                                     <field name="bank_count" string="Bancos"/>
                                     <field name="notes" optional="hide"/>
@@ -62,14 +64,6 @@
                             </div>
                         </page>
 
-                        <page string="Diarios Bancarios" name="journals">
-                            <field name="journal_ids" widget="many2many_tags"
-                                   domain="[('type','=','bank')]"
-                                   placeholder="Seleccione los diarios bancarios que usan esta configuración..."/>
-                            <div class="alert alert-info mt-2" role="alert">
-                                Los diarios seleccionados podrán sincronizar transacciones de esta pasarela.
-                            </div>
-                        </page>
                     </notebook>
                 </sheet>
             </form>

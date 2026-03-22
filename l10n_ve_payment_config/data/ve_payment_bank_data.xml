@@ -1,10 +1,225 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo noupdate="1">
-    <!--
-        Datos de ejemplo de bancos venezolanos y Zelle para una configuración
-        estándar. Se cargan solo una vez (noupdate="1").
-        El usuario puede modificarlos después de la instalación.
-    -->
-    <!-- Nota: Los bancos se configuran directamente en la UI -->
-    <!-- Este archivo existe para futuras cargas de datos predefinidos -->
+
+    <!-- ═══════════════════════════════════════════════════════════
+         BANCOS VENEZOLANOS — Código SUDEBAN (4 dígitos)
+         Fuente: Manual MegaSoft REST v2, §4
+    ═══════════════════════════════════════════════════════════ -->
+
+    <record id="bank_ve_0102" model="ve.payment.bank">
+        <field name="name">Banco de Venezuela, S.A.C.A.</field>
+        <field name="code">0102</field>
+        <field name="category">ve</field>
+    </record>
+    <record id="bank_ve_0104" model="ve.payment.bank">
+        <field name="name">Venezolano de Crédito</field>
+        <field name="code">0104</field>
+        <field name="category">ve</field>
+    </record>
+    <record id="bank_ve_0105" model="ve.payment.bank">
+        <field name="name">Mercantil</field>
+        <field name="code">0105</field>
+        <field name="category">ve</field>
+    </record>
+    <record id="bank_ve_0108" model="ve.payment.bank">
+        <field name="name">Provincial</field>
+        <field name="code">0108</field>
+        <field name="category">ve</field>
+    </record>
+    <record id="bank_ve_0114" model="ve.payment.bank">
+        <field name="name">Bancaribe</field>
+        <field name="code">0114</field>
+        <field name="category">ve</field>
+    </record>
+    <record id="bank_ve_0115" model="ve.payment.bank">
+        <field name="name">Exterior</field>
+        <field name="code">0115</field>
+        <field name="category">ve</field>
+    </record>
+    <record id="bank_ve_0116" model="ve.payment.bank">
+        <field name="name">Occidental de Descuento (BOD)</field>
+        <field name="code">0116</field>
+        <field name="category">ve</field>
+    </record>
+    <record id="bank_ve_0128" model="ve.payment.bank">
+        <field name="name">Banco Caroní</field>
+        <field name="code">0128</field>
+        <field name="category">ve</field>
+    </record>
+    <record id="bank_ve_0134" model="ve.payment.bank">
+        <field name="name">Banesco</field>
+        <field name="code">0134</field>
+        <field name="category">ve</field>
+    </record>
+    <record id="bank_ve_0137" model="ve.payment.bank">
+        <field name="name">Sofitasa</field>
+        <field name="code">0137</field>
+        <field name="category">ve</field>
+    </record>
+    <record id="bank_ve_0138" model="ve.payment.bank">
+        <field name="name">Banco Plaza</field>
+        <field name="code">0138</field>
+        <field name="category">ve</field>
+    </record>
+    <record id="bank_ve_0151" model="ve.payment.bank">
+        <field name="name">BFC Banco Fondo Común</field>
+        <field name="code">0151</field>
+        <field name="category">ve</field>
+    </record>
+    <record id="bank_ve_0156" model="ve.payment.bank">
+        <field name="name">100% Banco</field>
+        <field name="code">0156</field>
+        <field name="category">ve</field>
+    </record>
+    <record id="bank_ve_0157" model="ve.payment.bank">
+        <field name="name">Del Sur</field>
+        <field name="code">0157</field>
+        <field name="category">ve</field>
+    </record>
+    <record id="bank_ve_0163" model="ve.payment.bank">
+        <field name="name">Banco del Tesoro</field>
+        <field name="code">0163</field>
+        <field name="category">ve</field>
+    </record>
+    <record id="bank_ve_0166" model="ve.payment.bank">
+        <field name="name">Banco Agrícola de Venezuela</field>
+        <field name="code">0166</field>
+        <field name="category">ve</field>
+    </record>
+    <record id="bank_ve_0168" model="ve.payment.bank">
+        <field name="name">Bancrecer</field>
+        <field name="code">0168</field>
+        <field name="category">ve</field>
+    </record>
+    <record id="bank_ve_0169" model="ve.payment.bank">
+        <field name="name">Mi Banco</field>
+        <field name="code">0169</field>
+        <field name="category">ve</field>
+    </record>
+    <record id="bank_ve_0171" model="ve.payment.bank">
+        <field name="name">Banco Activo</field>
+        <field name="code">0171</field>
+        <field name="category">ve</field>
+    </record>
+    <record id="bank_ve_0172" model="ve.payment.bank">
+        <field name="name">Bancamiga</field>
+        <field name="code">0172</field>
+        <field name="category">ve</field>
+    </record>
+    <record id="bank_ve_0174" model="ve.payment.bank">
+        <field name="name">Banplus</field>
+        <field name="code">0174</field>
+        <field name="category">ve</field>
+    </record>
+    <record id="bank_ve_0175" model="ve.payment.bank">
+        <field name="name">Bicentenario del Pueblo</field>
+        <field name="code">0175</field>
+        <field name="category">ve</field>
+    </record>
+    <record id="bank_ve_0177" model="ve.payment.bank">
+        <field name="name">Banfanb</field>
+        <field name="code">0177</field>
+        <field name="category">ve</field>
+    </record>
+    <record id="bank_ve_0178" model="ve.payment.bank">
+        <field name="name">N58 Banco Digital</field>
+        <field name="code">0178</field>
+        <field name="category">ve</field>
+    </record>
+    <record id="bank_ve_0191" model="ve.payment.bank">
+        <field name="name">BNC Nacional de Crédito</field>
+        <field name="code">0191</field>
+        <field name="category">ve</field>
+    </record>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         BANCOS ZELLE — Códigos del gateway MegaSoft
+    ═══════════════════════════════════════════════════════════ -->
+
+    <record id="bank_zelle_bofa" model="ve.payment.bank">
+        <field name="name">Bank of America</field>
+        <field name="code">BOFA</field>
+        <field name="category">zelle</field>
+    </record>
+    <record id="bank_zelle_chas" model="ve.payment.bank">
+        <field name="name">Chase</field>
+        <field name="code">CHAS</field>
+        <field name="category">zelle</field>
+    </record>
+    <record id="bank_zelle_citi" model="ve.payment.bank">
+        <field name="name">Citibank</field>
+        <field name="code">CITI</field>
+        <field name="category">zelle</field>
+    </record>
+    <record id="bank_zelle_wfbi" model="ve.payment.bank">
+        <field name="name">Wells Fargo</field>
+        <field name="code">WFBI</field>
+        <field name="category">zelle</field>
+    </record>
+    <record id="bank_zelle_nfbk" model="ve.payment.bank">
+        <field name="name">Capital One</field>
+        <field name="code">NFBK</field>
+        <field name="category">zelle</field>
+    </record>
+    <record id="bank_zelle_ftbc" model="ve.payment.bank">
+        <field name="name">First Third Bank</field>
+        <field name="code">FTBC</field>
+        <field name="category">zelle</field>
+    </record>
+    <record id="bank_zelle_pncc" model="ve.payment.bank">
+        <field name="name">PNC Bank</field>
+        <field name="code">PNCC</field>
+        <field name="category">zelle</field>
+    </record>
+    <record id="bank_zelle_mrmd" model="ve.payment.bank">
+        <field name="name">HSBC</field>
+        <field name="code">MRMD</field>
+        <field name="category">zelle</field>
+    </record>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         CRIPTOMONEDAS — CryptoBuyer (via MegaSoft)
+    ═══════════════════════════════════════════════════════════ -->
+
+    <record id="crypto_btc" model="ve.payment.bank">
+        <field name="name">Bitcoin</field>
+        <field name="code">BTC</field>
+        <field name="category">crypto</field>
+    </record>
+    <record id="crypto_eth" model="ve.payment.bank">
+        <field name="name">Ethereum</field>
+        <field name="code">ETH</field>
+        <field name="category">crypto</field>
+    </record>
+    <record id="crypto_usdt" model="ve.payment.bank">
+        <field name="name">Tether USD (ERC-20)</field>
+        <field name="code">USDT</field>
+        <field name="category">crypto</field>
+    </record>
+    <record id="crypto_trxusdt" model="ve.payment.bank">
+        <field name="name">Tether USD (TRC-20)</field>
+        <field name="code">TRXUSDT</field>
+        <field name="category">crypto</field>
+    </record>
+    <record id="crypto_ltc" model="ve.payment.bank">
+        <field name="name">Litecoin</field>
+        <field name="code">LTC</field>
+        <field name="category">crypto</field>
+    </record>
+    <record id="crypto_dash" model="ve.payment.bank">
+        <field name="name">Dash</field>
+        <field name="code">DASH</field>
+        <field name="category">crypto</field>
+    </record>
+    <record id="crypto_bnb" model="ve.payment.bank">
+        <field name="name">Binance Coin (BEP-20)</field>
+        <field name="code">BNB</field>
+        <field name="category">crypto</field>
+    </record>
+    <record id="crypto_dai" model="ve.payment.bank">
+        <field name="name">DAI Stablecoin</field>
+        <field name="code">DAI</field>
+        <field name="category">crypto</field>
+    </record>
+
 </odoo>

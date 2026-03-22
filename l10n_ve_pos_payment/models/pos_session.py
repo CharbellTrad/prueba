@@ -40,8 +40,8 @@ class PosSession(models.Model):
             'search_params': {
                 'domain': [('active', '=', True)],
                 'fields': [
-                    'id', 'service_type', 'gateway_config_id',
-                    'bank_ids', 'active', 'notes',
+                    'id', 'service_type_code', 'service_type_id',
+                    'gateway_config_id', 'bank_ids', 'active', 'notes',
                 ],
             }
         }
@@ -58,9 +58,9 @@ class PosSession(models.Model):
             'search_params': {
                 'domain': [('active', '=', True)],
                 'fields': [
-                    'id', 'bank_code', 'bank_name', 'account_number',
-                    'phone_number', 'zelle_email', 'crypto_preferred_coin',
-                    'is_default', 'service_id', 'service_type', 'notes',
+                    'id', 'bank_id', 'bank_code', 'account_number',
+                    'phone_number', 'zelle_email', 'crypto_coin_id',
+                    'is_default', 'service_id', 'service_type_code', 'notes',
                 ],
             }
         }

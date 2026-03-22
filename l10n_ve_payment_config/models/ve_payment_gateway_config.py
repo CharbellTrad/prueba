@@ -1,142 +1,184 @@
 # -*- coding: utf-8 -*-
+import re
+import logging
 from odoo import api, fields, models
-from odoo.exceptions import UserError
+from odoo.exceptions import ValidationError
+from odoo.addons.l10n_ve_payment_config.utils.payment_gateway import PGConfig, PaymentGatewayClient
+
+_logger = logging.getLogger(__name__)
 
 
 class VePaymentGatewayConfig(models.Model):
     """
-    Maestro de configuración de la Pasarela de Pagos Bancaria VE.
-    Puede haber una configuración global o una por terminal/caja.
+    Configuración global de la pasarela de pagos bancaria VE (MegaSoft).
+    Almacena credenciales de API y relaciones con servicios habilitados.
     """
     _name = 've.payment.gateway.config'
     _description = 'Configuración Pasarela de Pagos VE'
     _rec_name = 'name'
 
-    # ── Datos generales ──────────────────────────────────────────────
     name = fields.Char(
-        string='Nombre',
+        string='Nombre de la Configuración',
         required=True,
-        help='Ej: "Principal", "Caja Centro", "Sucursal Barquisimeto"',
+        help='Nombre identificador. Ej: Principal, Sucursal X',
     )
     active = fields.Boolean(default=True)
     company_id = fields.Many2one(
         'res.company',
         string='Compañía',
-        required=True,
         default=lambda self: self.env.company,
     )
 
-    # ── Credenciales del gateway ─────────────────────────────────────
+    # ── Credenciales ──────────────────────────────────────────────
     base_url = fields.Char(
-        string='URL del Gateway',
+        string='URL Base del Gateway',
         required=True,
-        default='https://e-payment.megasoft.com.ve',
-        help='URL base del servidor de la pasarela de pagos.',
+        help='URL base de la API REST de MegaSoft. Ej: https://e-payment.megasoft.com.ve',
     )
     usuario = fields.Char(
-        string='Usuario',
+        string='Usuario API',
         required=True,
+        groups='account.group_account_manager',
     )
     password = fields.Char(
-        string='Contraseña',
+        string='Contraseña API',
         required=True,
+        groups='account.group_account_manager',
     )
     codafiliacion = fields.Char(
         string='Código de Afiliación',
         required=True,
-        help='Código de afiliación del comercio (8 dígitos)',
+        help='Código de afiliación asignado por el proveedor de la pasarela',
     )
     timeout = fields.Integer(
         string='Timeout (segundos)',
         default=30,
-        help='Tiempo máximo de espera por llamada al gateway',
+        help='Tiempo máximo de espera para respuestas del gateway (5-120 seg)',
     )
 
-    # ── Servicios habilitados ────────────────────────────────────────
+    # ── Relaciones ────────────────────────────────────────────────
     service_ids = fields.One2many(
         've.payment.service',
         'gateway_config_id',
-        string='Servicios Habilitados',
-    )
-    service_count = fields.Integer(
-        compute='_compute_service_count',
-        string='Servicios',
-    )
-    active_service_count = fields.Integer(
-        compute='_compute_service_count',
-        string='Activos',
+        string='Servicios de Pago',
     )
 
-    # ── Diarios bancarios asociados ──────────────────────────────────
-    journal_ids = fields.Many2many(
-        'account.journal',
-        domain=[('type', '=', 'bank')],
-        string='Diarios Bancarios',
-        help='Diarios contables de tipo Banco que usan esta configuración',
+    # ── Campos Computados ─────────────────────────────────────────
+    service_count = fields.Integer(
+        string='Total Servicios',
+        compute='_compute_service_counts',
+    )
+    active_service_count = fields.Integer(
+        string='Servicios Activos',
+        compute='_compute_service_counts',
     )
 
     @api.depends('service_ids', 'service_ids.active')
-    def _compute_service_count(self):
+    def _compute_service_counts(self):
         for rec in self:
             rec.service_count = len(rec.service_ids)
             rec.active_service_count = len(rec.service_ids.filtered('active'))
 
-    def action_test_connection(self):
-        """Prueba la conexión realizando un preregistro de prueba."""
-        self.ensure_one()
-        client = self.get_client()
-        result = client.preregistro()
-        if result.get('error'):
-            raise UserError(
-                f"❌ No se pudo conectar con la pasarela de pagos:\n{result['error']}"
-            )
-        return {
-            'type': 'ir.actions.client',
-            'tag': 'display_notification',
-            'params': {
-                'title': '✅ Conexión Exitosa',
-                'message': f"La pasarela responde correctamente. Control: {result.get('control', '?')}",
-                'type': 'success',
-                'sticky': False,
-            }
-        }
+    used_service_type_ids = fields.Many2many(
+        've.payment.service.type',
+        compute='_compute_used_service_type_ids',
+        string='Tipos de Servicio Usados',
+    )
 
-    def action_open_services(self):
-        """Abre la vista de servicios de esta configuración."""
-        self.ensure_one()
-        return {
-            'type': 'ir.actions.act_window',
-            'name': f'Servicios — {self.name}',
-            'res_model': 've.payment.service',
-            'view_mode': 'tree,form',
-            'domain': [('gateway_config_id', '=', self.id)],
-            'context': {'default_gateway_config_id': self.id},
-        }
+    @api.depends('service_ids', 'service_ids.service_type_id')
+    def _compute_used_service_type_ids(self):
+        for rec in self:
+            rec.used_service_type_ids = rec.service_ids.mapped('service_type_id')
 
-    def get_client(self):
-        """Retorna una instancia del cliente de pasarela lista para usarse."""
+    # ── Validaciones ──────────────────────────────────────────────
+
+    @api.constrains('base_url')
+    def _check_base_url(self):
+        for rec in self:
+            if rec.base_url:
+                url = rec.base_url.strip()
+                if not url.startswith('https://'):
+                    raise ValidationError(
+                        "La URL base debe empezar con https:// para garantizar "
+                        "comunicación segura con la pasarela."
+                    )
+                if url.endswith('/'):
+                    raise ValidationError(
+                        "La URL base no debe terminar con /. "
+                        f"Use: {url.rstrip('/')}"
+                    )
+
+    @api.constrains('codafiliacion')
+    def _check_codafiliacion(self):
+        for rec in self:
+            if rec.codafiliacion and not rec.codafiliacion.strip().isdigit():
+                raise ValidationError(
+                    "El código de afiliación debe ser numérico."
+                )
+
+    @api.constrains('timeout')
+    def _check_timeout(self):
+        for rec in self:
+            if rec.timeout < 5 or rec.timeout > 120:
+                raise ValidationError(
+                    "El timeout debe estar entre 5 y 120 segundos."
+                )
+
+    # ── Métodos ───────────────────────────────────────────────────
+
+    def get_client(self, test_mode=False):
+        """Retorna una instancia de PaymentGatewayClient configurada."""
         self.ensure_one()
-        from ..utils.payment_gateway import PaymentGatewayClient, PGConfig
-        return PaymentGatewayClient(
-            PGConfig(
-                base_url=self.base_url,
-                usuario=self.usuario,
-                contrasena=self.password,
-                codafiliacion=self.codafiliacion,
-            ),
-            timeout=self.timeout,
+        config = PGConfig(
+            base_url=self.base_url.strip().rstrip('/'),
+            usuario=self.usuario,
+            contrasena=self.password,
+            codafiliacion=self.codafiliacion.strip(),
         )
+        return PaymentGatewayClient(config, timeout=self.timeout, test_mode=test_mode)
 
-    def get_active_services_dict(self):
-        """
-        Retorna un dict de servicios activos y sus bancos para el frontend.
-        { 'c2p': [ {bank_code, bank_name, ...}, ... ], ... }
-        """
+    def action_test_connection(self):
+        """Prueba la conexión con la pasarela ejecutando un preregistro."""
         self.ensure_one()
-        result = {}
-        for service in self.service_ids.filtered('active'):
-            result[service.service_type] = [
-                bank.get_as_dict()
-                for bank in service.bank_ids.filtered('active')
-            ]
-        return result
+        try:
+            client = self.get_client()
+            result = client.preregistro()
+            if result.get('codigo') == '00':
+                return {
+                    'type': 'ir.actions.client',
+                    'tag': 'display_notification',
+                    'params': {
+                        'title': '✅ Conexión Exitosa',
+                        'message': f"Preregistro OK. Control: {result.get('control', '—')}",
+                        'type': 'success',
+                        'sticky': False,
+                    },
+                }
+            else:
+                msg = result.get('error') or result.get('descripcion', 'Error desconocido')
+                return {
+                    'type': 'ir.actions.client',
+                    'tag': 'display_notification',
+                    'params': {
+                        'title': '❌ Error de Conexión',
+                        'message': msg,
+                        'type': 'danger',
+                        'sticky': True,
+                    },
+                }
+        except Exception as e:
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': '❌ Error',
+                    'message': str(e),
+                    'type': 'danger',
+                    'sticky': True,
+                },
+            }
+
+    def get_active_services(self):
+        """Retorna los servicios activos de esta configuración."""
+        self.ensure_one()
+        return self.service_ids.filtered('active')

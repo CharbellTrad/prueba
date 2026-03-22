@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!-- Tipos de servicio de pago — Según manual MegaSoft REST v2 -->
+
+    <record id="service_type_tarjeta" model="ve.payment.service.type">
+        <field name="name">Tarjeta Crédito/Débito</field>
+        <field name="code">tarjeta</field>
+        <field name="sequence">10</field>
+        <field name="needs_bank_config" eval="False"/>
+        <field name="bank_category">none</field>
+    </record>
+
+    <record id="service_type_c2p" model="ve.payment.service.type">
+        <field name="name">Pago Móvil C2P</field>
+        <field name="code">c2p</field>
+        <field name="sequence">20</field>
+        <field name="needs_bank_config" eval="False"/>
+        <field name="bank_category">ve</field>
+    </record>
+
+    <record id="service_type_p2c" model="ve.payment.service.type">
+        <field name="name">Pago Móvil P2C</field>
+        <field name="code">p2c</field>
+        <field name="sequence">30</field>
+        <field name="needs_bank_config" eval="True"/>
+        <field name="bank_category">ve</field>
+    </record>
+
+    <record id="service_type_vuelto" model="ve.payment.service.type">
+        <field name="name">Vuelto Pago Móvil</field>
+        <field name="code">vuelto</field>
+        <field name="sequence">35</field>
+        <field name="needs_bank_config" eval="False"/>
+        <field name="bank_category">ve</field>
+    </record>
+
+    <record id="service_type_transferencia" model="ve.payment.service.type">
+        <field name="name">Crédito Inmediato / Transferencia</field>
+        <field name="code">transferencia</field>
+        <field name="sequence">40</field>
+        <field name="needs_bank_config" eval="True"/>
+        <field name="bank_category">ve</field>
+    </record>
+
+    <record id="service_type_deposito" model="ve.payment.service.type">
+        <field name="name">Depósito Bancario</field>
+        <field name="code">deposito</field>
+        <field name="sequence">50</field>
+        <field name="needs_bank_config" eval="True"/>
+        <field name="bank_category">ve</field>
+    </record>
+
+    <record id="service_type_zelle" model="ve.payment.service.type">
+        <field name="name">Zelle (USD)</field>
+        <field name="code">zelle</field>
+        <field name="sequence">60</field>
+        <field name="needs_bank_config" eval="True"/>
+        <field name="bank_category">zelle</field>
+    </record>
+
+    <record id="service_type_crypto" model="ve.payment.service.type">
+        <field name="name">Criptomonedas (CryptoBuyer)</field>
+        <field name="code">crypto</field>
+        <field name="sequence">70</field>
+        <field name="needs_bank_config" eval="True"/>
+        <field name="bank_category">crypto</field>
+    </record>
+
+    <record id="service_type_debito_inmediato" model="ve.payment.service.type">
+        <field name="name">Débito Inmediato</field>
+        <field name="code">debito_inmediato</field>
+        <field name="sequence">80</field>
+        <field name="needs_bank_config" eval="True"/>
+        <field name="bank_category">ve</field>
+    </record>
+
+    <record id="service_type_banplus_pay" model="ve.payment.service.type">
+        <field name="name">Banplus Pay</field>
+        <field name="code">banplus_pay</field>
+        <field name="sequence">90</field>
+        <field name="needs_bank_config" eval="True"/>
+        <field name="bank_category">ve</field>
+    </record>
+
+</odoo>

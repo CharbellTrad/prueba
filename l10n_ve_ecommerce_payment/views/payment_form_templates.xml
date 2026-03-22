@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!--
+        Template del formulario de tarjeta para el checkout del e-commerce.
+        Se inyecta cuando el provider seleccionado es 've_payment_gateway'.
+    -->
+    <template id="ve_gateway_checkout_form"
+              name="VE Payment Form"
+              inherit_id="payment.checkout">
+        <xpath expr="//div[@name='o_payment_option_card']" position="inside">
+            <t t-if="provider.code == 've_payment_gateway'">
+                <div id="ve-payment-card-form"
+                     class="ve-card-payment-wrap"
+                     t-att-data-tx-id="transaction_id">
+
+                    <!-- ID oculto para el JS -->
+                    <input id="ve_transaction_id"
+                           type="hidden"
+                           t-att-value="transaction_id"/>
+
+                    <div class="ve-card-header">
+                        <h4>Pago con Tarjeta</h4>
+                        <p>Sus datos viajan cifrados directamente al banco</p>
+                    </div>
+
+                    <div class="ve-card-icon-row">
+                        <span>💳</span>
+                    </div>
+                    <div id="ve-card-icon" class="ve-card-icon"></div>
+
+                    <!-- Número de tarjeta -->
+                    <div class="ve-form-group">
+                        <label for="ve_card_pan">Número de Tarjeta</label>
+                        <input id="ve_card_pan"
+                               class="ve-card-input"
+                               type="text"
+                               placeholder="0000 0000 0000 0000"
+                               maxlength="23"
+                               autocomplete="off"
+                               inputmode="numeric"/>
+                    </div>
+
+                    <!-- Nombre del titular -->
+                    <div class="ve-form-group">
+                        <label for="ve_card_name">Nombre del Titular</label>
+                        <input id="ve_card_name"
+                               class="ve-card-input"
+                               type="text"
+                               placeholder="Como aparece en la tarjeta"
+                               autocomplete="cc-name"/>
+                    </div>
+
+                    <!-- CVV y Expiración en fila -->
+                    <div class="ve-form-row">
+                        <div class="ve-form-group">
+                            <label for="ve_card_exp">Vence (MMAA)</label>
+                            <input id="ve_card_exp"
+                                   class="ve-card-input"
+                                   type="text"
+                                   placeholder="MMAA"
+                                   maxlength="5"
+                                   autocomplete="cc-exp"
+                                   inputmode="numeric"/>
+                        </div>
+                        <div class="ve-form-group">
+                            <label for="ve_card_cvv">CVV</label>
+                            <input id="ve_card_cvv"
+                                   class="ve-card-input"
+                                   type="password"
+                                   placeholder="000"
+                                   maxlength="4"
+                                   autocomplete="cc-csc"
+                                   inputmode="numeric"/>
+                        </div>
+                    </div>
+
+                    <!-- Cédula -->
+                    <div class="ve-form-group">
+                        <label for="ve_card_cid">Cédula / RIF del titular</label>
+                        <input id="ve_card_cid"
+                               class="ve-card-input"
+                               type="text"
+                               placeholder="V12345678"
+                               autocomplete="off"/>
+                    </div>
+
+                    <!-- Badge de seguridad -->
+                    <div class="ve-security-badge">
+                        🔒 Los datos de su tarjeta NO se almacenan en este sitio
+                    </div>
+
+                    <!-- Botón de pago -->
+                    <button id="ve-pay-btn" class="ve-pay-button" type="button">
+                        🔒 Pagar Ahora
+                    </button>
+
+                    <!-- Resultado -->
+                    <div id="ve-payment-result" style="display:none;"></div>
+                </div>
+            </t>
+        </xpath>
+    </template>
+</odoo>

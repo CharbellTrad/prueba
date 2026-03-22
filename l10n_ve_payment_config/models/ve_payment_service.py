@@ -3,28 +3,6 @@ from odoo import api, fields, models
 from odoo.exceptions import ValidationError
 
 
-SERVICE_TYPES = [
-    ('tarjeta',       'Tarjeta Crédito/Débito'),
-    ('c2p',           'Pago Móvil C2P'),
-    ('p2c',           'Pago Móvil P2C'),
-    ('transferencia', 'Crédito Inmediato / Transferencia'),
-    ('deposito',      'Depósito Bancario'),
-    ('zelle',         'Zelle (USD)'),
-    ('crypto',        'Criptomonedas (CryptoBuyer)'),
-]
-
-# Qué campos son relevantes por tipo de servicio
-SERVICE_NEEDS = {
-    'tarjeta':       {'account': False, 'phone': False, 'zelle': False, 'crypto': False},
-    'c2p':           {'account': False, 'phone': True,  'zelle': False, 'crypto': False},
-    'p2c':           {'account': False, 'phone': True,  'zelle': False, 'crypto': False},
-    'transferencia': {'account': True,  'phone': True,  'zelle': False, 'crypto': False},
-    'deposito':      {'account': True,  'phone': False, 'zelle': False, 'crypto': False},
-    'zelle':         {'account': False, 'phone': False, 'zelle': True,  'crypto': False},
-    'crypto':        {'account': False, 'phone': False, 'zelle': False, 'crypto': True},
-}
-
-
 class VePaymentService(models.Model):
     """
     Servicio de pago habilitado en una configuración de pasarela.
@@ -41,11 +19,10 @@ class VePaymentService(models.Model):
         store=True,
     )
 
-    @api.depends('service_type', 'gateway_config_id')
+    @api.depends('service_type_id', 'gateway_config_id')
     def _compute_display_name(self):
-        type_map = dict(SERVICE_TYPES)
         for rec in self:
-            tipo = type_map.get(rec.service_type, rec.service_type or '')
+            tipo = rec.service_type_id.name or ''
             config = rec.gateway_config_id.name or ''
             rec.display_name = f'{tipo} — {config}' if config else tipo
 
@@ -56,11 +33,32 @@ class VePaymentService(models.Model):
         required=True,
         ondelete='cascade',
     )
-    service_type = fields.Selection(
-        selection=SERVICE_TYPES,
+    service_type_id = fields.Many2one(
+        've.payment.service.type',
         string='Tipo de Servicio',
         required=True,
+        ondelete='restrict',
     )
+    # Campo auxiliar para acceder rápido al código del tipo
+    service_type_code = fields.Char(
+        related='service_type_id.code',
+        string='Código Tipo',
+        store=True,
+        readonly=True,
+    )
+
+    @api.onchange('gateway_config_id')
+    def _onchange_gateway_config_id(self):
+        """Retorna domain dinámico para filtrar tipos ya configurados."""
+        if self.gateway_config_id:
+            used_type_ids = self.gateway_config_id.service_ids.filtered(
+                lambda s: s.id != self.id and s.service_type_id
+            ).mapped('service_type_id').ids
+            return {
+                'domain': {
+                    'service_type_id': [('id', 'not in', used_type_ids)]
+                }
+            }
     active = fields.Boolean(string='Habilitado', default=True)
     notes = fields.Text(
         string='Instrucciones para el Cajero',
@@ -97,24 +95,36 @@ class VePaymentService(models.Model):
         for rec in self:
             rec.bank_count = len(rec.bank_ids)
 
-    @api.constrains('service_type', 'gateway_config_id')
+    needs_bank_config = fields.Boolean(
+        related='service_type_id.needs_bank_config',
+        string='Necesita Configuración Bancaria',
+        store=True,
+        readonly=True,
+    )
+    bank_category = fields.Selection(
+        related='service_type_id.bank_category',
+        string='Categoría de Banco',
+        store=True,
+        readonly=True,
+    )
+
+    @api.constrains('service_type_id', 'gateway_config_id')
     def _check_unique_service(self):
         for rec in self:
             duplicate = self.search([
                 ('gateway_config_id', '=', rec.gateway_config_id.id),
-                ('service_type', '=', rec.service_type),
+                ('service_type_id', '=', rec.service_type_id.id),
                 ('id', '!=', rec.id),
             ])
             if duplicate:
-                sel = dict(SERVICE_TYPES)
                 raise ValidationError(
-                    f'Ya existe un servicio de tipo "{sel.get(rec.service_type)}" '
+                    f'Ya existe un servicio de tipo "{rec.service_type_id.name}" '
                     f'en la configuración "{rec.gateway_config_id.name}".'
                 )
 
     def get_service_label(self):
         self.ensure_one()
-        return dict(SERVICE_TYPES).get(self.service_type, self.service_type)
+        return self.service_type_id.name or ''
 
     def get_default_bank(self):
         """Retorna el banco marcado como principal, o el primero activo."""

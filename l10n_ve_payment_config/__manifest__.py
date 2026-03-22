@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Pasarela de Pagos VE — Configuración',
-    'version': '16.0.1.0.0',
+    'version': '16.0.2.0.0',
     'category': 'Accounting/Localizations',
     'author': 'Innovatech23 C.A',
     'summary': 'Módulo base de configuración para la pasarela de pagos bancaria venezolana (MegaSoft REST v2)',
@@ -18,13 +18,18 @@
         - Depósito Bancario
         - Zelle (Bank of America y otros)
         - Criptomonedas (vía CryptoBuyer)
+        - Débito Inmediato
+        - Banplus Pay
     """,
     'depends': ['base', 'account'],
     'data': [
         'security/ir.model.access.csv',
+        'data/ve_service_type_data.xml',
         'data/ve_payment_bank_data.xml',
+        'data/ve_transaction_log_sequence.xml',
         'views/ve_payment_config_views.xml',
         'views/ve_payment_service_views.xml',
+        'views/ve_transaction_log_views.xml',
         'views/ve_payment_menu.xml',
     ],
     'application': False,
@@ -32,3 +37,4 @@
     'auto_install': False,
     'license': 'OPL-1',
 }
+

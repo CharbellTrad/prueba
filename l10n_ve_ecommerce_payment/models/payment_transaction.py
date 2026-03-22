@@ -1,131 +1,173 @@
 # -*- coding: utf-8 -*-
 import logging
 from odoo import api, fields, models
-from odoo.exceptions import ValidationError
+from odoo.addons.l10n_ve_payment_config.utils.payment_gateway import interpretar_respuesta
 
 _logger = logging.getLogger(__name__)
 
 
 class PaymentTransaction(models.Model):
-    """
-    Extensión de payment.transaction para el flujo de la Pasarela Bancaria VE.
-    Gestiona el proceso de autorización de tarjetas en el checkout.
-    """
     _inherit = 'payment.transaction'
 
-    # Campos de estado del proceso
+    # Campos de control de la pasarela VE
     ve_gateway_control = fields.Char(
-        string='Control de Pasarela',
-        help='Número de control del preregistro (19 dígitos)',
+        string='Control Gateway',
         readonly=True, copy=False,
     )
-    ve_gateway_reference = fields.Char(
-        string='Referencia de la Pasarela',
+    ve_gateway_referencia = fields.Char(
+        string='Referencia Gateway',
         readonly=True, copy=False,
     )
-    ve_gateway_response_code = fields.Char(
-        string='Código de Respuesta',
+    ve_gateway_codigo = fields.Char(
+        string='Código Respuesta',
         readonly=True, copy=False,
     )
     ve_gateway_voucher = fields.Text(
         string='Voucher',
-        readonly=True, copy=False,
+        readonly=True,
     )
     ve_gateway_3ds_url = fields.Char(
         string='URL 3D Secure',
         readonly=True, copy=False,
     )
 
-    def _get_specific_rendering_values(self, processing_values):
-        """Retorna los valores para renderizar el formulario de pago."""
-        res = super()._get_specific_rendering_values(processing_values)
-        if self.provider_code != 've_payment_gateway':
-            return res
-        return res
-
-    def _process_notification_data(self, notification_data):
-        """Procesa los datos de notificación de pago del gateway."""
-        super()._process_notification_data(notification_data)
-        if self.provider_code != 've_payment_gateway':
-            return
-
-        codigo = notification_data.get('codigo')
-        self.ve_gateway_response_code = codigo
-        self.ve_gateway_reference = notification_data.get('referencia', '')
-        self.ve_gateway_voucher = notification_data.get('voucher', '')
-        self.ve_gateway_control = notification_data.get('control', '')
-
-        if codigo == '00':
-            self._set_done()
-            _logger.info('Transacción aprobada: %s', self.reference)
-        elif codigo == 'YQ':
-            # Requiere 3D Secure
-            self.ve_gateway_3ds_url = notification_data.get('redireccion3ds', '')
-            self._set_pending()
-        elif codigo in ('09',):
-            self._set_pending()
-        else:
-            self._set_canceled(state_message=f"Rechazada por la pasarela. Código: {codigo}")
-
     def _ve_gateway_process_payment(self, card_data):
         """
-        Ejecuta el cobro de tarjeta en la pasarela.
-        card_data: dict con pan, cvv2, expdate, cid, client_name
+        Flujo completo de pago con tarjeta:
+        1. Preregistro → obtener control
+        2. Compra tarjeta → procesar
+        3. Procesar resultado
+        4. Registrar en log si aprobado
         """
         self.ensure_one()
         provider = self.provider_id
-        client = provider.get_ve_gateway_client()
 
-        # Paso 1: Preregistro
+        try:
+            client = provider.get_ve_gateway_client()
+        except Exception as e:
+            self._set_error(str(e))
+            return {'error': str(e)}
+
+        # 1. Preregistro
         prereg = client.preregistro()
         if prereg.get('error') or prereg.get('codigo') != '00':
-            err_msg = prereg.get('error') or prereg.get('descripcion', 'Error en preregistro')
-            self._set_canceled(state_message=err_msg)
-            return {'success': False, 'error': err_msg}
+            error_msg = prereg.get('error') or prereg.get('descripcion', 'Error en preregistro')
+            self._set_error(error_msg)
+            return {'error': error_msg}
 
         control = prereg['control']
-        self.ve_gateway_control = control
+        self.sudo().write({'ve_gateway_control': control})
 
-        # Paso 2: Procesar compra con tarjeta
+        # 2. Compra con tarjeta
+        cid = ''
+        if self.partner_id and self.partner_id.vat:
+            cid = self.partner_id.vat
+        elif self.partner_id:
+            cid = f"V{self.partner_id.id}"
+
+        amount = "{:.2f}".format(self.amount)
+        factura = self.reference or ''
+
         result = client.compra_tarjeta(
             control=control,
-            pan=card_data.get('pan', ''),
-            cvv2=card_data.get('cvv2', ''),
-            expdate=card_data.get('expdate', ''),
-            amount=str(self.amount),
-            cid=card_data.get('cid', ''),
-            client=card_data.get('client_name', ''),
-            factura=self.reference,
-            mode=int(provider.ve_gateway_mode_card or '4'),
+            pan=card_data['pan'],
+            cvv2=card_data['cvv2'],
+            expdate=card_data['expdate'],
+            amount=amount,
+            cid=cid,
+            client=card_data.get('client', ''),
+            factura=factura,
+            mode=int(provider.ve_gateway_mode_card or 4),
             tipoPago=provider.ve_gateway_currency or '10',
         )
 
-        # Procesar respuesta
-        self._process_notification_data({**result, 'control': control})
+        # 3. Procesar resultado
+        codigo = result.get('codigo', '')
+        self.sudo().write({
+            've_gateway_referencia': result.get('referencia', ''),
+            've_gateway_codigo': codigo,
+            've_gateway_voucher': result.get('voucher', ''),
+        })
 
-        if result.get('codigo') == '00':
-            # Registrar en diario bancario si está configurado
-            if provider.ve_gateway_journal_id and provider.ve_gateway_config_id:
-                try:
-                    self.env['ve.bank.transaction.log'].sudo().create_from_gateway_response(
-                        vals={**result, 'control': control, 'amount': self.amount,
-                              'factura': self.reference, 'partner_name': card_data.get('client_name', '')},
-                        journal=provider.ve_gateway_journal_id,
-                        gateway_config=provider.ve_gateway_config_id,
-                        service_type='tarjeta',
-                    )
-                except Exception as e:
-                    _logger.warning('No se pudo registrar en extracto: %s', str(e))
-            return {'success': True, 'reference': result.get('referencia', control)}
+        # 3D Secure
+        if codigo == 'YQ':
+            redirect_url = result.get('url3ds', '') or result.get('url', '')
+            if redirect_url:
+                self.sudo().write({'ve_gateway_3ds_url': redirect_url})
+                self._set_pending()
+                return {
+                    'requires_3ds': True,
+                    'redirect_url': redirect_url,
+                }
+            else:
+                self._set_error("3D Secure requerido pero no se recibió URL de redirección.")
+                return {'error': "3D Secure requerido pero no se recibió URL."}
 
-        elif result.get('codigo') == 'YQ':
+        # Aprobado
+        if codigo == '00':
+            self._process_notification_data(result)
+            # Registrar en log de transacciones
+            self._ve_register_in_log(result)
             return {
-                'success': False,
-                'requires_3ds': True,
-                'redirect_url': result.get('redireccion3ds', ''),
+                'success': True,
+                'referencia': result.get('referencia', ''),
+                'voucher': result.get('voucher', ''),
             }
+
+        # Error
+        _, error_msg = interpretar_respuesta(result)
+        self._set_error(error_msg)
+        return {'error': error_msg}
+
+    def _ve_register_in_log(self, result):
+        """Registra la transacción aprobada en el log."""
+        try:
+            provider = self.provider_id
+            if not provider.ve_gateway_config_id:
+                _logger.warning("No hay configuración de pasarela para e-commerce VE gateway.")
+                return
+
+            self.env['ve.bank.transaction.log'].sudo().create_from_gateway_response(
+                vals={
+                    **result,
+                    'amount': self.amount,
+                    'factura': self.reference or '',
+                    'partner_name': self.partner_name or '',
+                },
+                gateway_config=provider.ve_gateway_config_id,
+                service_type_code='tarjeta',
+            )
+        except Exception as e:
+            _logger.warning("Error registrando transacción e-commerce en log: %s", str(e))
+
+    def _process_notification_data(self, data):
+        """
+        Procesa la notificación del gateway y actualiza el estado de la transacción.
+        """
+        self.ensure_one()
+        if self.provider_code != 've_payment_gateway':
+            return super()._process_notification_data(data)
+
+        codigo = data.get('codigo', '')
+        if codigo == '00':
+            self._set_done()
+        elif codigo == '09':
+            self._set_pending()
+        elif codigo in ('YQ', 'T2', 'T4'):
+            self._set_pending()
         else:
-            from l10n_ve_payment_config.utils.payment_gateway import CODIGOS_RESPUESTA
-            codigo = result.get('codigo', '??')
-            msg = CODIGOS_RESPUESTA.get(codigo, f'Error {codigo}')
-            return {'success': False, 'error': f'{msg}: {result.get("descripcion", "")}'}
+
+            _, error_msg = interpretar_respuesta(data)
+            self._set_error(error_msg)
+
+    def _get_specific_rendering_values(self, processing_values):
+        """Agrega valores específicos para el renderizado del formulario de pago."""
+        res = super()._get_specific_rendering_values(processing_values)
+        if self.provider_code != 've_payment_gateway':
+            return res
+
+        res.update({
+            've_gateway_url': '/payment/ve_gateway/process',
+            've_gateway_3ds_return': f'/payment/ve_gateway/3ds_return?reference={self.reference}',
+        })
+        return res

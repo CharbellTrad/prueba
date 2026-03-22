@@ -16,4 +16,11 @@
               parent="menu_ve_payment_root"
               action="action_ve_payment_service"
               sequence="20"/>
+
+    <menuitem id="menu_ve_bank_transaction_log"
+              name="Log de Transacciones"
+              parent="menu_ve_payment_root"
+              action="action_ve_bank_transaction_log"
+              sequence="30"/>
 </odoo>
+
