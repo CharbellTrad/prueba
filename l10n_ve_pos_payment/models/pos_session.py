@@ -99,7 +99,7 @@ class PosSession(models.Model):
                     'service_id', 'service_code', 'bank_id',
                     'bank_code', 'bank_name', 'bank_type',
                     'account_number', 'phone_number', 'zelle_email',
-                    'banplus_tipo_cuenta', 'is_default', 'notes', 'sequence',
+                    'is_default', 'notes', 'sequence',
                 ],
             },
         }

@@ -52,20 +52,6 @@
         <field name="sequence">70</field>
     </record>
 
-    <record id="service_type_debito_inmediato" model="ve.payment.service.type">
-        <field name="name">Débito Inmediato</field>
-        <field name="code">debito_inmediato</field>
-        <field name="pos_visible">True</field>
-        <field name="sequence">80</field>
-    </record>
-
-    <record id="service_type_banplus_pay" model="ve.payment.service.type">
-        <field name="name">Banplus Pay</field>
-        <field name="code">banplus_pay</field>
-        <field name="pos_visible">True</field>
-        <field name="sequence">90</field>
-    </record>
-
     <record id="service_type_deposito" model="ve.payment.service.type">
         <field name="name">Depósito Bancario</field>
         <field name="code">deposito</field>

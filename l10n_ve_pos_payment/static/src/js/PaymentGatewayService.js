@@ -100,23 +100,6 @@ odoo.define('l10n_ve_pos_payment.PaymentGatewayService', function (require) {
             return this._call('/ve_pos_payment/credito_inmediato', params);
         }
 
-        debitoInmediatoSolicitud(params) {
-            params.amount = this._fmt(params.amount);
-            return this._call('/ve_pos_payment/debito_inmediato_solicitud', params);
-        }
-
-        debitoInmediatoConfirmacion(params) {
-            return this._call('/ve_pos_payment/debito_inmediato_confirmacion', params);
-        }
-
-        banplusPaySolicitud(params) {
-            params.amount = this._fmt(params.amount);
-            return this._call('/ve_pos_payment/banplus_pay_solicitud', params);
-        }
-
-        banplusPayConfirmacion(params) {
-            return this._call('/ve_pos_payment/banplus_pay_confirmacion', params);
-        }
 
         queryStatus(params) {
             return this._call('/ve_pos_payment/query_status', params);

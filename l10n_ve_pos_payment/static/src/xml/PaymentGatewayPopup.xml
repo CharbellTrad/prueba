@@ -274,151 +274,43 @@
                 </div>
             </t>
 
-            <!-- TAB: TARJETA -->
-            <t t-if="state.activeTab === 'tarjeta'">
+
+            <!-- TAB: TRANSFERENCIA / CRÉDITO INMEDIATO -->
+            <t t-if="state.activeTab === 'transferencia'">
                 <div class="ve-form">
-                    <div class="ve-help-text">Procese un cobro con tarjeta de d&#233;bito o cr&#233;dito del cliente.</div>
+                    <div class="ve-help-text">Verificaci&#243;n de transferencia bancaria recibida (cr&#233;dito inmediato).</div>
 
                     <div class="ve-row flex-row gap-form" style="flex-direction: row !important;">
                         <div class="flex-1 ve-row">
-                            <label>C&#233;dula / RIF</label>
+                            <label>C&#233;dula / Doc.</label>
                             <input type="text" t-model="state.cid" placeholder="V12345678" class="ve-input"/>
                         </div>
                         <div class="flex-1 ve-row">
-                            <label>Nombre del Tarjetahabiente</label>
-                            <input type="text" t-model="state.tarjeta_clientName" class="ve-input"/>
-                        </div>
-                    </div>
-                    <div class="ve-row">
-                        <label>N&#250;mero de Tarjeta</label>
-                        <input type="text" t-model="state.tarjeta_pan" placeholder="4111 1111 1111 1111" maxlength="19" class="ve-input"/>
-                    </div>
-                    <div class="ve-row flex-row gap-form" style="flex-direction: row !important;">
-                        <div class="flex-1 ve-row">
-                            <label>Vencimiento (MMAA)</label>
-                            <input type="text" t-model="state.tarjeta_expdate" placeholder="1226" maxlength="4" class="ve-input"/>
-                        </div>
-                        <div class="flex-1 ve-row">
-                            <label>CVV</label>
-                            <input type="password" t-model="state.tarjeta_cvv" placeholder="&#8226;&#8226;&#8226;" maxlength="4" class="ve-input" autocomplete="off"/>
+                            <label>Tel&#233;fono Origen</label>
+                            <input type="tel" t-model="state.ci_telefonoOrigen" placeholder="04241234567" class="ve-input"/>
                         </div>
                     </div>
                     <div class="ve-row flex-row gap-form" style="flex-direction: row !important;">
                         <div class="flex-1 ve-row">
-                            <label>Moneda</label>
-                            <select t-model="state.tarjeta_tipoPago" class="ve-select">
-                                <option value="10">Bol&#237;vares (Bs)</option>
-                                <option value="40">D&#243;lares (USD)</option>
-                                <option value="90">Euros (EUR)</option>
+                            <label>Banco Origen</label>
+                            <select t-model="state.ci_codigobancoOrigen" class="ve-select">
+                                <option value="">-- Seleccionar --</option>
+                                <t t-foreach="state.allBanksVE" t-as="bank" t-key="bank.code">
+                                    <option t-att-value="bank.code"><t t-esc="bank.name"/></option>
+                                </t>
                             </select>
                         </div>
                         <div class="flex-1 ve-row">
-                            <label>Monto</label>
-                            <input type="number" t-att-value="state.amount_bs.toFixed(2)"
-                                   min="0" step="0.01"
-                                   class="ve-input" style="font-weight: bold; color: #71639e;"
-                                   t-on-change="onAmountBsChange"/>
+                            <label>Cuenta Origen (20 d&#237;gitos)</label>
+                            <input type="text" t-model="state.ci_cuentaOrigen" placeholder="01340000000000000000" maxlength="20" class="ve-input"/>
                         </div>
                     </div>
-
-                    <button class="ve-confirm-btn" t-on-click="onConfirmTarjeta" t-att-disabled="state.loading">
-                        <i t-if="state.loading" class="fa fa-spinner fa-spin"/>
-                        <i t-else="" class="fa fa-credit-card"/>
-                        <t t-esc="state.loading ? 'Procesando...' : 'Procesar Tarjeta'"/>
-                    </button>
-                </div>
-            </t>
-
-            <!-- TAB: D&#201;BITO INMEDIATO -->
-            <t t-if="state.activeTab === 'debito_inmediato'">
-                <div class="ve-form">
-                    <div class="ve-help-text">D&#233;bito directo a la cuenta del cliente. Requiere OTP de confirmaci&#243;n.</div>
-
-                    <!-- Paso 1: Solicitud -->
-                    <t t-if="state.debito_step === 'solicitud'">
-                        <div class="ve-row flex-row gap-form" style="flex-direction: row !important;">
-                            <div class="flex-1 ve-row">
-                                <label>C&#233;dula / Doc.</label>
-                                <input type="text" t-model="state.cid" placeholder="V12345678" class="ve-input"/>
-                            </div>
-                            <div class="flex-1 ve-row">
-                                <label>Tel&#233;fono Cliente</label>
-                                <input type="tel" t-model="state.telefono" placeholder="04241234567" class="ve-input"/>
-                            </div>
-                        </div>
-                        <div class="ve-row flex-row gap-form" style="flex-direction: row !important;">
-                            <div class="flex-1 ve-row">
-                                <label>Banco</label>
-                                <select t-model="state.debito_codigobanco" class="ve-select">
-                                    <option value="">-- Seleccionar --</option>
-                                    <t t-foreach="state.allBanksVE" t-as="bank" t-key="bank.code">
-                                        <option t-att-value="bank.code"><t t-esc="bank.name"/></option>
-                                    </t>
-                                </select>
-                            </div>
-                            <div class="flex-1 ve-row">
-                                <label>Cuenta Origen (20 d&#237;gitos)</label>
-                                <input type="text" t-model="state.debito_cuentaOrigen" placeholder="01340000000000000000" maxlength="20" class="ve-input"/>
-                            </div>
-                        </div>
-                        <div class="ve-row">
-                            <label>Monto (Bs)</label>
-                            <div class="ve-amount-group">
-                                <input type="number" t-att-value="state.amount_bs.toFixed(2)"
-                                       min="0" step="0.01"
-                                       class="ve-input" style="font-weight: bold; color: #71639e;"
-                                       t-on-change="onAmountBsChange"/>
-                                <div t-if="state.amount_bs &gt; 0" class="ve-amount-preview"
-                                     style="font-size:0.8em;color:#64748b;margin-top:2px;">
-                                    &#8776; $ <t t-esc="state.amount_usd.toFixed(2)"/> USD
-                                </div>
-                            </div>
-                        </div>
-                        <button class="ve-confirm-btn" t-on-click="onSolicitarDebito" t-att-disabled="state.loading">
-                            <i t-if="state.loading" class="fa fa-spinner fa-spin"/>
-                            <i t-else="" class="fa fa-bolt"/>
-                            <t t-esc="state.loading ? 'Enviando...' : 'Solicitar D&#233;bito'"/>
-                        </button>
-                    </t>
-
-                    <!-- Paso 2: OTP -->
-                    <t t-if="state.debito_step === 'otp'">
-                        <div class="ve-help-text" style="background:#f0fdf4;border-color:#86efac;">
-                            Solicite al cliente el <strong>c&#243;digo OTP</strong> que recibi&#243; de su banco.
-                        </div>
-                        <div class="ve-row">
-                            <label>C&#243;digo OTP</label>
-                            <input type="text" t-model="state.debito_otp" placeholder="123456" maxlength="12"
-                                   class="ve-input" style="font-size:1.3rem;font-weight:700;text-align:center;letter-spacing:4px;"/>
-                        </div>
-                        <button class="ve-confirm-btn" t-on-click="onConfirmarDebito" t-att-disabled="state.loading" style="background:#10b981;">
-                            <i t-if="state.loading" class="fa fa-spinner fa-spin"/>
-                            <i t-else="" class="fa fa-check-circle"/>
-                            <t t-esc="state.loading ? 'Confirmando...' : 'Confirmar D&#233;bito'"/>
-                        </button>
-                    </t>
-                </div>
-            </t>
-
-            <!-- TAB: BANPLUS PAY -->
-            <t t-if="state.activeTab === 'banplus_pay'">
-                <div class="ve-form">
-                    <div class="ve-help-text">Pago mediante la app Banplus del cliente. Requiere OTP.</div>
-
                     <div class="ve-row flex-row gap-form" style="flex-direction: row !important;">
                         <div class="flex-1 ve-row">
-                            <label>C&#233;dula / RIF</label>
-                            <input type="text" t-model="state.cid" placeholder="V12345678" class="ve-input"/>
+                            <label>Referencia (opcional)</label>
+                            <input type="text" t-model="state.ci_referencia" placeholder="Nro. referencia" class="ve-input"/>
                         </div>
                         <div class="flex-1 ve-row">
-                            <label>Tel&#233;fono Banplus del Cliente</label>
-                            <input type="tel" t-model="state.banplus_telefono" placeholder="04241234567" class="ve-input"/>
-                        </div>
-                    </div>
-
-                    <!-- Paso 1 -->
-                    <t t-if="state.banplus_step === 'solicitud'">
-                        <div class="ve-row">
                             <label>Monto (Bs)</label>
                             <div class="ve-amount-group">
                                 <input type="number" t-att-value="state.amount_bs.toFixed(2)"
@@ -431,29 +323,12 @@
                                 </div>
                             </div>
                         </div>
-                        <button class="ve-confirm-btn" t-on-click="onSolicitarBanplus" t-att-disabled="state.loading">
-                            <i t-if="state.loading" class="fa fa-spinner fa-spin"/>
-                            <i t-else="" class="fa fa-mobile"/>
-                            <t t-esc="state.loading ? 'Enviando...' : 'Solicitar Banplus Pay'"/>
-                        </button>
-                    </t>
-
-                    <!-- Paso 2: OTP -->
-                    <t t-if="state.banplus_step === 'otp'">
-                        <div class="ve-help-text" style="background:#f0fdf4;border-color:#86efac;">
-                            Solicite al cliente el <strong>c&#243;digo OTP</strong> de Banplus.
-                        </div>
-                        <div class="ve-row">
-                            <label>C&#243;digo OTP</label>
-                            <input type="text" t-model="state.banplus_otp" placeholder="123456" maxlength="12"
-                                   class="ve-input" style="font-size:1.3rem;font-weight:700;text-align:center;letter-spacing:4px;"/>
-                        </div>
-                        <button class="ve-confirm-btn" t-on-click="onConfirmarBanplus" t-att-disabled="state.loading" style="background:#10b981;">
-                            <i t-if="state.loading" class="fa fa-spinner fa-spin"/>
-                            <i t-else="" class="fa fa-check-circle"/>
-                            <t t-esc="state.loading ? 'Confirmando...' : 'Confirmar Banplus Pay'"/>
-                        </button>
-                    </t>
+                    </div>
+                    <button class="ve-confirm-btn" t-on-click="onConfirmCreditoInmediato" t-att-disabled="state.loading">
+                        <i t-if="state.loading" class="fa fa-spinner fa-spin"/>
+                        <i t-else="" class="fa fa-exchange"/>
+                        <t t-esc="state.loading ? 'Verificando...' : 'Verificar Transferencia'"/>
+                    </button>
                 </div>
             </t>
 

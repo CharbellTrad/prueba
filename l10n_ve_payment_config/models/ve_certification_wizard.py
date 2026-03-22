@@ -110,7 +110,7 @@ class VeCertificationWizard(models.TransientModel):
             ('company_id', '=', self.env.company.id),
         ], limit=1)
 
-    # ── Ejecucion de pruebas ──────────────────────────────────────
+    # ── Ejecución de pruebas ──────────────────────────────────────
 
     def action_run_tests(self):
         self.ensure_one()
@@ -264,7 +264,7 @@ class VeCertificationWizard(models.TransientModel):
             # 13-14: Transferencia (credito_inmediato)
             {
                 'test_id': 13, 'test_name': 'Transferencia - Aprobada 0.01',
-                'service_code': 'credito_inmediato', 'amount': '0.01',
+                'service_code': 'transferencia', 'amount': '0.01',
                 'method': 'credito_inmediato',
                 'params': dict(cuentaOrigen='01051234567894568975',
                                telefonoOrigen=tel_transf,
@@ -275,7 +275,7 @@ class VeCertificationWizard(models.TransientModel):
             },
             {
                 'test_id': 14, 'test_name': 'Transferencia - Rechazada 33500.01',
-                'service_code': 'credito_inmediato', 'amount': '33500.01',
+                'service_code': 'transferencia', 'amount': '33500.01',
                 'method': 'credito_inmediato',
                 'params': dict(cuentaOrigen='01051234567894568975',
                                telefonoOrigen=tel_transf,
@@ -409,8 +409,9 @@ class VeCertificationWizard(models.TransientModel):
         try:
             fake_config = PGConfig(
                 base_url='https://pg-inactivo-test.invalid',
-                user='test',
-                password='test',
+                usuario='test',
+                contrasena='test',
+                codafiliacion='00000000',
             )
             fake_client = PaymentGatewayClient(fake_config, timeout=5)
             result = fake_client.preregistro()

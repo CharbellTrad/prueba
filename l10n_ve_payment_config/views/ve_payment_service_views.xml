@@ -37,13 +37,12 @@
                             <field name="bank_id" string="Banco / Plataforma"
                                    options="{'no_create': True}"/>
                             <field name="account_number" string="Cuenta Destino"
-                                   attrs="{'column_invisible': [('parent.service_code', 'not in', ['transferencia','deposito','debito_inmediato'])]}"/>
+                                   attrs="{'column_invisible': [('parent.service_code', 'not in', ['transferencia','deposito'])]}"/>
                             <field name="phone_number" string="Teléfono Comercio"
-                                   attrs="{'column_invisible': [('parent.service_code', 'not in', ['c2p','p2c','transferencia','vuelto','debito_inmediato','banplus_pay'])]}"/>
+                                   attrs="{'column_invisible': [('parent.service_code', 'not in', ['c2p','p2c','transferencia','vuelto'])]}"/>
                             <field name="zelle_email" string="Email/Alias Zelle"
                                    attrs="{'column_invisible': [('parent.service_code', '!=', 'zelle')]}"/>
-                            <field name="banplus_tipo_cuenta" string="Tipo Cuenta"
-                                   attrs="{'column_invisible': [('parent.service_code', '!=', 'banplus_pay')]}"/>
+
                             <field name="notes" string="Nota" optional="hide"/>
                             <field name="is_default" string="Principal" widget="boolean_toggle"/>
                             <field name="active" string="Activo" widget="boolean_toggle"/>

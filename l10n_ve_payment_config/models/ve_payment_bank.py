@@ -19,5 +19,5 @@ class VePaymentBank(models.Model):
     active = fields.Boolean(default=True)
 
     _sql_constraints = [
-        ('code_unique', 'unique(code)', 'El codigo del banco debe ser unico.'),
+        ('code_unique', 'unique(code)', 'El código del banco debe ser único.'),
     ]

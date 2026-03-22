@@ -64,11 +64,11 @@ class VePaymentServiceBank(models.Model):
     # -- Datos del comercio ------------------------------------------------
     account_number = fields.Char(
         string='Cuenta Destino',
-        help='Numero de cuenta bancaria del comercio (20 digitos)',
+        help='Número de cuenta bancaria del comercio (20 dígitos)',
     )
     phone_number = fields.Char(
-        string='Telefono Comercio',
-        help='Telefono registrado del comercio en este banco (11 digitos: 04XXXXXXXXX)',
+        string='Teléfono Comercio',
+        help='Teléfono registrado del comercio en este banco (11 dígitos: 04XXXXXXXXX)',
     )
     zelle_email = fields.Char(
         string='Email/Alias Zelle',
@@ -76,11 +76,11 @@ class VePaymentServiceBank(models.Model):
     )
     banplus_tipo_cuenta = fields.Selection(
         selection=[
-            ('900', 'Bolivares'),
-            ('720', 'Dolar'),
-            ('563', 'Vuelto Dolar'),
-            ('654', 'GiftCard Dolar'),
-            ('652', 'Vale Dolar'),
+            ('900', 'Bolívares'),
+            ('720', 'Dólar'),
+            ('563', 'Vuelto Dólar'),
+            ('654', 'GiftCard Dólar'),
+            ('652', 'Vale Dólar'),
             ('700', 'Euro'),
         ],
         string='Tipo Cuenta Banplus',
@@ -94,38 +94,38 @@ class VePaymentServiceBank(models.Model):
 
     @api.constrains('phone_number')
     def _check_phone_number(self):
-        """Valida formato de telefono VE: 11 digitos empezando por 04."""
+        """Valida formato de teléfono VE: 11 dígitos empezando por 04."""
         for rec in self:
             if rec.phone_number:
                 clean = re.sub(r'[\s\-\.\(\)\+]', '', rec.phone_number)
                 if not re.match(r'^04\d{9}$', clean):
                     raise ValidationError(
-                        f"Telefono invalido: '{rec.phone_number}'. "
-                        "Debe ser 11 digitos empezando por 04. Ej: 04241234567"
+                        f"Teléfono inválido: '{rec.phone_number}'. "
+                        "Debe ser 11 dígitos empezando por 04. Ej: 04241234567"
                     )
 
     @api.constrains('account_number')
     def _check_account_number(self):
-        """Valida numero de cuenta bancaria: exactamente 20 digitos."""
+        """Valida número de cuenta bancaria: exactamente 20 dígitos."""
         for rec in self:
             if rec.account_number:
                 clean = re.sub(r'[\s\-]', '', rec.account_number)
                 if not re.match(r'^\d{20}$', clean):
                     raise ValidationError(
-                        f"Numero de cuenta invalido: '{rec.account_number}'. "
-                        "Debe ser exactamente 20 digitos."
+                        f"Número de cuenta inválido: '{rec.account_number}'. "
+                        "Debe ser exactamente 20 dígitos."
                     )
 
     @api.constrains('zelle_email')
     def _check_zelle_email(self):
-        """Valida que el email Zelle tenga formato basico."""
+        """Valida que el email Zelle tenga formato básico."""
         for rec in self:
             if rec.zelle_email and rec.service_code == 'zelle':
                 email = rec.zelle_email.strip()
                 if '@' not in email or '.' not in email:
                     raise ValidationError(
-                        f"Email Zelle invalido: '{rec.zelle_email}'. "
-                        "Debe contener @ y un dominio valido."
+                        f"Email Zelle inválido: '{rec.zelle_email}'. "
+                        "Debe contener @ y un dominio válido."
                     )
 
     @api.constrains('is_default', 'service_id')

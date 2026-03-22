@@ -18,8 +18,7 @@
         - Depósito Bancario
         - Zelle (Bank of America y otros)
         - Criptomonedas (vía CryptoBuyer)
-        - Débito Inmediato
-        - Banplus Pay
+
     """,
     'depends': ['base', 'account'],
     'data': [

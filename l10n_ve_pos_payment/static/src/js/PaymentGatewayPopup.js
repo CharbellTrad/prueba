@@ -16,9 +16,8 @@ odoo.define('l10n_ve_pos_payment.PaymentGatewayPopup', function (require) {
         vuelto: 'bs',       // Vuelto solo en Bs
         zelle: 'usd',       // Zelle siempre en USD
         crypto: 'usd',      // Crypto: amount fiat en USD
-        tarjeta: 'multi',   // tipoPago: 10=Bs, 40=USD, 90=EUR
-        debito_inmediato: 'bs',
-        banplus_pay: 'bs',
+        transferencia: 'bs', // Crédito Inmediato siempre en Bs
+
     };
 
     // ── Validaciones MegaSoft en frontend ─────────────────────
@@ -38,14 +37,6 @@ odoo.define('l10n_ve_pos_payment.PaymentGatewayPopup', function (require) {
         referencia: {
             regex: /^[A-Za-z0-9]{1,12}$/,
             msg: 'Referencia inválida. Alfanumérica, máximo 12 caracteres.',
-        },
-        pan: {
-            regex: /^\d{13,19}$/,
-            msg: 'Número de tarjeta inválido. Debe contener entre 13 y 19 dígitos.',
-        },
-        cvv: {
-            regex: /^\d{3,4}$/,
-            msg: 'CVV inválido. Debe ser 3 o 4 dígitos.',
         },
         expdate: {
             regex: /^\d{4}$/,
@@ -154,25 +145,14 @@ odoo.define('l10n_ve_pos_payment.PaymentGatewayPopup', function (require) {
                 crypto_qrurl: null,
                 crypto_montocrypto: null,
 
-                // Tarjeta
-                tarjeta_pan: '',
-                tarjeta_cvv: '',
-                tarjeta_expdate: '',
-                tarjeta_clientName: '',
-                tarjeta_tipoPago: '10',
+                // Crédito Inmediato (Transferencia)
+                ci_telefonoOrigen: '',
+                ci_codigobancoOrigen: '',
+                ci_cuentaOrigen: '',
+                ci_referencia: '',
 
-                // Débito Inmediato
-                debito_codigobanco: '',
-                debito_cuentaOrigen: '',
-                debito_step: 'solicitud', // 'solicitud' | 'otp'
-                debito_otp: '',
 
-                // Banplus Pay
-                banplus_telefono: '',
-                banplus_step: 'solicitud',
-                banplus_otp: '',
-
-                banks: { c2p: [], p2c: [], vuelto: [], zelle: [] },
+                banks: { c2p: [], p2c: [], vuelto: [], zelle: [], transferencia: [] },
                 allBanksVE: [],
                 allBanksZelle: [],
 
@@ -350,9 +330,8 @@ odoo.define('l10n_ve_pos_payment.PaymentGatewayPopup', function (require) {
                 { id: 'vuelto', label: 'Vuelto' },
                 { id: 'zelle', label: 'Zelle' },
                 { id: 'crypto', label: 'Crypto' },
-                { id: 'tarjeta', label: 'Tarjeta' },
-                { id: 'debito_inmediato', label: 'Déb. Inmediato' },
-                { id: 'banplus_pay', label: 'Banplus Pay' },
+                { id: 'transferencia', label: 'Transferencia' },
+
             ];
             for (const t of tabDefs) {
                 if (visible[t.id]) {
@@ -613,8 +592,8 @@ odoo.define('l10n_ve_pos_payment.PaymentGatewayPopup', function (require) {
 
         async onConfirmCreditoInmediato() {
             if (!this._validate([
-                [this.state.cid, 'cid', 'Cedula'],
-                [cleanPhone(this.state.ci_telefonoOrigen), 'telefono', 'Telefono Origen'],
+                [this.state.cid, 'cid', 'Cédula'],
+                [cleanPhone(this.state.ci_telefonoOrigen), 'telefono', 'Teléfono Origen'],
                 [this.state.ci_cuentaOrigen, 'cuenta', 'Cuenta Origen'],
             ])) return;
             if (!this.state.ci_codigobancoOrigen) {
@@ -623,14 +602,14 @@ odoo.define('l10n_ve_pos_payment.PaymentGatewayPopup', function (require) {
             }
             if (!this._requireAmount()) return;
 
-            // Obtener cuentaDestino del banco configurado para credito_inmediato
+            // Obtener cuentaDestino del banco configurado para transferencia
             let cuentaDestino = '';
-            const ciService = (this.state.banks.credito_inmediato || []);
+            const ciService = (this.state.banks.transferencia || []);
             if (ciService.length > 0 && ciService[0].account_number) {
                 cuentaDestino = ciService[0].account_number;
             }
             if (!cuentaDestino) {
-                this.setResult('No hay cuenta destino configurada para Credito Inmediato.', 'error');
+                this.setResult('No hay cuenta destino configurada para Transferencia/Crédito Inmediato.', 'error');
                 return;
             }
 
@@ -654,131 +633,12 @@ odoo.define('l10n_ve_pos_payment.PaymentGatewayPopup', function (require) {
             });
 
             if (this.gwService.isApproved(result)) {
-                await this._registerAndClose('credito_inmediato', result, control);
+                await this._registerAndClose('transferencia', result, control);
             } else {
                 this.setResult(this.gwService.getErrorMessage(result), 'error');
             }
         }
 
-        // --- Debito Inmediato -───────────────────────────────────
-
-        async onSolicitarDebito() {
-            if (!this._validate([
-                [this.state.cid, 'cid', 'Cédula'],
-                [cleanPhone(this.state.telefono), 'telefono', 'Teléfono'],
-                [this.state.debito_cuentaOrigen, 'cuenta', 'Cuenta Origen'],
-            ])) return;
-            if (!this.state.debito_codigobanco) {
-                this.state.validationError = 'Seleccione el banco.';
-                return;
-            }
-            if (!this._requireAmount()) return;
-
-            this.state.loading = true;
-            this.state.validationError = '';
-            const control = await this._doPreregistro();
-            if (!control) return;
-            this.state.control = control;
-
-            const rateParams = this._getRateParams();
-            const result = await this.gwService.debitoInmediatoSolicitud({
-                control, cid: this.state.cid.trim().toUpperCase(),
-                telefono: cleanPhone(this.state.telefono),
-                codigobanco: this.state.debito_codigobanco,
-                cuentaOrigen: this.state.debito_cuentaOrigen.trim(),
-                amount: formatBs(this.state.amount_bs),
-                factura: this.state.factura,
-                ...rateParams,
-            });
-
-            if (result.error) {
-                this.setResult(result.error, 'error');
-            } else if (result.codigo === '09' || result.codigo === '00') {
-                // Solicitud aceptada, esperar OTP
-                this.state.debito_step = 'otp';
-                this.state.loading = false;
-                this.setResult('OTP enviado. Solicite al cliente el código que recibió.', 'success');
-            } else {
-                this.setResult(this.gwService.getErrorMessage(result), 'error');
-            }
-        }
-
-        async onConfirmarDebito() {
-            if (!this._validate([
-                [this.state.debito_otp, 'otp', 'Código OTP'],
-            ])) return;
-            if (!this.state.control) return;
-
-            this.state.loading = true;
-            this.state.validationError = '';
-            const rateParams = this._getRateParams();
-            const result = await this.gwService.debitoInmediatoConfirmacion({
-                control: this.state.control,
-                cod_otp: this.state.debito_otp.trim(),
-            });
-
-            if (this.gwService.isApproved(result)) {
-                await this._registerAndClose('debito_inmediato', result, this.state.control);
-            } else {
-                this.setResult(this.gwService.getErrorMessage(result), 'error');
-            }
-        }
-
-        // ─── Banplus Pay ─────────────────────────────────────────
-
-        async onSolicitarBanplus() {
-            if (!this._validate([
-                [this.state.cid, 'cid', 'Cédula'],
-                [cleanPhone(this.state.banplus_telefono || this.state.telefono), 'telefono', 'Teléfono'],
-            ])) return;
-            if (!this._requireAmount()) return;
-
-            this.state.loading = true;
-            this.state.validationError = '';
-            const control = await this._doPreregistro();
-            if (!control) return;
-            this.state.control = control;
-
-            const rateParams = this._getRateParams();
-            const result = await this.gwService.banplusPaySolicitud({
-                control, cid: this.state.cid.trim().toUpperCase(),
-                telefono: cleanPhone(this.state.banplus_telefono || this.state.telefono),
-                amount: formatBs(this.state.amount_bs),
-                tipo_cuenta: '900', // Solo Bs
-                factura: this.state.factura,
-                ...rateParams,
-            });
-
-            if (result.error) {
-                this.setResult(result.error, 'error');
-            } else if (result.codigo === '09' || result.codigo === '00') {
-                this.state.banplus_step = 'otp';
-                this.state.loading = false;
-                this.setResult('OTP enviado. Solicite al cliente el código.', 'success');
-            } else {
-                this.setResult(this.gwService.getErrorMessage(result), 'error');
-            }
-        }
-
-        async onConfirmarBanplus() {
-            if (!this._validate([
-                [this.state.banplus_otp, 'otp', 'Código OTP'],
-            ])) return;
-            if (!this.state.control) return;
-
-            this.state.loading = true;
-            this.state.validationError = '';
-            const result = await this.gwService.banplusPayConfirmacion({
-                control: this.state.control,
-                cod_otp: this.state.banplus_otp.trim(),
-            });
-
-            if (this.gwService.isApproved(result)) {
-                await this._registerAndClose('banplus_pay', result, this.state.control);
-            } else {
-                this.setResult(this.gwService.getErrorMessage(result), 'error');
-            }
-        }
 
         // ─── Crypto ──────────────────────────────────────────────
 

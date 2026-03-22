@@ -157,7 +157,7 @@ class VePosPaymentController(http.Controller):
             active_codes = set(s['service_code'] for s in services)
 
             # Construir visible dict DINAMICAMENTE desde service types con pos_visible=True
-            pos_visible_types = self.env['ve.payment.service.type'].sudo().search([
+            pos_visible_types = request.env['ve.payment.service.type'].sudo().search([
                 ('active', '=', True),
                 ('pos_visible', '=', True),
             ])
@@ -330,79 +330,6 @@ class VePosPaymentController(http.Controller):
             return result
         return self._safe_call(_do, pos_session_id)
 
-    # ── Débito Inmediato — Solicitud ─────────────────────────────
-
-    @http.route('/ve_pos_payment/debito_inmediato_solicitud', type='json', auth='user')
-    def debito_inmediato_solicitud(self, pos_session_id, control, cid,
-                                    telefonoCliente='', codigobancoCliente='',
-                                    cuentaCliente='',
-                                    telefono='', codigobanco='', cuentaOrigen='',
-                                    amount='', factura='',
-                                    currency_rate_ref_id=False,
-                                    currency_rate_value=0, **kw):
-        def _do(session, client):
-            return client.debito_inmediato_solicitud(
-                control=control, cid=cid,
-                telefonoCliente=telefonoCliente or telefono,
-                codigobancoCliente=codigobancoCliente or codigobanco,
-                cuentaCliente=cuentaCliente or cuentaOrigen,
-                amount=amount, factura=factura,
-            )
-        return self._safe_call(_do, pos_session_id)
-
-    # ── Débito Inmediato — Confirmación ──────────────────────────
-
-    @http.route('/ve_pos_payment/debito_inmediato_confirmacion', type='json', auth='user')
-    def debito_inmediato_confirmacion(self, pos_session_id, control, cod_otp,
-                                       amount=0, factura='', cid='',
-                                       currency_rate_ref_id=False,
-                                       currency_rate_value=0, **kw):
-        def _do(session, client):
-            result = client.debito_inmediato_confirmacion(
-                control=control, cod_otp=cod_otp,
-            )
-            is_success = result.get('codigo') == '00'
-            self._register_transaction(session, 'debito_inmediato', result, {
-                'amount': amount, 'factura': factura,
-                'partner_name': cid,
-            }, success=is_success)
-            return result
-        return self._safe_call(_do, pos_session_id)
-
-    # ── Banplus Pay — Solicitud ──────────────────────────────────
-
-    @http.route('/ve_pos_payment/banplus_pay_solicitud', type='json', auth='user')
-    def banplus_pay_solicitud(self, pos_session_id, control, cid,
-                               amount='', tipo_moneda='840', tipo_cuenta='720',
-                               telefono='', factura='',
-                               currency_rate_ref_id=False,
-                               currency_rate_value=0, **kw):
-        def _do(session, client):
-            return client.banplus_pay_solicitud(
-                control=control, cid=cid,
-                amount=amount, tipo_moneda=tipo_moneda,
-                tipo_cuenta=tipo_cuenta, factura=factura,
-            )
-        return self._safe_call(_do, pos_session_id)
-
-    # ── Banplus Pay — Confirmación ───────────────────────────────
-
-    @http.route('/ve_pos_payment/banplus_pay_confirmacion', type='json', auth='user')
-    def banplus_pay_confirmacion(self, pos_session_id, control, cod_otp,
-                                  amount=0, factura='', cid='',
-                                  currency_rate_ref_id=False,
-                                  currency_rate_value=0, **kw):
-        def _do(session, client):
-            result = client.banplus_pay_confirmacion(
-                control=control, cod_otp=cod_otp,
-            )
-            is_success = result.get('codigo') == '00'
-            self._register_transaction(session, 'banplus_pay', result, {
-                'amount': amount, 'factura': factura,
-                'partner_name': cid,
-            }, success=is_success)
-            return result
-        return self._safe_call(_do, pos_session_id)
 
     # ── Query Status ────────────────────────────────────────────
 

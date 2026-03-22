@@ -13,16 +13,16 @@ class VePaymentServiceType(models.Model):
     pos_visible = fields.Boolean(
         string='Visible en POS',
         default=True,
-        help='Si esta activo, este tipo de servicio puede mostrarse en el POS.',
+        help='Si está activo, este tipo de servicio puede mostrarse en el POS.',
     )
     ecommerce_only = fields.Boolean(
         string='Solo E-commerce',
         default=False,
-        help='Si esta activo, este servicio solo aplica para el modulo de E-commerce.',
+        help='Si está activo, este servicio solo aplica para el módulo de E-commerce.',
     )
     sequence = fields.Integer(default=10)
     active = fields.Boolean(default=True)
 
     _sql_constraints = [
-        ('code_unique', 'unique(code)', 'El codigo del tipo de servicio debe ser unico.'),
+        ('code_unique', 'unique(code)', 'El código del tipo de servicio debe ser único.'),
     ]

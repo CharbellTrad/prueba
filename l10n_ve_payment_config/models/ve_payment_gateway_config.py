@@ -148,7 +148,7 @@ class VePaymentGatewayConfig(models.Model):
                     'type': 'ir.actions.client',
                     'tag': 'display_notification',
                     'params': {
-                        'title': 'Conexion Exitosa',
+                        'title': 'Conexión Exitosa',
                         'message': f"Preregistro OK. Control: {result.get('control', '---')}",
                         'type': 'success',
                         'sticky': False,
@@ -160,7 +160,7 @@ class VePaymentGatewayConfig(models.Model):
                     'type': 'ir.actions.client',
                     'tag': 'display_notification',
                     'params': {
-                        'title': 'Error de Conexion',
+                        'title': 'Error de Conexión',
                         'message': msg,
                         'type': 'danger',
                         'sticky': True,

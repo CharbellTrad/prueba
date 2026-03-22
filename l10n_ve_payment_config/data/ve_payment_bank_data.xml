@@ -2,7 +2,7 @@
 <odoo noupdate="1">
 
     <!-- ═══════════════════════════════════════════════════════════
-         BANCOS VENEZOLANOS — Codigo SUDEBAN (4 digitos)
+         BANCOS VENEZOLANOS — Código SUDEBAN (4 dígitos)
          Fuente: Manual MegaSoft REST v4.27
     ═══════════════════════════════════════════════════════════ -->
 
@@ -13,7 +13,7 @@
         <field name="sequence">10</field>
     </record>
     <record id="bank_ve_0104" model="ve.payment.bank">
-        <field name="name">Venezolano de Credito</field>
+        <field name="name">Venezolano de Crédito</field>
         <field name="code">0104</field>
         <field name="bank_type">ve</field>
         <field name="sequence">20</field>
@@ -49,7 +49,7 @@
         <field name="sequence">70</field>
     </record>
     <record id="bank_ve_0128" model="ve.payment.bank">
-        <field name="name">Banco Caroni</field>
+        <field name="name">Banco Caroní</field>
         <field name="code">0128</field>
         <field name="bank_type">ve</field>
         <field name="sequence">80</field>
@@ -73,7 +73,7 @@
         <field name="sequence">110</field>
     </record>
     <record id="bank_ve_0151" model="ve.payment.bank">
-        <field name="name">BFC Banco Fondo Comun</field>
+        <field name="name">BFC Banco Fondo Común</field>
         <field name="code">0151</field>
         <field name="bank_type">ve</field>
         <field name="sequence">120</field>
@@ -97,7 +97,7 @@
         <field name="sequence">150</field>
     </record>
     <record id="bank_ve_0166" model="ve.payment.bank">
-        <field name="name">Banco Agricola de Venezuela</field>
+        <field name="name">Banco Agrícola de Venezuela</field>
         <field name="code">0166</field>
         <field name="bank_type">ve</field>
         <field name="sequence">160</field>
@@ -151,14 +151,14 @@
         <field name="sequence">240</field>
     </record>
     <record id="bank_ve_0191" model="ve.payment.bank">
-        <field name="name">BNC Nacional de Credito</field>
+        <field name="name">BNC Nacional de Crédito</field>
         <field name="code">0191</field>
         <field name="bank_type">ve</field>
         <field name="sequence">250</field>
     </record>
 
     <!-- ═══════════════════════════════════════════════════════════
-         BANCOS ZELLE — Codigos del gateway MegaSoft
+         BANCOS ZELLE — Códigos del gateway MegaSoft
     ═══════════════════════════════════════════════════════════ -->
 
     <record id="bank_zelle_bofa" model="ve.payment.bank">

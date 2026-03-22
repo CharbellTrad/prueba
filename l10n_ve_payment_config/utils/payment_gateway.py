@@ -3,8 +3,7 @@
   Pasarela de Pagos VE — Cliente Python (REST v2)
   Gateway: MegaSoft Computación C.A.
   Cubre: Tarjeta Crédito/Débito, Pago Móvil C2P/P2C, Vuelto Pago Móvil,
-         Crédito Inmediato, Depósito, Zelle, Criptomonedas (vía CryptoBuyer),
-         Débito Inmediato, Banplus Pay
+         Crédito Inmediato, Depósito, Zelle, Criptomonedas (vía CryptoBuyer)
 =============================================================================
 """
 import base64
@@ -366,8 +365,7 @@ class PaymentGatewayClient:
         """
         Consulta el estado de una transacción.
         tipotrx: CREDITO, C2P, P2C, ZELLE, CRYPTO, CRYPTO_CONFIR,
-                 BANPLUSP, BANPLUSP_CONFIR, CREDITO_INMEDIATO,
-                 DEBITO_INM, DEBITO_INM_CONFIR, DEPOSITO, ANULACION,
+                 DEPOSITO, ANULACION,
                  C@MBIO_PAGOMOVIL, C@MBIO_PRIVADO
         version: 1 (DEPRECATED), 2, 3 (incluye datos multimoneda)
         """
@@ -647,6 +645,8 @@ class PaymentGatewayClient:
             "codigobancoComercio": codigobancoComercio.strip(),
             "referencia": referencia,
             "amount": amount,
+            "client": client,
+            "email": email,
             "factura": factura,
         })
         return self._post("/payment/action/v2-procesar-compra-zelle", body)
@@ -705,113 +705,7 @@ class PaymentGatewayClient:
         return self._post("/payment/action/v2-procesar-crypto-confir", body)
 
     # -----------------------------------------------------------------------
-    # 13. DÉBITO INMEDIATO — Solicitud
-    # -----------------------------------------------------------------------
-    def debito_inmediato_solicitud(
-        self,
-        control: str,
-        cid: str,
-        telefonoCliente: str,
-        codigobancoCliente: str,
-        cuentaCliente: str,
-        amount,
-        factura: Optional[str] = None,
-    ) -> dict:
-        """
-        Solicitud de débito inmediato. Se genera un OTP que el cliente recibe.
-        Débito inmediato siempre opera en BOLÍVARES.
-        """
-        # Validaciones
-        cid = validate_cid(cid)
-        telefonoCliente = validate_telefono(telefonoCliente)
-        codigobancoCliente = validate_banco_ve(codigobancoCliente)
-        cuentaCliente = validate_cuenta(cuentaCliente)
-        amount = validate_amount(amount)
-
-        body = build_xml("request", {
-            "cod_afiliacion": self.config.codafiliacion,
-            "control": control,
-            "cid": cid,
-            "codigobancoCliente": codigobancoCliente,
-            "cuentaCliente": cuentaCliente,
-            "telefonoCliente": telefonoCliente,
-            "amount": amount,
-            "factura": factura,
-        })
-        return self._post("/payment/action/v2-procesar-debitoinmediato-auth", body)
-
-    # -----------------------------------------------------------------------
-    # 14. DÉBITO INMEDIATO — Confirmación
-    # -----------------------------------------------------------------------
-    def debito_inmediato_confirmacion(
-        self,
-        control: str,
-        cod_otp: str,
-    ) -> dict:
-        """
-        Confirma un débito inmediato con el código OTP del banco.
-        """
-        cod_otp = validate_otp(cod_otp)
-
-        body = build_xml("request", {
-            "cod_afiliacion": self.config.codafiliacion,
-            "control": control,
-            "cod_otp": cod_otp,
-        })
-        return self._post("/payment/action/v2-procesar-debitoinmediato-confir", body)
-
-    # -----------------------------------------------------------------------
-    # 15. BANPLUS PAY — Solicitud
-    # -----------------------------------------------------------------------
-    def banplus_pay_solicitud(
-        self,
-        control: str,
-        cid: str,
-        amount,
-        tipo_moneda: str = "840",
-        tipo_cuenta: str = "720",
-        factura: Optional[str] = None,
-    ) -> dict:
-        """
-        Solicitud de pago Banplus Pay.
-        tipo_moneda: '0'=Bs, '840'=Dólares, '978'=Euros
-        tipo_cuenta: '900'=Bs, '720'=Dólar, '700'=Euro, etc.
-        """
-        # Validaciones
-        cid = validate_cid(cid)
-        amount = validate_amount(amount)
-
-        body = build_xml("request", {
-            "cod_afiliacion": self.config.codafiliacion,
-            "control": control,
-            "cid": cid,
-            "monto": amount,
-            "tipo_moneda": tipo_moneda,
-            "tipo_cuenta": tipo_cuenta,
-            "factura": factura,
-        })
-        return self._post("/payment/action/v2-procesar-banplusp-auth", body)
-
-    # -----------------------------------------------------------------------
-    # 16. BANPLUS PAY — Confirmación
-    # -----------------------------------------------------------------------
-    def banplus_pay_confirmacion(
-        self,
-        control: str,
-        cod_otp: str,
-    ) -> dict:
-        """Confirma un pago Banplus Pay con el código OTP."""
-        cod_otp = validate_otp(cod_otp)
-
-        body = build_xml("request", {
-            "cod_afiliacion": self.config.codafiliacion,
-            "control": control,
-            "cod_otp": cod_otp,
-        })
-        return self._post("/payment/action/v2-procesar-banplusp-confir", body)
-
-    # -----------------------------------------------------------------------
-    # 17. CIERRE DE LOTE
+    # 13. CIERRE DE LOTE
     # -----------------------------------------------------------------------
     def cierre(self) -> dict:
         """Realiza el cierre del lote de transacciones."""

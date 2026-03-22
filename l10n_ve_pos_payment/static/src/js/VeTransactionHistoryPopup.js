@@ -23,7 +23,7 @@ odoo.define('l10n_ve_pos_payment.VeTransactionHistoryPopup', function (require) 
 
         _loadServices() {
             // Cargar tipos de servicio disponibles desde los datos del POS
-            const serviceTypes = this.env.pos.ve_payment_service_types || [];
+            const serviceTypes = this.env.pos.ve_payment_service_type || [];
             this.state.availableServices = serviceTypes
                 .filter(st => st.active)
                 .map(st => ({ code: st.code, name: st.name }));
@@ -33,7 +33,7 @@ odoo.define('l10n_ve_pos_payment.VeTransactionHistoryPopup', function (require) 
             this.state.loading = true;
             this.state.selectedLog = null;
             try {
-                const result = await this.rpc({
+                const result = await this.env.services.rpc({
                     route: '/ve_pos_payment/get_transaction_logs',
                     params: {
                         pos_session_id: this.props.sessionId,
