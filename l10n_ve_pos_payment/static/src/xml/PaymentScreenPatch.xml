@@ -7,6 +7,9 @@
                 <div class="button js_ve_payment" t-on-click="openVEPaymentPopup">
                     <i class="fa fa-university"/> Pagos Bancarios
                 </div>
+                <div class="button js_ve_history" t-on-click="openVEHistoryPopup">
+                    <i class="fa fa-history"/> Historial
+                </div>
             </t>
         </xpath>
     </t>

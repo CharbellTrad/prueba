@@ -29,8 +29,10 @@
             'l10n_ve_pos_payment/static/src/scss/ve_pos_payment.scss',
             'l10n_ve_pos_payment/static/src/js/PaymentGatewayService.js',
             'l10n_ve_pos_payment/static/src/js/PaymentGatewayPopup.js',
+            'l10n_ve_pos_payment/static/src/js/VeTransactionHistoryPopup.js',
             'l10n_ve_pos_payment/static/src/js/PatchPaymentScreen.js',
             'l10n_ve_pos_payment/static/src/xml/PaymentGatewayPopup.xml',
+            'l10n_ve_pos_payment/static/src/xml/VeTransactionHistoryPopup.xml',
             'l10n_ve_pos_payment/static/src/xml/PaymentScreenPatch.xml',
             'l10n_ve_pos_payment/static/src/js/models.js',
         ]

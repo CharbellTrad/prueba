@@ -69,12 +69,29 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
         if (!cid) {
-            showResult('Ingrese su cédula o RIF.', 'error');
+            showResult('Ingrese su cedula o RIF.', 'error');
+            return;
+        }
+
+        // Validacion de expiracion (MMAA) - §3.7
+        function validateExpDate(expdate) {
+            const month = parseInt(expdate.substring(0, 2));
+            const year = parseInt('20' + expdate.substring(2, 4));
+            if (month < 1 || month > 12) return 'Mes de vencimiento invalido.';
+            const now = new Date();
+            if (new Date(year, month - 1) < new Date(now.getFullYear(), now.getMonth())) {
+                return 'Tarjeta vencida.';
+            }
+            return null;
+        }
+        const expError = validateExpDate(expdateRaw);
+        if (expError) {
+            showResult(expError, 'error');
             return;
         }
 
         submitBtn.disabled = true;
-        submitBtn.textContent = '⏳ Procesando...';
+        submitBtn.textContent = 'Procesando...';
         showResult('Verificando su tarjeta con el banco...', 'info');
 
         try {

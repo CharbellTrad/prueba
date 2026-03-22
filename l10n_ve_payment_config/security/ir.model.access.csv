@@ -11,3 +11,5 @@ access_ve_payment_service_bank,ve.payment.service.bank,model_ve_payment_service_
 access_ve_payment_service_bank_manager,ve.payment.service.bank manager,model_ve_payment_service_bank,account.group_account_manager,1,1,1,1
 access_ve_bank_transaction_log,ve.bank.transaction.log,model_ve_bank_transaction_log,base.group_user,1,0,0,0
 access_ve_bank_transaction_log_manager,ve.bank.transaction.log manager,model_ve_bank_transaction_log,account.group_account_manager,1,1,1,1
+access_ve_certification_wizard,ve.certification.wizard,model_ve_certification_wizard,account.group_account_manager,1,1,1,1
+access_ve_certification_result_line,ve.certification.result.line,model_ve_certification_result_line,account.group_account_manager,1,1,1,1

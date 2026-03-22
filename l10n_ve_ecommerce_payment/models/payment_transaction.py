@@ -124,7 +124,7 @@ class PaymentTransaction(models.Model):
         try:
             provider = self.provider_id
             if not provider.ve_gateway_config_id:
-                _logger.warning("No hay configuración de pasarela para e-commerce VE gateway.")
+                _logger.warning("No hay configuracion de pasarela para e-commerce VE gateway.")
                 return
 
             self.env['ve.bank.transaction.log'].sudo().create_from_gateway_response(
@@ -132,13 +132,16 @@ class PaymentTransaction(models.Model):
                     **result,
                     'amount': self.amount,
                     'factura': self.reference or '',
-                    'partner_name': self.partner_name or '',
                 },
                 gateway_config=provider.ve_gateway_config_id,
-                service_type_code='tarjeta',
+                service_code='tarjeta',
+                payment_tx=self,
             )
         except Exception as e:
-            _logger.warning("Error registrando transacción e-commerce en log: %s", str(e))
+            _logger.warning(
+                "No se pudo registrar transacción en extracto: %s", str(e),
+                exc_info=True,
+            )
 
     def _process_notification_data(self, data):
         """

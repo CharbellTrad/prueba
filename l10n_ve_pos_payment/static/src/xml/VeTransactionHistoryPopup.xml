@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates id="template" xml:space="preserve">
+
+<t t-name="l10n_ve_pos_payment.VeTransactionHistoryPopup" owl="1">
+    <div class="popup ve-payment-popup" style="min-width:650px !important;max-width:800px !important;">
+
+        <header class="title ve-payment-header">
+            <h3><i class="fa fa-history"/> Historial de Transacciones</h3>
+        </header>
+
+        <main class="body ve-tab-content" style="max-height:500px;overflow-y:auto;">
+
+            <!-- DETALLE DE UNA TRANSACCIÓN -->
+            <t t-if="state.selectedLog">
+                <button class="btn btn-sm btn-outline-secondary mb-2" t-on-click="backToList"
+                        style="display:flex;align-items:center;gap:6px;font-size:0.85rem;">
+                    <i class="fa fa-arrow-left"/> Volver al listado
+                </button>
+
+                <div t-att-class="state.selectedLog.approved ? 've-success-result' : 've-result ve-result-error'"
+                     style="margin-top:0;">
+                    <t t-if="state.selectedLog.approved">
+                        <div class="ve-success-header">
+                            <i class="fa fa-check-circle ve-success-icon"/>
+                            <span>Transacción Aprobada</span>
+                        </div>
+                        <div class="ve-success-details">
+                            <div class="ve-detail-row">
+                                <span class="ve-detail-label">Servicio</span>
+                                <span class="ve-detail-value"><t t-esc="state.selectedLog.service_code"/></span>
+                            </div>
+                            <div class="ve-detail-row">
+                                <span class="ve-detail-label">Referencia</span>
+                                <span class="ve-detail-value ve-highlight">
+                                    <t t-esc="state.selectedLog.referencia"/>
+                                </span>
+                            </div>
+                            <div class="ve-detail-row">
+                                <span class="ve-detail-label">Control</span>
+                                <span class="ve-detail-value"><t t-esc="state.selectedLog.control"/></span>
+                            </div>
+                            <div class="ve-detail-row">
+                                <span class="ve-detail-label">Monto</span>
+                                <span class="ve-detail-value ve-highlight">
+                                    Bs <t t-esc="formatAmount(state.selectedLog.amount)"/>
+                                </span>
+                            </div>
+                            <div class="ve-detail-row" t-if="state.selectedLog.authid">
+                                <span class="ve-detail-label">Aprobación</span>
+                                <span class="ve-detail-value"><t t-esc="state.selectedLog.authid"/></span>
+                            </div>
+                            <div class="ve-detail-row" t-if="state.selectedLog.seqnum">
+                                <span class="ve-detail-label">Secuencia</span>
+                                <span class="ve-detail-value"><t t-esc="state.selectedLog.seqnum"/></span>
+                            </div>
+                        </div>
+                        <t t-if="state.selectedLog.voucher">
+                            <div class="ve-voucher-container">
+                                <div class="ve-voucher-title">Comprobante</div>
+                                <pre class="ve-voucher-text"><t t-esc="state.selectedLog.voucher"/></pre>
+                            </div>
+                        </t>
+                        <button class="ve-print-btn" t-on-click="printVoucher">
+                            <i class="fa fa-print"/> Imprimir Comprobante
+                        </button>
+                    </t>
+                    <t t-else="">
+                        <div style="padding:16px;text-align:center;">
+                            <i class="fa fa-times-circle" style="font-size:2rem;color:#dc2626;margin-bottom:8px;display:block;"/>
+                            <div style="font-weight:600;margin-bottom:4px;">Transacción Rechazada</div>
+                            <div style="font-size:0.9rem;">
+                                Código: <strong><t t-esc="state.selectedLog.codigo"/></strong>
+                                <t t-if="state.selectedLog.descripcion">
+                                    — <t t-esc="state.selectedLog.descripcion"/>
+                                </t>
+                            </div>
+                        </div>
+                    </t>
+                </div>
+            </t>
+
+            <!-- LISTA DE TRANSACCIONES -->
+            <t t-else="">
+                <!-- Filtros -->
+                <div style="display:flex;gap:12px;margin-bottom:12px;flex-wrap:wrap;">
+                    <div class="ve-row" style="flex:1;min-width:120px;">
+                        <label>Sesión</label>
+                        <select class="ve-select" t-model="state.filterSession" t-on-change="onFilterChange">
+                            <option value="current">Actual</option>
+                            <option value="all">Todas</option>
+                        </select>
+                    </div>
+                    <div class="ve-row" style="flex:1;min-width:120px;">
+                        <label>Estado</label>
+                        <select class="ve-select" t-model="state.filterStatus" t-on-change="onFilterChange">
+                            <option value="approved">Aprobadas</option>
+                            <option value="rejected">Rechazadas</option>
+                            <option value="all">Todas</option>
+                        </select>
+                    </div>
+                    <div class="ve-row" style="flex:1;min-width:120px;">
+                        <label>Servicio</label>
+                        <select class="ve-select" t-model="state.filterService" t-on-change="onFilterChange">
+                            <option value="">Todos</option>
+                            <t t-foreach="state.availableServices" t-as="svc" t-key="svc.code">
+                                <option t-att-value="svc.code"><t t-esc="svc.name"/></option>
+                            </t>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Loading -->
+                <t t-if="state.loading">
+                    <div style="text-align:center;padding:30px;">
+                        <i class="fa fa-spinner fa-spin" style="font-size:1.5rem;color:#71639e;"/>
+                        <p style="margin-top:8px;color:#64748b;">Cargando transacciones...</p>
+                    </div>
+                </t>
+
+                <!-- Sin resultados -->
+                <t t-elif="state.logs.length === 0">
+                    <div style="text-align:center;padding:30px;color:#64748b;">
+                        <i class="fa fa-inbox" style="font-size:2rem;display:block;margin-bottom:8px;"/>
+                        No se encontraron transacciones con estos filtros.
+                    </div>
+                </t>
+
+                <!-- Tabla -->
+                <t t-else="">
+                    <table style="width:100%;border-collapse:collapse;font-size:0.85rem;">
+                        <thead>
+                            <tr style="background:#f8fafc;border-bottom:2px solid #e2e8f0;">
+                                <th style="padding:8px;text-align:left;">Hora</th>
+                                <th t-if="state.filterSession === 'all'" style="padding:8px;text-align:left;">Sesión</th>
+                                <th style="padding:8px;text-align:left;">Servicio</th>
+                                <th style="padding:8px;text-align:left;">Factura</th>
+                                <th style="padding:8px;text-align:right;">Monto</th>
+                                <th style="padding:8px;text-align:left;">Referencia</th>
+                                <th style="padding:8px;text-align:center;">Estado</th>
+                                <th style="padding:8px;text-align:center;"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="state.logs" t-as="log" t-key="log.id">
+                                <tr style="border-bottom:1px solid #f1f5f9;"
+                                    t-att-style="log.approved ? '' : 'background:#fef2f2;'">
+                                    <td style="padding:8px;"><t t-esc="formatDate(log.create_date)"/></td>
+                                    <td t-if="state.filterSession === 'all'" style="padding:8px;">
+                                        <t t-esc="log.pos_session_id ? log.pos_session_id[1] : '-'"/>
+                                    </td>
+                                    <td style="padding:8px;font-weight:600;"><t t-esc="log.service_code"/></td>
+                                    <td style="padding:8px;"><t t-esc="log.factura || '-'"/></td>
+                                    <td style="padding:8px;text-align:right;font-weight:600;">
+                                        <t t-esc="formatAmount(log.amount)"/>
+                                    </td>
+                                    <td style="padding:8px;"><t t-esc="log.referencia || '-'"/></td>
+                                    <td style="padding:8px;text-align:center;">
+                                        <span t-if="log.approved"
+                                              style="color:#16a34a;font-weight:600;">
+                                            <i class="fa fa-check-circle"/>
+                                        </span>
+                                        <span t-else=""
+                                              style="color:#dc2626;font-weight:600;">
+                                            <i class="fa fa-times-circle"/>
+                                        </span>
+                                    </td>
+                                    <td style="padding:8px;text-align:center;">
+                                        <button class="btn btn-sm btn-outline-primary"
+                                                t-on-click="() => this.viewLog(log)"
+                                                style="font-size:0.78rem;padding:2px 10px;">
+                                            Ver
+                                        </button>
+                                    </td>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+                </t>
+            </t>
+        </main>
+
+        <div class="footer">
+            <div class="button cancel ve-cancel-btn" t-on-click="cancel">
+                Cerrar
+            </div>
+        </div>
+
+    </div>
+</t>
+
+</templates>

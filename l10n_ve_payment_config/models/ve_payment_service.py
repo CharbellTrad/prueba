@@ -39,10 +39,15 @@ class VePaymentService(models.Model):
         required=True,
         ondelete='restrict',
     )
-    # Campo auxiliar para acceder rápido al código del tipo
-    service_type_code = fields.Char(
+    # Campo auxiliar para acceder rapido al codigo del tipo
+    service_code = fields.Char(
         related='service_type_id.code',
-        string='Código Tipo',
+        string='Código',
+        store=True,
+        readonly=True,
+    )
+    pos_visible = fields.Boolean(
+        related='service_type_id.pos_visible',
         store=True,
         readonly=True,
     )
@@ -95,18 +100,7 @@ class VePaymentService(models.Model):
         for rec in self:
             rec.bank_count = len(rec.bank_ids)
 
-    needs_bank_config = fields.Boolean(
-        related='service_type_id.needs_bank_config',
-        string='Necesita Configuración Bancaria',
-        store=True,
-        readonly=True,
-    )
-    bank_category = fields.Selection(
-        related='service_type_id.bank_category',
-        string='Categoría de Banco',
-        store=True,
-        readonly=True,
-    )
+
 
     @api.constrains('service_type_id', 'gateway_config_id')
     def _check_unique_service(self):

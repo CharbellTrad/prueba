@@ -6,55 +6,7 @@ odoo.define('l10n_ve_pos_payment.PaymentGatewayPopup', function (require) {
     const PaymentGatewayService = require('l10n_ve_pos_payment.PaymentGatewayService');
     const { useState } = owl;
 
-    const ALL_BANKS_VE = [
-        { code: '0102', name: 'Banco de Venezuela, S.A.C.A.' },
-        { code: '0104', name: 'Venezolano de Crédito' },
-        { code: '0105', name: 'Mercantil' },
-        { code: '0108', name: 'Provincial' },
-        { code: '0114', name: 'Bancaribe' },
-        { code: '0115', name: 'Exterior' },
-        { code: '0116', name: 'Occidental de Descuento (BOD)' },
-        { code: '0128', name: 'Banco Caroní' },
-        { code: '0134', name: 'Banesco' },
-        { code: '0137', name: 'Sofitasa' },
-        { code: '0138', name: 'Banco Plaza' },
-        { code: '0151', name: 'BFC Banco Fondo Común' },
-        { code: '0156', name: '100% Banco' },
-        { code: '0157', name: 'Del Sur' },
-        { code: '0163', name: 'Banco del Tesoro' },
-        { code: '0166', name: 'Banco Agrícola de Venezuela' },
-        { code: '0168', name: 'Bancrecer' },
-        { code: '0169', name: 'Mi Banco' },
-        { code: '0171', name: 'Banco Activo' },
-        { code: '0172', name: 'Bancamiga' },
-        { code: '0174', name: 'Banplus' },
-        { code: '0175', name: 'Bicentenario del Pueblo' },
-        { code: '0177', name: 'Banfanb' },
-        { code: '0178', name: 'N58 Banco Digital' },
-        { code: '0191', name: 'BNC Nacional de Crédito' },
-    ];
 
-    const ALL_BANKS_ZELLE = [
-        { code: 'BOFA', name: 'Bank of America' },
-        { code: 'CHAS', name: 'Chase' },
-        { code: 'CITI', name: 'Citibank' },
-        { code: 'WFBI', name: 'Wells Fargo' },
-        { code: 'NFBK', name: 'Capital One' },
-        { code: 'FTBC', name: 'First Third Bank' },
-        { code: 'PNCC', name: 'PNC Bank' },
-        { code: 'MRMD', name: 'HSBC' },
-    ];
-
-    const CRYPTO_NETWORK_MAP = {
-        'BTC': { display: 'Bitcoin', red: 'Bitcoin Mainnet' },
-        'ETH': { display: 'Ethereum', red: 'ERC-20' },
-        'USDT': { display: 'Tether USD', red: 'ERC-20 (Ethereum)' },
-        'TRXUSDT': { display: 'Tether USD', red: 'TRC-20 (TRON) — recomendado' },
-        'LTC': { display: 'Litecoin', red: 'Litecoin Mainnet' },
-        'DASH': { display: 'Dash', red: 'Dash Mainnet' },
-        'BNB': { display: 'Binance Coin', red: 'BEP-20 (BSC)' },
-        'DAI': { display: 'DAI Stablecoin', red: 'ERC-20 (Ethereum)' },
-    };
 
     // ── Moneda fija por servicio según el manual MegaSoft ──────
     // 'bs' = solo Bolívares, 'usd' = solo USD, 'multi' = selector
@@ -221,12 +173,12 @@ odoo.define('l10n_ve_pos_payment.PaymentGatewayPopup', function (require) {
                 banplus_otp: '',
 
                 banks: { c2p: [], p2c: [], vuelto: [], zelle: [] },
-                allBanksVE: ALL_BANKS_VE,
-                allBanksZelle: ALL_BANKS_ZELLE,
+                allBanksVE: [],
+                allBanksZelle: [],
 
                 // Visibilidad (se sobreescribe con reload_config)
                 visible: {},
-                testMode: false,
+
             });
 
             this.tabs = [];
@@ -372,7 +324,7 @@ odoo.define('l10n_ve_pos_payment.PaymentGatewayPopup', function (require) {
                 if (result.success) {
                     this.env.pos.ve_payment_service_bank = result.banks;
                     this.env.pos.ve_payment_service = result.services;
-                    this.state.testMode = result.test_mode || false;
+
                     this._buildBankList();
                     this._buildTabs(result.visible || {});
                 } else {
@@ -418,11 +370,16 @@ odoo.define('l10n_ve_pos_payment.PaymentGatewayPopup', function (require) {
         }
 
         _buildBankList() {
+            // Poblar listas de bancos desde los modelos cargados del backend
+            const allBanks = this.env.pos.ve_payment_bank || [];
+            this.state.allBanksVE = allBanks.filter(b => b.bank_type === 've');
+            this.state.allBanksZelle = allBanks.filter(b => b.bank_type === 'zelle');
+
             if (!this.env.pos.ve_payment_service_bank) return;
-            const banks = this.env.pos.ve_payment_service_bank;
+            const serviceBanks = this.env.pos.ve_payment_service_bank;
             // Solo P2C y Zelle usan bancos del comercio como selector
-            this.state.banks.p2c = banks.filter(b => b.service_type === 'p2c');
-            this.state.banks.zelle = banks.filter(b => b.service_type === 'zelle');
+            this.state.banks.p2c = serviceBanks.filter(b => b.service_code === 'p2c');
+            this.state.banks.zelle = serviceBanks.filter(b => b.service_code === 'zelle');
 
             // Set defaults solo para P2C y Zelle
             for (const type of ['p2c', 'zelle']) {
@@ -455,7 +412,7 @@ odoo.define('l10n_ve_pos_payment.PaymentGatewayPopup', function (require) {
         // ─── Validación Frontend ─────────────────────────────────
 
         _validate(checks) {
-            if (this.state.testMode) return true; // Skip validations in test mode
+
             for (const [value, type, label] of checks) {
                 const err = validateField(value, type);
                 if (err) {
@@ -497,6 +454,11 @@ odoo.define('l10n_ve_pos_payment.PaymentGatewayPopup', function (require) {
                 [cleanPhone(this.state.telefono), 'telefono', 'Teléfono'],
                 [this.state.c2p_codigoc2p, 'codigoc2p', 'Código C2P'],
             ])) return;
+            // Validación explícita: C2P debe ser exactamente 8 dígitos
+            if (!/^\d{8}$/.test((this.state.c2p_codigoc2p || '').trim())) {
+                this.state.validationError = 'El código C2P debe tener exactamente 8 dígitos.';
+                return;
+            }
             if (!this.state.c2p_codigobanco) {
                 this.state.validationError = 'Seleccione el banco del cliente.';
                 return;
@@ -644,16 +606,33 @@ odoo.define('l10n_ve_pos_payment.PaymentGatewayPopup', function (require) {
             }
         }
 
-        // ─── Tarjeta ─────────────────────────────────────────────
+        // -- Tarjeta -- Eliminado del POS (pos_visible=False, ecommerce_only=True)
+        // Handler onConfirmTarjeta eliminado. Tarjeta solo via l10n_ve_ecommerce_payment.
 
-        async onConfirmTarjeta() {
+        // --- Credito Inmediato (Transferencia) ----------------------
+
+        async onConfirmCreditoInmediato() {
             if (!this._validate([
-                [this.state.cid, 'cid', 'Cédula'],
-                [cleanPAN(this.state.tarjeta_pan), 'pan', 'Número de Tarjeta'],
-                [this.state.tarjeta_cvv, 'cvv', 'CVV'],
-                [this.state.tarjeta_expdate.replace('/', ''), 'expdate', 'Vencimiento'],
+                [this.state.cid, 'cid', 'Cedula'],
+                [cleanPhone(this.state.ci_telefonoOrigen), 'telefono', 'Telefono Origen'],
+                [this.state.ci_cuentaOrigen, 'cuenta', 'Cuenta Origen'],
             ])) return;
+            if (!this.state.ci_codigobancoOrigen) {
+                this.state.validationError = 'Seleccione el banco de origen.';
+                return;
+            }
             if (!this._requireAmount()) return;
+
+            // Obtener cuentaDestino del banco configurado para credito_inmediato
+            let cuentaDestino = '';
+            const ciService = (this.state.banks.credito_inmediato || []);
+            if (ciService.length > 0 && ciService[0].account_number) {
+                cuentaDestino = ciService[0].account_number;
+            }
+            if (!cuentaDestino) {
+                this.setResult('No hay cuenta destino configurada para Credito Inmediato.', 'error');
+                return;
+            }
 
             this.state.loading = true;
             this.state.validationError = '';
@@ -661,27 +640,27 @@ odoo.define('l10n_ve_pos_payment.PaymentGatewayPopup', function (require) {
             if (!control) return;
 
             const rateParams = this._getRateParams();
-            const result = await this.gwService.compraTarjeta({
+            const result = await this.gwService.creditoInmediato({
                 control,
-                pan: cleanPAN(this.state.tarjeta_pan),
-                cvv2: this.state.tarjeta_cvv.trim(),
-                expdate: this.state.tarjeta_expdate.replace('/', '').trim(),
                 cid: this.state.cid.trim().toUpperCase(),
-                clientName: this.state.tarjeta_clientName,
+                cuentaOrigen: this.state.ci_cuentaOrigen.trim(),
+                telefonoOrigen: cleanPhone(this.state.ci_telefonoOrigen),
+                codigobancoOrigen: this.state.ci_codigobancoOrigen,
+                cuentaDestino: cuentaDestino,
                 amount: formatBs(this.state.amount_bs),
+                referencia: (this.state.ci_referencia || '').trim() || undefined,
                 factura: this.state.factura,
-                tipoPago: this.state.tarjeta_tipoPago,
                 ...rateParams,
             });
 
             if (this.gwService.isApproved(result)) {
-                await this._registerAndClose('tarjeta', result, control);
+                await this._registerAndClose('credito_inmediato', result, control);
             } else {
                 this.setResult(this.gwService.getErrorMessage(result), 'error');
             }
         }
 
-        // ─── Débito Inmediato ────────────────────────────────────
+        // --- Debito Inmediato -───────────────────────────────────
 
         async onSolicitarDebito() {
             if (!this._validate([
@@ -806,6 +785,12 @@ odoo.define('l10n_ve_pos_payment.PaymentGatewayPopup', function (require) {
         async _loadCryptoMonedas() {
             if (this.state.crypto_monedas.length > 0) return;
             this.state.crypto_loading_monedas = true;
+            // Build lookup from ve_payment_bank crypto records
+            const cryptoBanks = (this.env.pos.ve_payment_bank || []).filter(b => b.bank_type === 'crypto');
+            const cryptoMap = {};
+            for (const b of cryptoBanks) {
+                cryptoMap[b.code] = { display: b.name, red: b.name };
+            }
             try {
                 const result = await this.gwService.getCryptoMonedas();
                 if (result && result.lista_codigos) {
@@ -813,14 +798,13 @@ odoo.define('l10n_ve_pos_payment.PaymentGatewayPopup', function (require) {
                         .split(',').map(c => c.trim()).filter(Boolean);
                     this.state.crypto_monedas = codigos.map(codigo => ({
                         codigo,
-                        display: CRYPTO_NETWORK_MAP[codigo]?.display || codigo,
-                        red: CRYPTO_NETWORK_MAP[codigo]?.red || 'Red no identificada',
+                        display: cryptoMap[codigo]?.display || codigo,
+                        red: cryptoMap[codigo]?.red || 'Red no identificada',
                     }));
                     const preferido = this.state.crypto_monedas.find(m => m.codigo === 'TRXUSDT')
                         || this.state.crypto_monedas[0];
                     if (preferido) this.state.crypto_codigo_api = preferido.codigo;
                 } else {
-                    // RPC returned error or no lista_codigos → use fallback
                     console.warn('Crypto: usando monedas por defecto', result?.error || 'sin lista_codigos');
                     this._useFallbackCrypto();
                 }
@@ -833,9 +817,12 @@ odoo.define('l10n_ve_pos_payment.PaymentGatewayPopup', function (require) {
         }
 
         _useFallbackCrypto() {
-            this.state.crypto_monedas = Object.entries(CRYPTO_NETWORK_MAP).map(
-                ([codigo, info]) => ({ codigo, ...info })
-            );
+            const cryptoBanks = (this.env.pos.ve_payment_bank || []).filter(b => b.bank_type === 'crypto');
+            this.state.crypto_monedas = cryptoBanks.map(b => ({
+                codigo: b.code,
+                display: b.name,
+                red: b.name,
+            }));
             const preferido = this.state.crypto_monedas.find(m => m.codigo === 'TRXUSDT')
                 || this.state.crypto_monedas[0];
             if (preferido) this.state.crypto_codigo_api = preferido.codigo;
@@ -906,17 +893,42 @@ odoo.define('l10n_ve_pos_payment.PaymentGatewayPopup', function (require) {
             try {
                 await this.gwService.registerTransaction({ serviceType, transactionData });
             } catch (err) {
-                console.warn('Error registrando transacción', err);
+                console.warn('Error registrando transaccion', err);
             }
 
-            this.setResult(
-                `Pago aprobado. Referencia: ${result.referencia || result.numcontrol || control}`,
-                'success'
-            );
+            // Poblar lastTransaction para el modal de exito
+            const tabInfo = this.tabs.find(t => t.id === serviceType);
+            this.state.lastTransaction = {
+                serviceLabel: tabInfo ? tabInfo.label : serviceType,
+                referencia: result.referencia || result.numcontrol || control || '',
+                control: control || '',
+                amount: this.state.amount_bs
+                    ? `Bs ${this.state.amount_bs.toFixed(2)}`
+                    : (this.state.amount_usd ? `$ ${this.state.amount_usd.toFixed(2)}` : ''),
+                authid: result.authid || '',
+                seqnum: result.seqnum || '',
+                voucher: result.voucher || '',
+            };
 
-            setTimeout(() => {
-                this.confirm({ payload: { serviceType, result, control } });
-            }, 1500);
+            this.setResult('Transaccion Aprobada', 'success');
+            this.state.loading = false;
+        }
+
+        printVoucher() {
+            const voucher = this.state.lastTransaction && this.state.lastTransaction.voucher;
+            if (!voucher) return;
+
+            const printWindow = window.open('', '_blank', 'width=400,height=600');
+            if (!printWindow) return;
+            printWindow.document.write(
+                '<html><head><title>Comprobante</title>' +
+                '<style>body{font-family:"Courier New",monospace;font-size:12px;padding:20px;white-space:pre-wrap;}</style>' +
+                '</head><body>' + voucher.replace(/</g, '&lt;').replace(/>/g, '&gt;') +
+                '</body></html>'
+            );
+            printWindow.document.close();
+            printWindow.focus();
+            printWindow.print();
         }
 
         getPayload() {

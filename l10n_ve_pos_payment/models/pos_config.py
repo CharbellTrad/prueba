@@ -15,12 +15,7 @@ class PosConfig(models.Model):
         string='Configuración Pasarela',
         domain="[('active', '=', True), ('company_id', '=', company_id)]",
     )
-    ve_pos_test_mode = fields.Boolean(
-        string='Modo Prueba (Integrador)',
-        default=False,
-        help='Desactiva las validaciones de formato en el POS (cédula, teléfono, etc.) '
-             'para permitir valores de prueba como "Integrador".',
-    )
+
 
     # ── Servicios habilitados en este POS ─────────────────────
     ve_pos_enabled_services = fields.Many2many(
@@ -49,6 +44,6 @@ class PosConfig(models.Model):
             'gateway_config_id': gw.id,
             'base_url': gw.base_url,
             'codafiliacion': gw.codafiliacion,
-            'active_services': [s.service_type_code for s in gw.service_ids.filtered('active')],
+            'active_services': [s.service_code for s in gw.service_ids.filtered('active')],
         }
 

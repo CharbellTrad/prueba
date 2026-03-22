@@ -27,12 +27,6 @@
                                            domain="[('active','=',True)]"
                                            placeholder="Seleccione la pasarela..."/>
                                 </div>
-                                <div class="row mt8">
-                                    <field name="ve_pos_test_mode" class="oe_inline"/>
-                                    <label for="ve_pos_test_mode"
-                                           string="Modo Prueba (Integrador)"
-                                           class="oe_inline ms-1"/>
-                                </div>
                             </div>
                         </div>
                     </div>

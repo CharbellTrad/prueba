@@ -335,3 +335,110 @@
         }
     }
 }
+
+// ── Success Modal ─────────────────────────────────────────────
+.ve-success-result {
+    background: #f0fdf4;
+    border: 1.5px solid #86efac;
+    border-radius: 10px;
+    padding: 20px;
+    margin-top: 12px;
+
+    .ve-success-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: #15803d;
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin-bottom: 16px;
+    }
+
+    .ve-success-icon {
+        font-size: 1.8rem;
+        color: #16a34a;
+    }
+
+    .ve-success-details {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .ve-detail-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 6px 0;
+        border-bottom: 1px solid #d1fae5;
+
+        &:last-child {
+            border-bottom: none;
+        }
+    }
+
+    .ve-detail-label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #374151;
+    }
+
+    .ve-detail-value {
+        font-size: 0.9rem;
+        color: #1e293b;
+    }
+
+    .ve-highlight {
+        font-weight: 700;
+        color: #15803d;
+    }
+
+    .ve-voucher-container {
+        margin-top: 16px;
+        background: #fff;
+        border: 1px solid #d1fae5;
+        border-radius: 6px;
+        padding: 12px;
+    }
+
+    .ve-voucher-title {
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: #374151;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 8px;
+    }
+
+    .ve-voucher-text {
+        font-family: 'Courier New', monospace;
+        font-size: 0.8rem;
+        white-space: pre-wrap;
+        color: #1e293b;
+        margin: 0;
+        max-height: 200px;
+        overflow-y: auto;
+    }
+
+    .ve-print-btn {
+        margin-top: 12px;
+        width: 100%;
+        background: #16a34a;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        padding: 10px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: background 0.2s;
+
+        &:hover {
+            background: #15803d;
+        }
+    }
+}

@@ -21,10 +21,17 @@ odoo.define('l10n_ve_pos_payment.PaymentScreenPatch', function (require) {
 
             if (confirmed && payload) {
                 this.showPopup('ErrorPopup', {
-                    title: '✅ Pago Aprobado',
-                    body: 'Transacción bancaria aprobada y registrada.',
+                    title: 'Pago Aprobado',
+                    body: 'Transaccion bancaria aprobada y registrada.',
                 });
             }
+        }
+
+        async openVEHistoryPopup() {
+            await this.showPopup('VeTransactionHistoryPopup', {
+                title: 'Historial de Transacciones',
+                sessionId: this.env.pos.pos_session.id,
+            });
         }
     };
 

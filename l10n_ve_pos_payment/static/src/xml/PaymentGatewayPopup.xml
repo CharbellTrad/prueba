@@ -556,7 +556,62 @@
             <div t-if="state.validationError" class="ve-help-text" style="background:#fef3c7;border-color:#fbbf24;">
                 <i class="fa fa-warning" style="color:#92400e;"/> <t t-esc="state.validationError"/>
             </div>
-            <t t-if="state.result">
+            <t t-if="state.result and state.resultType === 'success' and state.lastTransaction">
+                <div class="ve-success-result">
+                    <div class="ve-success-header">
+                        <i class="fa fa-check-circle ve-success-icon"/>
+                        <span>Transacción Aprobada</span>
+                    </div>
+                    <div class="ve-success-details">
+                        <div class="ve-detail-row">
+                            <span class="ve-detail-label">Servicio</span>
+                            <span class="ve-detail-value">
+                                <t t-esc="state.lastTransaction.serviceLabel"/>
+                            </span>
+                        </div>
+                        <div class="ve-detail-row">
+                            <span class="ve-detail-label">Referencia</span>
+                            <span class="ve-detail-value ve-highlight">
+                                <t t-esc="state.lastTransaction.referencia"/>
+                            </span>
+                        </div>
+                        <div class="ve-detail-row">
+                            <span class="ve-detail-label">Control</span>
+                            <span class="ve-detail-value">
+                                <t t-esc="state.lastTransaction.control"/>
+                            </span>
+                        </div>
+                        <div class="ve-detail-row">
+                            <span class="ve-detail-label">Monto</span>
+                            <span class="ve-detail-value ve-highlight">
+                                <t t-esc="state.lastTransaction.amount"/>
+                            </span>
+                        </div>
+                        <div class="ve-detail-row" t-if="state.lastTransaction.authid">
+                            <span class="ve-detail-label">Aprobación</span>
+                            <span class="ve-detail-value">
+                                <t t-esc="state.lastTransaction.authid"/>
+                            </span>
+                        </div>
+                        <div class="ve-detail-row" t-if="state.lastTransaction.seqnum">
+                            <span class="ve-detail-label">Secuencia</span>
+                            <span class="ve-detail-value">
+                                <t t-esc="state.lastTransaction.seqnum"/>
+                            </span>
+                        </div>
+                    </div>
+                    <t t-if="state.lastTransaction.voucher">
+                        <div class="ve-voucher-container">
+                            <div class="ve-voucher-title">Comprobante</div>
+                            <pre class="ve-voucher-text"><t t-esc="state.lastTransaction.voucher"/></pre>
+                        </div>
+                    </t>
+                    <button class="ve-print-btn" t-on-click="printVoucher">
+                        <i class="fa fa-print"/> Imprimir Comprobante
+                    </button>
+                </div>
+            </t>
+            <t t-if="state.result and state.resultType !== 'success'">
                 <div class="ve-result" t-att-class="'ve-result-' + state.resultType">
                     <t t-esc="state.result"/>
                 </div>

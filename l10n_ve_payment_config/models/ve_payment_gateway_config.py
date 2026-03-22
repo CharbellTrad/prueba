@@ -126,7 +126,7 @@ class VePaymentGatewayConfig(models.Model):
 
     # ── Métodos ───────────────────────────────────────────────────
 
-    def get_client(self, test_mode=False):
+    def get_client(self):
         """Retorna una instancia de PaymentGatewayClient configurada."""
         self.ensure_one()
         config = PGConfig(
@@ -135,7 +135,7 @@ class VePaymentGatewayConfig(models.Model):
             contrasena=self.password,
             codafiliacion=self.codafiliacion.strip(),
         )
-        return PaymentGatewayClient(config, timeout=self.timeout, test_mode=test_mode)
+        return PaymentGatewayClient(config, timeout=self.timeout)
 
     def action_test_connection(self):
         """Prueba la conexión con la pasarela ejecutando un preregistro."""
@@ -148,8 +148,8 @@ class VePaymentGatewayConfig(models.Model):
                     'type': 'ir.actions.client',
                     'tag': 'display_notification',
                     'params': {
-                        'title': '✅ Conexión Exitosa',
-                        'message': f"Preregistro OK. Control: {result.get('control', '—')}",
+                        'title': 'Conexion Exitosa',
+                        'message': f"Preregistro OK. Control: {result.get('control', '---')}",
                         'type': 'success',
                         'sticky': False,
                     },
@@ -160,7 +160,7 @@ class VePaymentGatewayConfig(models.Model):
                     'type': 'ir.actions.client',
                     'tag': 'display_notification',
                     'params': {
-                        'title': '❌ Error de Conexión',
+                        'title': 'Error de Conexion',
                         'message': msg,
                         'type': 'danger',
                         'sticky': True,
@@ -171,7 +171,7 @@ class VePaymentGatewayConfig(models.Model):
                 'type': 'ir.actions.client',
                 'tag': 'display_notification',
                 'params': {
-                    'title': '❌ Error',
+                    'title': 'Error',
                     'message': str(e),
                     'type': 'danger',
                     'sticky': True,

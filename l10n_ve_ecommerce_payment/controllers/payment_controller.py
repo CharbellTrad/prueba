@@ -35,13 +35,14 @@ class VeEcommercePaymentController(http.Controller):
             if tx.provider_code != 've_payment_gateway':
                 return {'error': 'Proveedor de pago incorrecto.'}
 
-            # Verificar que la transacción pertenece al usuario (para sesión web)
+            # Verificar que la transacción pertenece al usuario (CSRF)
             if request.env.user and not request.env.user._is_public():
                 if tx.partner_id and tx.partner_id != request.env.user.partner_id:
                     _logger.warning(
                         "Intento de pago de transacción %s por usuario %s (esperado: %s)",
                         transaction_id, request.env.user.id, tx.partner_id.id
                     )
+                    return {'error': 'No tiene permiso para procesar esta transacción.'}
 
             # Limpiar inputs
             pan = re.sub(r'[\s\-]', '', str(card_number or '')).strip()

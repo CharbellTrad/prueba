@@ -49,8 +49,7 @@ class VePosPaymentController(http.Controller):
         if not config.ve_payment_config_id.active:
             return None, "La configuración de pasarela está desactivada."
         try:
-            test_mode = config.ve_pos_test_mode if hasattr(config, 've_pos_test_mode') else False
-            client = config.ve_payment_config_id.get_client(test_mode=test_mode)
+            client = config.ve_payment_config_id.get_client()
             return client, None
         except Exception as e:
             return None, f"Error al inicializar la pasarela: {str(e)}"
@@ -85,8 +84,8 @@ class VePosPaymentController(http.Controller):
             self_env.sudo().create_from_gateway_response(
                 vals=vals,
                 gateway_config=gw_config,
-                service_type_code=service_type,
-                success=success,
+                service_code=service_type,
+                pos_session=session,
             )
             return True
         except Exception as e:
@@ -139,44 +138,38 @@ class VePosPaymentController(http.Controller):
             for svc in gw_config.service_ids.filtered('active'):
                 services.append({
                     'id': svc.id,
-                    'service_type': svc.service_type_code,
+                    'service_code': svc.service_code,
+                    'service_type_id': svc.service_type_id.id,
+                    'pos_visible': svc.pos_visible,
                     'notes': svc.notes or '',
                 })
 
-            # Cargar bancos activos
+            # Cargar bancos activos usando get_as_dict()
             banks = []
             for svc in gw_config.service_ids.filtered('active'):
                 for bank in svc.bank_ids.filtered('active'):
-                    banks.append({
-                        'id': bank.id,
-                        'service_type': svc.service_type_code,
-                        'bank_code': bank.bank_code or '',
-                        'bank_name': bank.bank_id.name or '',
-                        'account_number': bank.account_number or '',
-                        'phone_number': bank.phone_number or '',
-                        'zelle_email': bank.zelle_email or '',
-                        'crypto_preferred_coin': bank.crypto_coin_id.code if bank.crypto_coin_id else '',
-                        'banplus_tipo_cuenta': bank.banplus_tipo_cuenta or '900',
-                        'is_default': bank.is_default,
-                    })
+                    banks.append(bank.get_as_dict())
 
-            # Cargar qué servicios están habilitados en este POS
-            enabled_types = set(
-                config.ve_pos_enabled_services.mapped('service_type_code')
+            # Cargar que servicios estan habilitados en este POS
+            enabled_codes = set(
+                config.ve_pos_enabled_services.mapped('service_code')
             )
-            active_types = set(s['service_type'] for s in services)
-            # Un servicio es visible si está habilitado en este POS Y activo en el gateway
-            visible = {st: (st in enabled_types and st in active_types) for st in [
-                'c2p', 'p2c', 'vuelto', 'zelle', 'crypto',
-                'tarjeta', 'debito_inmediato', 'banplus_pay',
-            ]}
+            active_codes = set(s['service_code'] for s in services)
+
+            # Construir visible dict DINAMICAMENTE desde service types con pos_visible=True
+            pos_visible_types = self.env['ve.payment.service.type'].sudo().search([
+                ('active', '=', True),
+                ('pos_visible', '=', True),
+            ])
+            visible = {}
+            for st in pos_visible_types:
+                visible[st.code] = (st.code in enabled_codes and st.code in active_codes)
 
             return {
                 'success': True,
                 'banks': banks,
                 'services': services,
                 'visible': visible,
-                'test_mode': config.ve_pos_test_mode,
             }
         except Exception as e:
             _logger.error("Error recargando config: %s", str(e))
@@ -273,28 +266,11 @@ class VePosPaymentController(http.Controller):
             return result
         return self._safe_call(_do, pos_session_id)
 
-    # ── Depósito ────────────────────────────────────────────────
+    # -- Deposito -- No incluido en certificacion actual --------------------
+    # Endpoint /ve_pos_payment/deposito eliminado.
+    # Servicio marcado como active=False en datos XML.
 
-    @http.route('/ve_pos_payment/deposito', type='json', auth='user')
-    def deposito(self, pos_session_id, control, cid, numDeposito,
-                  cuentaDestino, amount='', codigobancoComercio='',
-                  factura='',
-                  currency_rate_ref_id=False, currency_rate_value=0, **kw):
-        def _do(session, client):
-            result = client.deposito(
-                control=control, cid=cid, numDeposito=numDeposito,
-                cuentaDestino=cuentaDestino,
-                amount=amount, factura=factura,
-            )
-            is_success = result.get('codigo') == '00'
-            self._register_transaction(session, 'deposito', result, {
-                'amount': amount, 'factura': factura,
-                'partner_name': cid,
-            }, success=is_success)
-            return result
-        return self._safe_call(_do, pos_session_id)
-
-    # ── Zelle ───────────────────────────────────────────────────
+    # -- Zelle -──────────────────────────────────────────────────
 
     @http.route('/ve_pos_payment/zelle', type='json', auth='user')
     def zelle(self, pos_session_id, control, cid, codigobancoComercio,
@@ -315,28 +291,11 @@ class VePosPaymentController(http.Controller):
             return result
         return self._safe_call(_do, pos_session_id)
 
-    # ── Compra Tarjeta ──────────────────────────────────────────
+    # -- Compra Tarjeta -- Solo e-commerce (pos_visible=False) -------------
+    # Endpoint /ve_pos_payment/compra_tarjeta eliminado del POS.
+    # Tarjeta solo disponible via l10n_ve_ecommerce_payment.
 
-    @http.route('/ve_pos_payment/compra_tarjeta', type='json', auth='user')
-    def compra_tarjeta(self, pos_session_id, control, pan, cvv2, expdate,
-                        cid, client_name='', amount=0, factura='',
-                        tipoPago='10',
-                        currency_rate_ref_id=False, currency_rate_value=0, **kw):
-        def _do(session, client):
-            result = client.compra_tarjeta(
-                control=control, pan=pan, cvv2=cvv2, expdate=expdate,
-                amount=amount, cid=cid, client=client_name,
-                factura=factura, tipoPago=tipoPago,
-            )
-            is_success = result.get('codigo') == '00'
-            self._register_transaction(session, 'tarjeta', result, {
-                'amount': amount, 'factura': factura,
-                'partner_name': client_name or cid,
-            }, success=is_success)
-            return result
-        return self._safe_call(_do, pos_session_id)
-
-    # ── Crypto — Get Monedas ────────────────────────────────────
+    # -- Crypto -- Get Monedas -───────────────────────────────────
 
     @http.route('/ve_pos_payment/crypto_get_monedas', type='json', auth='user')
     def crypto_get_monedas(self, pos_session_id, **kw):
@@ -469,3 +428,34 @@ class VePosPaymentController(http.Controller):
         except Exception as e:
             _logger.error("Error registrando transacción manual: %s", str(e))
             return {'success': False, 'error': str(e)}
+
+    # -- Historial de Transacciones ----------------------------------
+
+    @http.route('/ve_pos_payment/get_transaction_logs', type='json', auth='user')
+    def get_transaction_logs(self, pos_session_id, filter_session='current',
+                              filter_status='approved', filter_service=None, **kwargs):
+        """Retorna logs de transacciones para el historial del POS."""
+        domain = [('gateway_config_id', '!=', False)]
+
+        if filter_session == 'current':
+            domain.append(('pos_session_id', '=', int(pos_session_id)))
+
+        if filter_status == 'approved':
+            domain.append(('approved', '=', True))
+        elif filter_status == 'rejected':
+            domain.append(('approved', '=', False))
+
+        if filter_service:
+            domain.append(('service_code', '=', filter_service))
+
+        logs = request.env['ve.bank.transaction.log'].sudo().search_read(
+            domain,
+            fields=[
+                'id', 'create_date', 'service_code', 'factura', 'amount',
+                'referencia', 'control', 'codigo', 'descripcion', 'approved',
+                'voucher', 'authid', 'seqnum', 'pos_session_id',
+            ],
+            order='create_date desc',
+            limit=100,
+        )
+        return logs

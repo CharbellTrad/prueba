@@ -78,10 +78,9 @@ odoo.define('l10n_ve_pos_payment.PaymentGatewayService', function (require) {
             return this._call('/ve_pos_payment/zelle', params);
         }
 
-        compraTarjeta(params) {
-            params.amount = this._fmt(params.amount);
-            return this._call('/ve_pos_payment/compra_tarjeta', params);
-        }
+
+        // compraTarjeta eliminado — tarjeta solo disponible via e-commerce
+
 
         getCryptoMonedas() {
             return this._call('/ve_pos_payment/crypto_get_monedas');
@@ -94,6 +93,11 @@ odoo.define('l10n_ve_pos_payment.PaymentGatewayService', function (require) {
 
         cryptoConfirmacion(params) {
             return this._call('/ve_pos_payment/crypto_confirmacion', params);
+        }
+
+        creditoInmediato(params) {
+            params.amount = this._fmt(params.amount);
+            return this._call('/ve_pos_payment/credito_inmediato', params);
         }
 
         debitoInmediatoSolicitud(params) {

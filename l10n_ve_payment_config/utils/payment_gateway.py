@@ -66,28 +66,48 @@ _RE_OTP = re.compile(r'^\d{1,12}$')
 _RE_NUM_DEPOSITO = re.compile(r'^[A-Za-z0-9]{1,20}$')
 
 
-def validate_cid(value: str, test_mode: bool = False) -> str:
-    """Valida y normaliza cédula/RIF.  Formato: [V|J|E|G|P|C|R] + 5-10 dígitos."""
+def validate_cid(value: str) -> str:
+    """Valida y normaliza cedula/RIF.  Formato: [V|J|E|G|P|C|R] + 5-10 digitos."""
     if not value:
-        raise ValueError("La cédula/RIF es requerida.")
+        raise ValueError("La cedula/RIF es requerida.")
     val = value.strip().upper()
-    if not test_mode and not _RE_CID.match(val):
+    if not _RE_CID.match(val):
         raise ValueError(
-            f"Cédula/RIF inválida: '{value}'. "
-            "Formato: letra (V/J/E/G/P/C/R) + 5 a 10 dígitos. Ej: V12345678"
+            f"Cedula/RIF invalida: '{value}'. "
+            "Formato: letra (V/J/E/G/P/C/R) + 5 a 10 digitos. Ej: V12345678"
         )
     return val
 
 
-def validate_telefono(value: str, test_mode: bool = False) -> str:
-    """Valida teléfono VE: exactamente 11 dígitos empezando por 04XX."""
+def sanitize_cid(cid: str) -> str:
+    """
+    Sanitiza cedula/RIF para envio al PG.
+    V, J, E, G, C, R: solo digitos despues del prefijo.
+    P (pasaporte): alfanumerico segun el manual v4.27.
+    """
+    if not cid:
+        return cid
+    clean = cid.strip().upper().replace('-', '').replace('.', '').replace(' ', '')
+    if not clean:
+        return clean
+    prefix = clean[0]
+    rest = clean[1:]
+    if prefix == 'P':
+        return prefix + ''.join(c for c in rest if c.isalnum())
+    elif prefix in ('V', 'J', 'E', 'G', 'C', 'R'):
+        return prefix + ''.join(c for c in rest if c.isdigit())
+    return clean
+
+
+def validate_telefono(value: str) -> str:
+    """Valida telefono VE: exactamente 11 digitos empezando por 04XX."""
     if not value:
-        raise ValueError("El teléfono es requerido.")
+        raise ValueError("El telefono es requerido.")
     val = re.sub(r'[\s\-\.\(\)\+]', '', value.strip())
-    if not test_mode and not _RE_TELEFONO.match(val):
+    if not _RE_TELEFONO.match(val):
         raise ValueError(
-            f"Teléfono inválido: '{value}'. "
-            "Debe ser 11 dígitos empezando por 04. Ej: 04241234567"
+            f"Telefono invalido: '{value}'. "
+            "Debe ser 11 digitos empezando por 04. Ej: 04241234567"
         )
     return val
 
@@ -294,15 +314,14 @@ def build_xml(tag: str, fields: dict) -> str:
 class PaymentGatewayClient:
     """Cliente para la Pasarela de Pagos Bancaria VE (REST v2)."""
 
-    def __init__(self, config: PGConfig, timeout: int = 30, test_mode: bool = False):
+    def __init__(self, config: PGConfig, timeout: int = 30):
         self.config = config
         self.timeout = timeout
-        self.test_mode = test_mode
 
     def _post(self, endpoint: str, body: str) -> dict:
         url = f"{self.config.base_url}{endpoint}"
         try:
-            _logger.info("PG Request → %s", url)
+            _logger.info("PG Request -> %s", url)
             _logger.debug("PG Body: %s", body)
             resp = requests.post(
                 url,
@@ -313,13 +332,21 @@ class PaymentGatewayClient:
             )
             resp.raise_for_status()
             _logger.debug("PG Response: %s", resp.text)
-            return parse_xml_response(resp.text)
+            result = parse_xml_response(resp.text)
+            result['_raw_xml'] = resp.text
+            return result
         except requests.exceptions.Timeout:
-            return {"error": "Timeout al conectar con la Pasarela de Pagos"}
+            _logger.error("Timeout PG: %s", url)
+            return {"error": "Timeout al conectar con la Pasarela de Pagos", "codigo": "TO"}
         except requests.exceptions.SSLError as e:
-            return {"error": f"Error SSL: {str(e)}"}
+            _logger.error("SSL PG: %s -- %s", url, e)
+            return {"error": "Error de seguridad SSL: %s" % str(e), "codigo": "SS"}
+        except requests.exceptions.ConnectionError as e:
+            _logger.error("Conexion PG: %s -- %s", url, e)
+            return {"error": "No se pudo conectar con la Pasarela. Verifique la URL y su conexion.", "codigo": "CE"}
         except requests.exceptions.RequestException as e:
-            return {"error": str(e)}
+            _logger.error("HTTP PG: %s -- %s", url, e)
+            return {"error": str(e), "codigo": "RE"}
 
     # -----------------------------------------------------------------------
     # 1. PRE-REGISTRO (obligatorio antes de cualquier transacción)
@@ -381,7 +408,7 @@ class PaymentGatewayClient:
         cvv2 = validate_cvv(cvv2)
         expdate = validate_expdate(expdate)
         amount = validate_amount(amount)
-        cid = validate_cid(cid, test_mode=self.test_mode)
+        cid = validate_cid(cid)
 
         body = build_xml("request", {
             "cod_afiliacion": self.config.codafiliacion,
@@ -419,8 +446,8 @@ class PaymentGatewayClient:
         C2P siempre opera en BOLÍVARES (no tiene parámetro tipoPago).
         """
         # Validaciones
-        cid = validate_cid(cid, test_mode=self.test_mode)
-        telefono = validate_telefono(telefono, test_mode=self.test_mode)
+        cid = validate_cid(cid)
+        telefono = validate_telefono(telefono)
         codigobanco = validate_banco_ve(codigobanco)
         codigoc2p = validate_codigo_c2p(codigoc2p)
         amount = validate_amount(amount)
@@ -458,10 +485,10 @@ class PaymentGatewayClient:
         """
         # Validaciones
         if cid:  # Cédula es opcional en P2C según manual
-            cid = validate_cid(cid, test_mode=self.test_mode)
-        telefonoCliente = validate_telefono(telefonoCliente, test_mode=self.test_mode)
+            cid = validate_cid(cid)
+        telefonoCliente = validate_telefono(telefonoCliente)
         codigobancoCliente = validate_banco_ve(codigobancoCliente)
-        telefonoComercio = validate_telefono(telefonoComercio, test_mode=self.test_mode)
+        telefonoComercio = validate_telefono(telefonoComercio)
         codigobancoComercio = validate_banco_ve(codigobancoComercio)
         amount = validate_amount(amount)
 
@@ -497,8 +524,8 @@ class PaymentGatewayClient:
         tipomoneda: '0'=Bs (único soportado para vuelto pago móvil)
         """
         # Validaciones
-        cid = validate_cid(cid, test_mode=self.test_mode)
-        telefono = validate_telefono(telefono, test_mode=self.test_mode)
+        cid = validate_cid(cid)
+        telefono = validate_telefono(telefono)
         codigobanco = validate_banco_ve(codigobanco)
         amount = validate_amount(amount)
 
@@ -533,9 +560,9 @@ class PaymentGatewayClient:
         Verifica una transferencia bancaria recibida (crédito inmediato).
         """
         # Validaciones
-        cid = validate_cid(cid, test_mode=self.test_mode)
+        cid = validate_cid(cid)
         cuentaOrigen = validate_cuenta(cuentaOrigen)
-        telefonoOrigen = validate_telefono(telefonoOrigen, test_mode=self.test_mode)
+        telefonoOrigen = validate_telefono(telefonoOrigen)
         codigobancoOrigen = validate_banco_ve(codigobancoOrigen)
         cuentaDestino = validate_cuenta(cuentaDestino)
         amount = validate_amount(amount)
@@ -570,7 +597,7 @@ class PaymentGatewayClient:
     ) -> dict:
         """Verifica un depósito bancario recibido."""
         # Validaciones
-        cid = validate_cid(cid, test_mode=self.test_mode)
+        cid = validate_cid(cid)
         numDeposito = validate_num_deposito(numDeposito)
         cuentaDestino = validate_cuenta(cuentaDestino)
         amount = validate_amount(amount)
@@ -606,7 +633,7 @@ class PaymentGatewayClient:
         tipoPago SIEMPRE es '40' (USD) — Zelle es exclusivamente en dólares.
         """
         # Validaciones
-        cid = validate_cid(cid, test_mode=self.test_mode)
+        cid = validate_cid(cid)
         referencia = validate_referencia(referencia)
         amount = validate_amount(amount)
         # codigobancoComercio para Zelle no es código numérico VE, es BOFA/CHAS/etc
@@ -695,8 +722,8 @@ class PaymentGatewayClient:
         Débito inmediato siempre opera en BOLÍVARES.
         """
         # Validaciones
-        cid = validate_cid(cid, test_mode=self.test_mode)
-        telefonoCliente = validate_telefono(telefonoCliente, test_mode=self.test_mode)
+        cid = validate_cid(cid)
+        telefonoCliente = validate_telefono(telefonoCliente)
         codigobancoCliente = validate_banco_ve(codigobancoCliente)
         cuentaCliente = validate_cuenta(cuentaCliente)
         amount = validate_amount(amount)
@@ -751,7 +778,7 @@ class PaymentGatewayClient:
         tipo_cuenta: '900'=Bs, '720'=Dólar, '700'=Euro, etc.
         """
         # Validaciones
-        cid = validate_cid(cid, test_mode=self.test_mode)
+        cid = validate_cid(cid)
         amount = validate_amount(amount)
 
         body = build_xml("request", {
