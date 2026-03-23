@@ -133,7 +133,7 @@ odoo.define('l10n_ve_pos_payment.PaymentGatewayPopup', function (require) {
                 vuelto_amount: 0,
 
                 // Zelle
-                zelle_banco: 'BOFA',
+                zelle_banco: '',
                 zelle_referencia: '',
                 zelle_clientName: '',
                 zelle_email: '',
@@ -356,12 +356,13 @@ odoo.define('l10n_ve_pos_payment.PaymentGatewayPopup', function (require) {
 
             if (!this.env.pos.ve_payment_service_bank) return;
             const serviceBanks = this.env.pos.ve_payment_service_bank;
-            // Solo P2C y Zelle usan bancos del comercio como selector
+            // Poblar bancos por servicio
             this.state.banks.p2c = serviceBanks.filter(b => b.service_code === 'p2c');
             this.state.banks.zelle = serviceBanks.filter(b => b.service_code === 'zelle');
+            this.state.banks.transferencia = serviceBanks.filter(b => b.service_code === 'transferencia');
 
-            // Set defaults solo para P2C y Zelle
-            for (const type of ['p2c', 'zelle']) {
+            // Set defaults
+            for (const type of ['p2c', 'zelle', 'transferencia']) {
                 if (this.state.banks[type].length) {
                     const def = this.state.banks[type].find(b => b.is_default) || this.state.banks[type][0];
                     if (type === 'p2c') this.state.p2c_codigobancoComercio = def.bank_code;
@@ -556,6 +557,20 @@ odoo.define('l10n_ve_pos_payment.PaymentGatewayPopup', function (require) {
         // ─── Zelle ───────────────────────────────────────────────
 
         async onConfirmZelle() {
+            // Verificar que haya bancos Zelle configurados en Odoo
+            if (!this.state.banks.zelle || this.state.banks.zelle.length === 0) {
+                this.setResult(
+                    'No hay bancos Zelle configurados en Odoo para este servicio. ' +
+                    'Configure al menos un banco en el servicio Zelle de la pasarela.',
+                    'error'
+                );
+                return;
+            }
+            // Verificar que haya uno seleccionado
+            if (!this.state.zelle_banco) {
+                this.state.validationError = 'Seleccione el banco Zelle del comercio.';
+                return;
+            }
             if (!this._validate([
                 [this.state.cid, 'cid', 'Cédula'],
                 [this.state.zelle_referencia, 'referencia', 'Referencia'],

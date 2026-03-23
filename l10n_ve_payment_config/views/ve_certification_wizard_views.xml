@@ -34,13 +34,7 @@
                             <field name="gateway_config_id"/>
                             <field name="ci_integrador"/>
                             <field name="telefono_integrador"/>
-                        </group>
-                        <group string="Datos P2C / Transferencia">
                             <field name="banco_p2c_id"/>
-                            <field name="cuenta_destino_transf"/>
-                            <field name="banco_transf_id"/>
-                            <field name="telefono_origen_transf"/>
-                            <field name="banco_origen_codigo_transf"/>
                         </group>
                     </group>
 

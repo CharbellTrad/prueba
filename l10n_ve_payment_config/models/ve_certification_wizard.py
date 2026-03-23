@@ -48,22 +48,6 @@ class VeCertificationWizard(models.TransientModel):
         string='Banco Comercio P2C',
         domain="[('service_id.service_code', '=', 'p2c')]",
     )
-    cuenta_destino_transf = fields.Char(
-        string='Cuenta Destino (Transferencia)',
-        help='20 dígitos',
-    )
-    banco_transf_id = fields.Many2one(
-        've.payment.service.bank',
-        string='Banco Comercio (Transferencia)',
-        domain="[('service_id.service_code', '=', 'transferencia')]",
-    )
-    telefono_origen_transf = fields.Char(
-        string='Teléfono Origen (Transferencia)',
-    )
-    banco_origen_codigo_transf = fields.Char(
-        string='Código Banco Origen (Transferencia)',
-        help='4 dígitos. Ej: 0105',
-    )
 
     # Resultados
     state = fields.Selection([
@@ -121,6 +105,27 @@ class VeCertificationWizard(models.TransientModel):
                 'Debe abrir una sesión POS antes de ejecutar las pruebas de certificación.'
             )
 
+        # Validar teléfono del banco P2C
+        if self.banco_p2c_id and not self.banco_p2c_id.phone_number:
+            raise UserError(
+                'El banco P2C seleccionado (%s) no tiene teléfono del comercio configurado. '
+                'Configure el teléfono en el servicio P2C antes de ejecutar las pruebas.'
+                % self.banco_p2c_id.bank_id.name
+            )
+
+        # Validar cuenta destino transferencia
+        banco_transf = self.env['ve.payment.service.bank'].search([
+            ('service_id.gateway_config_id', '=', self.gateway_config_id.id),
+            ('service_id.service_code', '=', 'transferencia'),
+            ('active', '=', True),
+        ], limit=1)
+        if not banco_transf or not banco_transf.account_number:
+            raise UserError(
+                'No hay cuenta destino configurada para el servicio de Transferencia. '
+                'Configure la cuenta en el servicio Transferencia / Crédito Inmediato '
+                'de la pasarela antes de ejecutar las pruebas.'
+            )
+
         self.state = 'running'
         self.result_line_ids.unlink()
 
@@ -149,10 +154,23 @@ class VeCertificationWizard(models.TransientModel):
         cid = self.ci_integrador
         telefono = self.telefono_integrador
         banco_p2c_code = self.banco_p2c_id.bank_id.code if self.banco_p2c_id else ''
-        cuenta_transf = self.cuenta_destino_transf or ''
-        banco_transf_code = self.banco_transf_id.bank_id.code if self.banco_transf_id else ''
-        tel_transf = self.telefono_origen_transf or ''
-        banco_origen_transf = self.banco_origen_codigo_transf or ''
+        telefono_comercio_p2c = ''
+        if self.banco_p2c_id and self.banco_p2c_id.phone_number:
+            telefono_comercio_p2c = self.banco_p2c_id.phone_number
+
+        # Datos de transferencia — obtenidos automáticamente desde Odoo
+        banco_transf = self.env['ve.payment.service.bank'].search([
+            ('service_id.gateway_config_id', '=', config.id),
+            ('service_id.service_code', '=', 'transferencia'),
+            ('active', '=', True),
+        ], limit=1)
+        cuenta_transf = banco_transf.account_number if banco_transf else ''
+
+        # Código banco origen — primeros 4 dígitos de la cuenta origen del script
+        banco_origen_transf = '01051234567894568975'[:4]  # = '0105'
+
+        # Teléfono origen — reutiliza el teléfono del integrador
+        tel_transf = self.telefono_integrador
 
         return [
             # 1-3: Tarjeta
@@ -194,7 +212,9 @@ class VeCertificationWizard(models.TransientModel):
                 'service_code': 'p2c', 'amount': '1000.00',
                 'method': 'pago_movil_p2c',
                 'params': dict(telefonoCliente='04121234569', codigobancoCliente='0138',
-                               codigobancoComercio=banco_p2c_code, amount='1000.00',
+                               codigobancoComercio=banco_p2c_code,
+                               telefonoComercio=telefono_comercio_p2c,
+                               amount='1000.00',
                                cid=cid, factura='CERT-05'),
                 'expect_approved': True,
             },
@@ -203,7 +223,9 @@ class VeCertificationWizard(models.TransientModel):
                 'service_code': 'p2c', 'amount': '25300.02',
                 'method': 'pago_movil_p2c',
                 'params': dict(telefonoCliente='04121234571', codigobancoCliente='0138',
-                               codigobancoComercio=banco_p2c_code, amount='25300.02',
+                               codigobancoComercio=banco_p2c_code,
+                               telefonoComercio=telefono_comercio_p2c,
+                               amount='25300.02',
                                cid=cid, factura='CERT-06'),
                 'expect_approved': True,
             },
@@ -212,7 +234,9 @@ class VeCertificationWizard(models.TransientModel):
                 'service_code': 'p2c', 'amount': '25300.03',
                 'method': 'pago_movil_p2c',
                 'params': dict(telefonoCliente='04121234572', codigobancoCliente='0138',
-                               codigobancoComercio=banco_p2c_code, amount='25300.03',
+                               codigobancoComercio=banco_p2c_code,
+                               telefonoComercio=telefono_comercio_p2c,
+                               amount='25300.03',
                                cid=cid, factura='CERT-07'),
                 'expect_approved': False,
             },
@@ -290,7 +314,9 @@ class VeCertificationWizard(models.TransientModel):
                 'service_code': 'zelle', 'amount': '100000.00',
                 'method': 'zelle',
                 'params': dict(cid='V6721116', client='Test Zelle',
-                               codigobanco='CHAS', amount='100000.00',
+                               codigobancoComercio='CHAS',
+                               referencia='CERTZELLE1',
+                               amount='100000.00',
                                factura='CERT-15'),
                 'expect_approved': True,
             },
@@ -299,7 +325,9 @@ class VeCertificationWizard(models.TransientModel):
                 'service_code': 'zelle', 'amount': '33500.01',
                 'method': 'zelle',
                 'params': dict(cid='V6721116', client='Test Zelle',
-                               codigobanco='CHAS', amount='33500.01',
+                               codigobancoComercio='CHAS',
+                               referencia='CERTZELLE2',
+                               amount='33500.01',
                                factura='CERT-16'),
                 'expect_approved': False,
             },

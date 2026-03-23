@@ -9,12 +9,12 @@
         Agrega un botón en la pantalla de cobro del Punto de Venta que abre
         un popup para procesar pagos bancarios venezolanos:
 
-        - 💳 Tarjeta Crédito/Débito
-        - 📲 Pago Móvil C2P (Comercio a Persona)
-        - 📤 Pago Móvil P2C (Persona a Comercio)
-        - 🔄 Vuelto por Pago Móvil
-        - 💸 Zelle (Bank of America y otros bancos USA)
-        - 🪙 Criptomonedas vía CryptoBuyer (Binance, ETH, BTC...)
+        - Pago Móvil C2P (Comercio a Persona)
+        - Pago Móvil P2C (Persona a Comercio)
+        - Vuelto por Pago Móvil
+        - Zelle (Bank of America y otros bancos USA)
+        - Criptomonedas vía CryptoBuyer (BTC, ETH, USDT...)
+        - Transferencia / Crédito Inmediato
 
         Cada servicio verifica la transacción con la pasarela en tiempo real
         y registra el pago en la sesión del POS.

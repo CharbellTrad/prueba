@@ -143,8 +143,8 @@
                         domain="[('service_code', '=', 'tarjeta')]"/>
                 <filter string="Crypto" name="filter_crypto"
                         domain="[('service_code', '=', 'crypto')]"/>
-                <filter string="Crédito Inmediato" name="filter_credito_inmediato"
-                        domain="[('service_code', '=', 'credito_inmediato')]"/>
+                <filter string="Transferencia / Crédito Inmediato" name="filter_transferencia"
+                        domain="[('service_code', '=', 'transferencia')]"/>
                 <filter string="Vuelto" name="filter_vuelto"
                         domain="[('service_code', '=', 'vuelto')]"/>
                 <separator/>

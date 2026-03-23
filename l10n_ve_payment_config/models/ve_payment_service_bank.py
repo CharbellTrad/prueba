@@ -74,18 +74,6 @@ class VePaymentServiceBank(models.Model):
         string='Email/Alias Zelle',
         help='Email o alias para recibir pagos Zelle',
     )
-    banplus_tipo_cuenta = fields.Selection(
-        selection=[
-            ('900', 'Bolívares'),
-            ('720', 'Dólar'),
-            ('563', 'Vuelto Dólar'),
-            ('654', 'GiftCard Dólar'),
-            ('652', 'Vale Dólar'),
-            ('700', 'Euro'),
-        ],
-        string='Tipo Cuenta Banplus',
-        default='900',
-    )
     notes = fields.Text(string='Notas')
 
     # ----------------------------------------------------------------
