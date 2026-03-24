@@ -118,10 +118,10 @@ class TorofanWebhookController(http.Controller):
             if not validation['success']:
                 return validation
 
-            # Verificar duplicados por email o teléfono
             email = client.get('email', '').strip()
             phone = client.get('phone', '').strip()
-            
+
+            # --- Verificar duplicados en CRM leads ---
             existing_lead = request.env['crm.lead'].sudo().search([
                 '|',
                 ('email_from', '=', email),
@@ -135,25 +135,50 @@ class TorofanWebhookController(http.Controller):
                     'email' if existing_lead.email_from == email else 'phone'
                 )
 
-            # Crear oportunidad en CRM
+            # --- Buscar o crear contacto (res.partner) ---
+            ResPartner = request.env['res.partner'].sudo()
+            partner = ResPartner.search([('email', '=', email), ('phone', '=', phone)], limit=1)
+
+            if not partner:
+                # Verificar colisiones parciales
+                existing_email = ResPartner.search([('email', '=', email)], limit=1)
+                existing_phone = ResPartner.search([('phone', '=', phone)], limit=1)
+
+                if existing_email or existing_phone:
+                    conflict = "email" if existing_email else "teléfono"
+                    return self._error_response(
+                        'validation_error',
+                        f'El {conflict} ya pertenece a otro contacto registrado.',
+                        'email' if existing_email else 'phone'
+                    )
+
+                # Crear nuevo contacto
+                partner = ResPartner.create({
+                    'name': client.get('name'),
+                    'email': email,
+                    'phone': phone,
+                    'from_torofan': True,
+                })
+
+            # --- Crear oportunidad en CRM ---
             lead_vals = {
-                'name': client.get('name'),  # Solo el nombre
+                'name': client.get('name'),
                 'contact_name': client.get('name'),
                 'email_from': email,
                 'phone': phone,
                 'type': 'opportunity',
                 'from_torofan': True,
+                'partner_id': partner.id,
+                'company_id': config.effective_company_id.id if config.effective_company_id else self.env.company.id,
             }
 
             lead = request.env['crm.lead'].sudo().create(lead_vals)
             
             # El cupón se crea automáticamente en el método create del modelo
-            # Obtener información del cupón creado
             coupon = lead.torofan_coupon_id
             
             if not coupon:
                 _logger.warning(f"No se pudo crear cupón para lead {lead.id}")
-                # Aún así retornamos éxito porque el lead se creó
                 return self._success_response(lead, None, config)
 
             return self._success_response(lead, coupon, config)

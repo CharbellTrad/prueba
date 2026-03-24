@@ -241,7 +241,7 @@ class InternalConsumptionReportWizard(models.TransientModel):
         return partners_data
 
     def _get_employee_groups(self, consumptions):
-        """Agrupa consumos emitidos por empleado (tabla resumen sin detalle)"""
+        """Agrupa consumos emitidos por empleado y tipo de consumo (tabla resumen sin detalle)"""
         employees_dict = {}
 
         for consumption in consumptions:
@@ -249,51 +249,63 @@ class InternalConsumptionReportWizard(models.TransientModel):
                 continue
 
             emp_id = consumption.employee_id.id
-            if emp_id not in employees_dict:
-                employees_dict[emp_id] = {
+            ctype = consumption.consumption_type or 'personal'
+            key = (emp_id, ctype)
+            if key not in employees_dict:
+                employees_dict[key] = {
                     'employee': consumption.employee_id,
+                    'consumption_type': ctype,
+                    'consumption_type_label': 'Personal' if ctype == 'personal' else 'Atención',
                     'total_amount': 0.0,
                     'total_count': 0,
                     'date_first': consumption.consumption_date,
                     'date_last': consumption.consumption_date,
                 }
             else:
-                if consumption.consumption_date < employees_dict[emp_id]['date_first']:
-                    employees_dict[emp_id]['date_first'] = consumption.consumption_date
-                if consumption.consumption_date > employees_dict[emp_id]['date_last']:
-                    employees_dict[emp_id]['date_last'] = consumption.consumption_date
+                if consumption.consumption_date < employees_dict[key]['date_first']:
+                    employees_dict[key]['date_first'] = consumption.consumption_date
+                if consumption.consumption_date > employees_dict[key]['date_last']:
+                    employees_dict[key]['date_last'] = consumption.consumption_date
 
-            employees_dict[emp_id]['total_amount'] += consumption.amount_total
-            employees_dict[emp_id]['total_count'] += 1
+            employees_dict[key]['total_amount'] += consumption.amount_total
+            employees_dict[key]['total_count'] += 1
 
-        return list(employees_dict.values())
+        result = list(employees_dict.values())
+        result.sort(key=lambda x: (x['consumption_type'], x['employee'].name))
+        return result
 
     def _get_children_groups(self, consumptions, parent_partner):
-        """Agrupa consumos emitidos por contacto hijo (tabla resumen sin detalle)"""
+        """Agrupa consumos emitidos por contacto hijo y tipo de consumo (tabla resumen sin detalle)"""
         children_dict = {}
 
         for consumption in consumptions:
             partner = consumption.partner_id
             if partner.id == parent_partner.id or partner.parent_id.id == parent_partner.id:
                 partner_id = partner.id
-                if partner_id not in children_dict:
-                    children_dict[partner_id] = {
+                ctype = consumption.consumption_type or 'personal'
+                key = (partner_id, ctype)
+                if key not in children_dict:
+                    children_dict[key] = {
                         'partner': partner,
+                        'consumption_type': ctype,
+                        'consumption_type_label': 'Personal' if ctype == 'personal' else 'Atención',
                         'total_amount': 0.0,
                         'total_count': 0,
                         'date_first': consumption.consumption_date,
                         'date_last': consumption.consumption_date,
                     }
                 else:
-                    if consumption.consumption_date < children_dict[partner_id]['date_first']:
-                        children_dict[partner_id]['date_first'] = consumption.consumption_date
-                    if consumption.consumption_date > children_dict[partner_id]['date_last']:
-                        children_dict[partner_id]['date_last'] = consumption.consumption_date
+                    if consumption.consumption_date < children_dict[key]['date_first']:
+                        children_dict[key]['date_first'] = consumption.consumption_date
+                    if consumption.consumption_date > children_dict[key]['date_last']:
+                        children_dict[key]['date_last'] = consumption.consumption_date
 
-                children_dict[partner_id]['total_amount'] += consumption.amount_total
-                children_dict[partner_id]['total_count'] += 1
+                children_dict[key]['total_amount'] += consumption.amount_total
+                children_dict[key]['total_count'] += 1
 
-        return list(children_dict.values())
+        result = list(children_dict.values())
+        result.sort(key=lambda x: (x['consumption_type'], x['partner'].name))
+        return result
 
     def _sort_consumptions(self, consumptions):
         if self.sort_by == 'date':

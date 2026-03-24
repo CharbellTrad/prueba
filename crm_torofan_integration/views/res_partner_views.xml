@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Vista de formulario del contacto heredada -->
+    <record id="view_partner_form_torofan" model="ir.ui.view">
+        <field name="name">res.partner.form.torofan</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <!-- Cinta Torofan en esquina superior derecha -->
+            <xpath expr="//widget[@name='web_ribbon']" position="after">
+                <widget name="web_ribbon" title="Torofan" bg_color="text-bg-warning" invisible="not from_torofan"/>
+            </xpath>
+
+            <xpath expr="//field[@name='category_id']" position="after">
+                <field name="from_torofan" 
+                       widget="boolean" 
+                       readonly="1"
+                       string="Creado desde Torofan"
+                       invisible="1"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Vista de lista del contacto heredada -->
+    <record id="view_partner_tree_torofan" model="ir.ui.view">
+        <field name="name">res.partner.tree.torofan</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='activity_ids']" position="before">
+                <field name="from_torofan" optional="hide" widget="boolean_toggle" readonly="1" string="Torofan"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

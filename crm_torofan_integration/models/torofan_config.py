@@ -24,6 +24,43 @@ class TorofanConfig(models.Model):
     def _get_default_config(self):
         return self.search([], limit=1)
 
+    # Empresa fallback (visible solo si no hay programa de lealtad)
+    company_id = fields.Many2one(
+        'res.company',
+        string='Empresa',
+        default=lambda self: self.env.company,
+        help='Empresa a asignar a las oportunidades cuando no hay programa de lealtad configurado.'
+    )
+
+    # Campos Related del programa de lealtad (empresa principal + empresas permitidas)
+    program_main_company_id = fields.Many2one(
+        related='loyalty_program_id.company_id',
+        string='Empresa Principal (Programa)',
+        readonly=True,
+    )
+
+    program_multi_company_ids = fields.Many2many(
+        related='loyalty_program_id.multi_company_ids',
+        string='Empresas Permitidas (Programa)',
+        readonly=True,
+    )
+
+    # Empresa efectiva: la del programa si existe, sino la de la config
+    effective_company_id = fields.Many2one(
+        'res.company',
+        compute='_compute_effective_company_id',
+        string='Empresa Efectiva',
+        store=True,
+    )
+
+    @api.depends('loyalty_program_id', 'loyalty_program_id.company_id', 'company_id')
+    def _compute_effective_company_id(self):
+        for record in self:
+            if record.loyalty_program_id and record.loyalty_program_id.company_id:
+                record.effective_company_id = record.loyalty_program_id.company_id
+            else:
+                record.effective_company_id = record.company_id
+
     # Autenticación
     access_token = fields.Char(
         string='Access Token',
@@ -71,15 +108,16 @@ class TorofanConfig(models.Model):
 
     # Estado del Programa
     program_status_alert = fields.Html(
-        compute='_compute_program_status',
+        compute='_compute_program_status_alert',
         string='Alerta de Estado',
         readonly=True
     )
 
     is_program_active = fields.Boolean(
-        compute='_compute_program_status',
+        compute='_compute_is_program_active',
         string='Programa Activo',
-        store=True
+        store=True,
+        readonly=True
     )
     
     # Campos computados que muestran la configuración del programa
@@ -98,7 +136,7 @@ class TorofanConfig(models.Model):
     
     program_discount_display = fields.Char(
         compute='_compute_program_discount_display',
-        string='Descuento (%)',
+        string='Descuento %',
         readonly=True,
         help='Descuento formateado para mostrar'
     )
@@ -279,23 +317,42 @@ class TorofanConfig(models.Model):
                 record.program_available_on = 'N/A'
 
     @api.depends('loyalty_program_id', 'program_date_to', 'program_date_from')
-    def _compute_program_status(self):
-        """Calcula si el programa está activo, por vencer o aún no inicia"""
+    def _compute_is_program_active(self):
+        """Calcula si el programa está activo (Stored)"""
         for record in self:
-            record.is_program_active = True
+            is_active = True
+            
+            if not record.loyalty_program_id:
+                is_active = False
+            else:
+                today = fields.Date.today()
+                date_from = record.program_date_from
+                date_to = record.program_date_to
+                
+                # Si aún no inicia
+                if date_from and today < date_from:
+                    is_active = False
+                # Si ya venció
+                elif date_to and date_to < today:
+                    is_active = False
+            
+            record.is_program_active = is_active
+
+    @api.depends('loyalty_program_id', 'program_date_to', 'program_date_from', 'is_program_active')
+    def _compute_program_status_alert(self):
+        """Calcula la alerta HTML del estado del programa (Not stored)"""
+        for record in self:
             record.program_status_alert = False
             
             if not record.loyalty_program_id:
-                record.is_program_active = False
                 continue
-            
+                
             today = fields.Date.today()
             date_from = record.program_date_from
             date_to = record.program_date_to
             
             # Si aún no inicia
             if date_from and today < date_from:
-                record.is_program_active = False
                 record.program_status_alert = """
                     <div class="alert alert-warning" role="alert">
                         <i class="fa fa-clock-o"></i> 
@@ -311,7 +368,6 @@ class TorofanConfig(models.Model):
             
             # Si ya venció
             if date_to < today:
-                record.is_program_active = False
                 record.program_status_alert = """
                     <div class="alert alert-danger" role="alert">
                         <i class="fa fa-exclamation-triangle"></i> 

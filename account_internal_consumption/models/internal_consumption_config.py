@@ -71,27 +71,67 @@ class InternalConsumptionConfig(models.Model):
         required=True,
         help='Moneda para los montos de consumo interno.',
     )
-    consumption_limit = fields.Monetary(
-        string='Límite de Consumo Interno',
+    allowed_consumption_types = fields.Selection(
+        selection=[
+            ('personal_only', 'Solo Personales'),
+            ('attention_only', 'Solo Atención'),
+            ('both', 'Personales y Atención'),
+        ],
+        string='Consumos Emitibles',
+        default='both',
+        required=True,
+        tracking=True,
+        help='Define qué tipos de consumo se pueden emitir en esta configuración.',
+    )
+    not_configured_personal_label = fields.Char(
+        string='Límite Consumible',
+        compute='_compute_not_configured_labels',
+    )
+    not_configured_attention_label = fields.Char(
+        string='Límite Consumible',
+        compute='_compute_not_configured_labels',
+    )
+    personal_limit = fields.Monetary(
+        string='Límite de Consumo Personal',
         currency_field='currency_id',
         tracking=True,
-        help='Monto máximo de consumo permitido en el período configurado. '
-             'Dejar vacío para sin límite.',
+        help='Monto máximo de consumo personal permitido en el período configurado. '
+             'Dejar en 0 para sin límite.',
     )
-    consumed_limit = fields.Monetary(
-        string='Límite Consumido',
+    attention_limit = fields.Monetary(
+        string='Límite de Consumo de Atención',
         currency_field='currency_id',
-        compute='_compute_consumed_limit',
-        store=False,
-        help='Suma total de las órdenes de POS pagadas en el período vigente '
-             'para esta configuración. Se recalcula en tiempo real.',
+        tracking=True,
+        help='Monto máximo de consumo de atención permitido en el período configurado. '
+             'Dejar en 0 para sin límite.',
     )
-    available_limit = fields.Monetary(
-        string='Límite Disponible',
+    consumed_personal = fields.Monetary(
+        string='Consumido Personal',
         currency_field='currency_id',
-        compute='_compute_available_limit',
+        compute='_compute_consumed_limits',
         store=False,
-        help='Monto restante disponible para consumo interno (Límite - Consumido).',
+        help='Suma de consumos personales en el período vigente.',
+    )
+    consumed_attention = fields.Monetary(
+        string='Consumido Atención',
+        currency_field='currency_id',
+        compute='_compute_consumed_limits',
+        store=False,
+        help='Suma de consumos de atención en el período vigente.',
+    )
+    available_personal = fields.Monetary(
+        string='Disponible Personal',
+        currency_field='currency_id',
+        compute='_compute_available_limits',
+        store=False,
+        help='Monto restante disponible para consumo personal.',
+    )
+    available_attention = fields.Monetary(
+        string='Disponible Atención',
+        currency_field='currency_id',
+        compute='_compute_available_limits',
+        store=False,
+        help='Monto restante disponible para consumo de atención.',
     )
 
 
@@ -158,11 +198,50 @@ class InternalConsumptionConfig(models.Model):
         string='Historial de Cambios',
     )
 
-    consumption_percentage = fields.Float(
-        string='Porcentaje de Consumo',
-        compute='_compute_consumption_percentage',
-        help='Porcentaje del límite que ya fue consumido.',
+    personal_percentage = fields.Float(
+        string='Porcentaje Consumo Personal',
+        compute='_compute_percentages',
+        help='Porcentaje del límite personal que ya fue consumido.',
     )
+    attention_percentage = fields.Float(
+        string='Porcentaje Consumo Atención',
+        compute='_compute_percentages',
+        help='Porcentaje del límite de atención que ya fue consumido.',
+    )
+
+    # CAMPOS COMPUTADOS: Empleados y Contactos relacionados
+    employee_ids = fields.Many2many(
+        'hr.employee',
+        string='Empleados',
+        compute='_compute_employee_ids',
+        inverse='_inverse_employee_ids',
+        help='Empleados del departamento configurado.',
+    )
+    contact_ids = fields.Many2many(
+        'res.partner',
+        string='Contactos',
+        compute='_compute_contact_ids',
+        inverse='_inverse_contact_ids',
+        help='Contactos relacionados al partner configurado (padre e hijos directos).',
+    )
+
+    @api.onchange('allowed_consumption_types')
+    def _onchange_allowed_consumption_types(self):
+        """Limpia los límites del tipo de consumo que ya no está permitido."""
+        if self.allowed_consumption_types == 'personal_only':
+            self.attention_limit = 0
+        elif self.allowed_consumption_types == 'attention_only':
+            self.personal_limit = 0
+
+    def _compute_not_configured_labels(self):
+        """Retorna 'No Configurado' para el tipo de consumo no permitido."""
+        for config in self:
+            config.not_configured_personal_label = (
+                'No Configurado' if config.allowed_consumption_types == 'attention_only' else ''
+            )
+            config.not_configured_attention_label = (
+                'No Configurado' if config.allowed_consumption_types == 'personal_only' else ''
+            )
 
     _account_code_unique = models.Constraint(
         'UNIQUE(account_code)',
@@ -286,35 +365,50 @@ class InternalConsumptionConfig(models.Model):
                 config.period_start = False
                 config.period_end = False
 
-    def _compute_consumed_limit(self):
+    def _compute_consumed_limits(self):
         """
-        Calcula en tiempo real la suma de todas las órdenes de POS pagadas
-        en el período vigente que correspondan a esta configuración.
+        Calcula en tiempo real la suma de consumos personales y de atención
+        en el período vigente para esta configuración.
         """
         for config in self:
-            # Evitar búsqueda con NewId (registro no guardado)
             if not config.id or not isinstance(config.id, int):
-                config.consumed_limit = 0.0
+                config.consumed_personal = 0.0
+                config.consumed_attention = 0.0
                 continue
 
             if not config.period_start or not config.period_end:
-                config.consumed_limit = 0.0
+                config.consumed_personal = 0.0
+                config.consumed_attention = 0.0
                 continue
 
-            audits = self.env['internal.consumption.audit'].search([
+            base_domain = [
                 ('config_id', '=', config.id),
                 ('consumption_date', '>=', config.period_start),
                 ('consumption_date', '<=', config.period_end),
-            ])
-            config.consumed_limit = sum(audits.mapped('amount_total'))
+            ]
+            personal_audits = self.env['internal.consumption.audit'].search(
+                base_domain + [('consumption_type', '=', 'personal')]
+            )
+            attention_audits = self.env['internal.consumption.audit'].search(
+                base_domain + [('consumption_type', '=', 'attention')]
+            )
+            config.consumed_personal = sum(personal_audits.mapped('amount_total'))
+            config.consumed_attention = sum(attention_audits.mapped('amount_total'))
 
-    @api.depends('consumption_limit', 'consumed_limit')
-    def _compute_available_limit(self):
-        """Calcula la diferencia entre el límite total y lo consumido."""
+    @api.depends('personal_limit', 'consumed_personal', 'attention_limit', 'consumed_attention')
+    def _compute_available_limits(self):
+        """Calcula la diferencia entre límite y consumido para cada tipo.
+        Si el límite = 0, se trata como ilimitado (available = 0.0)."""
         for config in self:
-            limit = config.consumption_limit or 0.0
-            consumed = config.consumed_limit or 0.0
-            config.available_limit = limit - consumed
+            if not config.personal_limit:
+                config.available_personal = 0.0
+            else:
+                config.available_personal = config.personal_limit - (config.consumed_personal or 0.0)
+
+            if not config.attention_limit:
+                config.available_attention = 0.0
+            else:
+                config.available_attention = config.attention_limit - (config.consumed_attention or 0.0)
 
     def _get_traceable_partners(self):
         """Devuelve un diccionario {config.id: res.partner recordset} de partners afectados."""
@@ -413,16 +507,18 @@ class InternalConsumptionConfig(models.Model):
              partners_to_update = partners.filtered(lambda p: not p.is_internal_consumption)
              if partners_to_update:
                  partners_to_update.sudo().write({
-                     'is_internal_consumption': True, 
-                     'allow_internal_consumption': True
+                     'is_internal_consumption': True,
+                     'allow_personal_consumption': self.allowed_consumption_types in ('personal_only', 'both'),
+                     'allow_attention_consumption': self.allowed_consumption_types in ('attention_only', 'both'),
                  })
         else:
-             # Desactivar: buscamos los que tengan ALGUNO de los flags activos
-             partners_to_update = partners.filtered(lambda p: p.is_internal_consumption or p.allow_internal_consumption)
+             # Desactivar: buscamos los que tengan el flag activo
+             partners_to_update = partners.filtered(lambda p: p.is_internal_consumption)
              if partners_to_update:
                  partners_to_update.sudo().write({
-                     'is_internal_consumption': False, 
-                     'allow_internal_consumption': False
+                     'is_internal_consumption': False,
+                     'allow_personal_consumption': False,
+                     'allow_attention_consumption': False,
                  })
 
     @api.model_create_multi
@@ -453,7 +549,7 @@ class InternalConsumptionConfig(models.Model):
         if needs_sync:
             partners_before_map = self._get_traceable_partners()
 
-        tracked_fields = ['consumption_limit', 'period_value', 'period_type',
+        tracked_fields = ['personal_limit', 'attention_limit', 'period_value', 'period_type',
                          'account_code', 'name', 'belongs_to_odoo',
                          'department_id', 'partner_id']
         old_values = {}
@@ -534,18 +630,73 @@ class InternalConsumptionConfig(models.Model):
                     ('config_id', '=', config.id)
                 ])
 
-    def _compute_consumption_percentage(self):
+    def _compute_employee_ids(self):
         """
-        Calcula el porcentaje de consumo: (consumido / límite) * 100.
+        Retorna los empleados que pertenecen al departamento configurado.
+        Solo aplica cuando belongs_to_odoo = True.
+        """
+        for config in self:
+            if config.belongs_to_odoo and config.department_id and isinstance(config.department_id.id, int):
+                employees = self.env['hr.employee'].sudo().search([
+                    ('department_id', '=', config.department_id.id),
+                    ('active', '=', True),
+                ])
+                config.sudo().employee_ids = employees
+            else:
+                config.sudo().employee_ids = self.env['hr.employee']
+
+    def _compute_contact_ids(self):
+        """
+        Retorna el partner configurado y sus contactos hijos directos.
+        Solo aplica cuando belongs_to_odoo = False.
+        """
+        for config in self:
+            if not config.belongs_to_odoo and config.partner_id and isinstance(config.partner_id.id, int):
+                children = self.env['res.partner'].sudo().search([
+                    ('parent_id', '=', config.partner_id.id),
+                    ('active', '=', True),
+                ])
+                config.sudo().contact_ids = config.partner_id | children
+            else:
+                config.sudo().contact_ids = self.env['res.partner']
+
+    def _inverse_employee_ids(self):
+        """
+        Inverse no-op para employee_ids.
+        Necesario para que Odoo permita editar campos de los empleados
+        listados (como allow_personal/attention_consumption) desde esta vista.
+        El conjunto de empleados lo determina el departamento — no se modifica aquí.
+        """
+        pass
+
+    def _inverse_contact_ids(self):
+        """
+        Inverse no-op para contact_ids.
+        Necesario para que Odoo permita editar campos de los contactos
+        listados (como allow_personal/attention_consumption) desde esta vista.
+        El conjunto de contactos lo determina el partner — no se modifica aquí.
+        """
+        pass
+
+    def _compute_percentages(self):
+        """
+        Calcula el porcentaje de consumo para cada tipo.
         Se usa para las barras de progreso en la vista Kanban.
         """
         for config in self:
-            if config.consumption_limit and config.consumption_limit > 0:
-                config.consumption_percentage = (
-                    config.consumed_limit / config.consumption_limit
+            if config.personal_limit and config.personal_limit > 0:
+                config.personal_percentage = (
+                    config.consumed_personal / config.personal_limit
                 ) * 100
             else:
-                config.consumption_percentage = 0.0
+                config.personal_percentage = 0.0
+
+            if config.attention_limit and config.attention_limit > 0:
+                config.attention_percentage = (
+                    config.consumed_attention / config.attention_limit
+                ) * 100
+            else:
+                config.attention_percentage = 0.0
 
     @api.constrains('account_code')
     def _check_account_code_unique(self):
@@ -644,7 +795,8 @@ class InternalConsumptionConfig(models.Model):
         Formatea los valores de forma legible para el usuario.
         """
         field_labels = {
-            'consumption_limit': 'Límite de Consumo',
+            'personal_limit': 'Límite Personal',
+            'attention_limit': 'Límite de Atención',
             'period_value': 'Valor del Período',
             'period_type': 'Tipo de Período',
             'account_code': 'Código de Cuenta',
@@ -741,15 +893,25 @@ class InternalConsumptionConfig(models.Model):
         if not config or not config.account_id:
             return {'found': False}
 
-        available = (config.consumption_limit or 0.0) - config.consumed_limit
+        is_unlimited_personal = not config.personal_limit
+        is_unlimited_attention = not config.attention_limit
+
+        available_personal = 0.0 if is_unlimited_personal else (config.personal_limit - config.consumed_personal)
+        available_attention = 0.0 if is_unlimited_attention else (config.attention_limit - config.consumed_attention)
 
         return {
             'found': True,
             'config_id': config.id,
             'config_name': config.name,
-            'consumption_limit': config.consumption_limit or 0.0,
-            'consumed_limit': config.consumed_limit,
-            'available_limit': max(available, 0.0),
+            'allowed_consumption_types': config.allowed_consumption_types or 'both',
+            'personal_limit': config.personal_limit or 0.0,
+            'attention_limit': config.attention_limit or 0.0,
+            'consumed_personal': config.consumed_personal,
+            'consumed_attention': config.consumed_attention,
+            'available_personal': available_personal if not is_unlimited_personal else 0.0,
+            'available_attention': available_attention if not is_unlimited_attention else 0.0,
+            'is_unlimited_personal': is_unlimited_personal,
+            'is_unlimited_attention': is_unlimited_attention,
             'currency_symbol': config.currency_id.symbol or '$',
             'period_start': config.period_start.strftime('%d/%m/%Y %H:%M') if config.period_start else '',
             'period_end': config.period_end.strftime('%d/%m/%Y %H:%M') if config.period_end else '',

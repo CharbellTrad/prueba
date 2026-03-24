@@ -13,6 +13,7 @@
                         <group string="Información del Consumo">
                             <field name="config_id"/>
                             <field name="order_id"/>
+                            <field name="consumption_type"/>
                             <field name="consumption_date"/>
                             <field name="currency_id" invisible="1"/>
                             <field name="amount_total"/>
@@ -24,7 +25,8 @@
                         </group>
                     </group>
                     <group>
-                        <group string="Límites al Momento del Consumo">
+                        <group string="Límites al Momento del Consumo" invisible="is_unlimited">
+                            <field name="is_unlimited" invisible="1"/>
                             <field name="limit_before"/>
                             <field name="limit_after"/>
                         </group>
@@ -67,17 +69,19 @@
         <field name="arch" type="xml">
             <list string="Consumos Emitidos"
                   create="0"
-                  decoration-info="limit_after > 0"
-                  decoration-danger="limit_after &lt;= 0">
+                  decoration-info="is_unlimited or limit_after &gt; 0"
+                  decoration-danger="not is_unlimited and limit_after &lt;= 0">
                 <field name="name"/>
                 <field name="consumption_date"/>
                 <field name="config_name"/>
                 <field name="partner_id"/>
                 <field name="employee_id" optional="show"/>
                 <field name="department_id" optional="show"/>
+                <field name="consumption_type"/>
                 <field name="amount_total" sum="Total"/>
-                <field name="limit_before"/>
-                <field name="limit_after"/>
+                <field name="is_unlimited" column_invisible="1"/>
+                <field name="limit_before" optional="show"/>
+                <field name="limit_after" optional="show"/>
                 <field name="pos_config_id" optional="hide"/>
                 <field name="user_id" optional="hide"/>
                 <field name="currency_id" column_invisible="1"/>
@@ -116,6 +120,9 @@
                     <filter name="group_department"
                             string="Departamento"
                             context="{'group_by': 'department_id'}"/>
+                    <filter name="group_type"
+                            string="Tipo de Consumo"
+                            context="{'group_by': 'consumption_type'}"/>
                 </group>
             </search>
         </field>

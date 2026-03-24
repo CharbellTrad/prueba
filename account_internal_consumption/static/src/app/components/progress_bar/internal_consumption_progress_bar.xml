@@ -10,11 +10,18 @@
                 </div>
             </div>
 
-            <!-- Texto Porcentaje -->
+            <!-- Texto debajo de la barra -->
             <div class="text-center mt-1">
-                <span class="small fw-bold" t-att-style="'color: ' + statusColor + '; letter-spacing: 0.5px; font-size: 0.85rem;'">
-                    <t t-esc="formattedValue"/>
-                </span>
+                <t t-if="showConsumedLimit">
+                    <span class="small fw-bold" t-att-style="'color: ' + statusColor + '; letter-spacing: 0.3px; font-size: 0.88rem;'">
+                        <t t-esc="consumedLimitText"/>
+                    </span>
+                </t>
+                <t t-else="">
+                    <span class="small fw-bold" t-att-style="'color: ' + statusColor + '; letter-spacing: 0.5px; font-size: 0.9rem;'">
+                        <t t-esc="formattedValue"/>
+                    </span>
+                </t>
             </div>
         </div>
     </t>

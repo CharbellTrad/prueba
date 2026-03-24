@@ -130,26 +130,55 @@
                                                 <div style="margin-bottom: 6px;">
                                                     Consumido en este período: <strong style="font-size: 1.1rem;"><t t-out="'${:,.2f}'.format(ci.get('period_consumed', 0))"/></strong>
                                                 </div>
-                                                
-                                                <t t-if="ci['config'].consumption_limit and ci['config'].consumption_limit > 0">
-                                                    <div style="margin-bottom: 8px;">
-                                                        Límite Total: <strong><t t-out="'${:,.2f}'.format(ci['config'].consumption_limit)"/></strong>
-                                                    </div>
 
-                                                    <!-- Barra de Progreso -->
-                                                    <t t-set="pct" t-value="min(ci.get('period_percentage', 0), 100)"/>
-                                                    <t t-set="bar_color" t-value="'#dc3545' if pct >= 90 else ('#ffc107' if pct >= 70 else '#28a745')"/>
-                                                    
-                                                    <div style="height: 8px; width: 100%; background-color: #e9ecef; border-radius: 4px; overflow: hidden; margin-bottom: 8px;">
-                                                        <div t-attf-style="width: {{ pct }}%; background-color: {{ bar_color }}; height: 100%;"></div>
+                                                <!-- Límite Personal -->
+                                                <t t-if="ci['config'].personal_limit and ci['config'].personal_limit > 0">
+                                                    <div style="margin-bottom: 8px; margin-top: 8px;">
+                                                        Límite Personal: <strong><t t-out="'${:,.2f}'.format(ci['config'].personal_limit)"/></strong>
                                                     </div>
-                                                    
+                                                    <t t-set="pct_p" t-value="min(ci.get('personal_percentage', 0), 100)"/>
+                                                    <t t-set="bar_color_p" t-value="'#dc3545' if pct_p >= 90 else ('#ffc107' if pct_p >= 70 else '#28a745')"/>
+                                                    <div style="height: 8px; width: 100%; background-color: #e9ecef; border-radius: 4px; overflow: hidden; margin-bottom: 4px;">
+                                                        <div t-attf-style="width: {{ pct_p }}%; background-color: {{ bar_color_p }}; height: 100%;"></div>
+                                                    </div>
                                                     <div style="color: #666;">
-                                                        Disponible: <strong><t t-out="'${:,.2f}'.format(max(ci['config'].consumption_limit - ci.get('period_consumed', 0), 0))"/></strong>
+                                                        Disponible Personal: <strong><t t-out="'${:,.2f}'.format(max(ci['config'].personal_limit - ci.get('period_consumed', 0), 0))"/></strong>
                                                     </div>
                                                 </t>
-                                                <t t-else="">
-                                                    <div style="font-style: italic; color: #666;">Sin límite de consumo configurado</div>
+                                                <t t-if="not ci['config'].personal_limit or ci['config'].personal_limit == 0">
+                                                    <t t-if="ci['config'].allowed_consumption_types != 'attention_only'">
+                                                        <div style="font-style: italic; color: #28a745; margin-top: 8px;">
+                                                            <strong>Límite Personal:</strong> Sin Límite (Ilimitado)
+                                                        </div>
+                                                    </t>
+                                                    <t t-else="">
+                                                        <div style="font-style: italic; color: #666;">Sin límite personal configurado</div>
+                                                    </t>
+                                                </t>
+
+                                                <!-- Límite Atención -->
+                                                <t t-if="ci['config'].attention_limit and ci['config'].attention_limit > 0">
+                                                    <div style="margin-bottom: 8px; margin-top: 12px;">
+                                                        Límite Atención: <strong><t t-out="'${:,.2f}'.format(ci['config'].attention_limit)"/></strong>
+                                                    </div>
+                                                    <t t-set="pct_a" t-value="min(ci.get('attention_percentage', 0), 100)"/>
+                                                    <t t-set="bar_color_a" t-value="'#dc3545' if pct_a >= 90 else ('#ffc107' if pct_a >= 70 else '#28a745')"/>
+                                                    <div style="height: 8px; width: 100%; background-color: #e9ecef; border-radius: 4px; overflow: hidden; margin-bottom: 4px;">
+                                                        <div t-attf-style="width: {{ pct_a }}%; background-color: {{ bar_color_a }}; height: 100%;"></div>
+                                                    </div>
+                                                    <div style="color: #666;">
+                                                        Disponible Atención: <strong><t t-out="'${:,.2f}'.format(max(ci['config'].attention_limit - ci.get('period_consumed', 0), 0))"/></strong>
+                                                    </div>
+                                                </t>
+                                                <t t-if="not ci['config'].attention_limit or ci['config'].attention_limit == 0">
+                                                    <t t-if="ci['config'].allowed_consumption_types != 'personal_only'">
+                                                        <div style="font-style: italic; color: #28a745; margin-top: 8px;">
+                                                            <strong>Límite Atención:</strong> Sin Límite (Ilimitado)
+                                                        </div>
+                                                    </t>
+                                                    <t t-else="">
+                                                        <div style="font-style: italic; color: #666; margin-top: 8px;">Sin límite de atención configurado</div>
+                                                    </t>
                                                 </t>
                                             </div>
                                         </div>

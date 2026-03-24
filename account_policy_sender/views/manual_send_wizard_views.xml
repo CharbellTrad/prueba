@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ================================================================== -->
+    <!--                   MANUAL SEND WIZARD – FORM VIEW                   -->
+    <!-- ================================================================== -->
+    <record id="manual_send_wizard_view_form" model="ir.ui.view">
+        <field name="name">manual.send.wizard.form</field>
+        <field name="model">manual.send.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Enviar Pólizas Manualmente">
+                <group>
+                    <group string="Rango de Fechas">
+                        <field name="date_from"/>
+                        <field name="date_to"/>
+                    </group>
+                    <group string="Opciones">
+                        <field name="company_ids" widget="many2many_tags"/>
+                        <field name="send_mode" widget="radio"/>
+                    </group>
+                </group>
+                <footer>
+                    <button name="action_send" type="object"
+                            string="Ejecutar Envío"
+                            class="btn-primary"
+                            icon="fa-paper-plane"/>
+                    <button string="Cancelar" class="btn-secondary"
+                            special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_manual_send_wizard" model="ir.actions.act_window">
+        <field name="name">Enviar Pólizas Manualmente</field>
+        <field name="res_model">manual.send.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

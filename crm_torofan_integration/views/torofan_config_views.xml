@@ -22,7 +22,7 @@
         <field name="name">torofan.config.form</field>
         <field name="model">torofan.config</field>
         <field name="arch" type="xml">
-            <form string="Configuración Torofan">
+            <form string="Conexión con el CRM">
                 <sheet>
                     <div class="oe_title">
                         <label for="name" class="oe_edit_only"/>
@@ -65,6 +65,10 @@
                         <group>
                             <field name="loyalty_program_id" 
                                    options="{'no_create': True}"/>
+
+                            <field name="company_id" 
+                                   invisible="loyalty_program_id"
+                                   options="{'no_create': True}"/>
                             
                             <label for="coupon_validity_value" string="Validez del Cupón" invisible="not loyalty_program_id"/>
                             <div class="o_row" invisible="not loyalty_program_id">
@@ -95,7 +99,10 @@
                                    invisible="not loyalty_program_id"/>
                             <field name="program_date_to"
                                    invisible="not loyalty_program_id"/>
-                            <field name="program_company_name"
+                            <field name="program_main_company_id"
+                                   invisible="not loyalty_program_id"/>
+                            <field name="program_multi_company_ids" 
+                                   widget="many2many_tags"
                                    invisible="not loyalty_program_id"/>
                             <field name="program_available_on"
                                    invisible="not loyalty_program_id"/>
@@ -104,14 +111,14 @@
                         <group colspan="2">
                             <div class="alert alert-info" role="alert" invisible="loyalty_program_id">
                                 <p style="margin: 0;">
-                                    <i class="fa fa-info-circle"/> 
+                                    <i class="fa fa-info-circle" title="Información"/> 
                                     <strong>Sin programa seleccionado:</strong> Solo se crearán oportunidades en el CRM,
                                     sin generar cupones.
                                 </p>
                             </div>
                             <div class="alert alert-success" role="alert" invisible="not loyalty_program_id">
                                 <p style="margin: 0;">
-                                    <i class="fa fa-check-circle"/> 
+                                    <i class="fa fa-check-circle" title="Correcto"/> 
                                     Los parámetros a la derecha se obtienen automáticamente del programa de lealtad.
                                     Para modificarlos, edita el programa en <strong>Ventas &gt; Descuentos y programas de lealtad</strong>.
                                 </p>
@@ -125,7 +132,7 @@
 
     <!-- Acción de ventana -->
     <record id="action_torofan_config" model="ir.actions.act_window">
-        <field name="name">Configuración Torofan</field>
+        <field name="name">Conexión con el CRM</field>
         <field name="res_model">torofan.config</field>
         <field name="view_mode">list,form</field>
         <field name="target">current</field>
@@ -140,11 +147,17 @@
         </field>
     </record>
 
-    <!-- Menú -->
-    <menuitem id="menu_torofan_config"
+    <!-- Menú Principal Torofan (Carpeta) -->
+    <menuitem id="menu_torofan_root"
               name="Torofan"
               parent="sale.sale_menu_root"
-              action="action_torofan_config"
               sequence="90"/>
+
+    <!-- Submenú Configuración -->
+    <menuitem id="menu_torofan_config"
+              name="Conexión con el CRM"
+              parent="menu_torofan_root"
+              action="action_torofan_config"
+              sequence="1"/>
 
 </odoo>

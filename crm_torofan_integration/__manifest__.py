@@ -14,11 +14,13 @@
         'sale',
         'sale_loyalty',
         'mail',
+        'sale_loyalty_multi_company',
     ],
     'data': [
         'security/ir.model.access.csv',
         'data/mail_template_data.xml',
         'views/crm_lead_views.xml',
+        'views/res_partner_views.xml',
         'views/torofan_config_views.xml',
     ],
     'installable': True,

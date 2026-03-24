@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Heredar la vista de formulario del pedido de venta (cotización) -->
+    <record id="view_order_form_inherit_torofan" model="ir.ui.view">
+        <field name="name">sale.order.form.inherit.torofan</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            
+            <!-- Cinta en la esquina para pedidos de Torofan -->
+            <xpath expr="//sheet/div[hasclass('oe_title')]" position="before">
+                <widget name="web_ribbon" title="Torofan" bg_color="text-bg-warning" invisible="not is_torofan_order"/>
+            </xpath>
+
+            <!-- Agregar la información de Torofan dentro de la pestaña de 'Otra Información' -->
+            <xpath expr="//page[@name='other_information']//group[@name='sales_person']" position="after">
+                <group string="Torofan" name="torofan_info" invisible="not is_torofan_order">
+                    <field name="is_torofan_order" invisible="1"/>
+                    <field name="torofan_sale_config_id"/>
+                </group>
+            </xpath>
+
+        </field>
+    </record>
+
+    <!-- Heredar la vista de lista/árbol -->
+    <record id="view_quotation_tree_inherit_torofan" model="ir.ui.view">
+        <field name="name">sale.quotation.list.inherit.torofan</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_quotation_tree_with_onboarding"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='state']" position="before">
+                <field name="is_torofan_order" optional="show" widget="boolean_toggle" readonly="1"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

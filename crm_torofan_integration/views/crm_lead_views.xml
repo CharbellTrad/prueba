@@ -8,13 +8,19 @@
         <field name="inherit_id" ref="crm.crm_lead_view_form"/>
         <field name="arch" type="xml">
             
+            <!-- Cinta Torofan en esquina superior derecha -->
+            <xpath expr="//sheet/div[hasclass('oe_title')]" position="before">
+                <widget name="web_ribbon" title="Torofan" bg_color="text-bg-warning" invisible="not from_torofan"/>
+            </xpath>
+
             <!-- Agregar campo después de las etiquetas -->
             <xpath expr="//field[@name='tag_ids']" position="after">
                 <!-- Campo con texto y badge condicional -->
                 <field name="from_torofan" 
                        widget="boolean"
                        readonly="1"
-                       string="Creado desde Torofan"/>
+                       string="Creado desde Torofan"
+                       invisible="1"/>
                 
                 <!-- Campo cupón visible solo cuando existe -->
                 <field name="torofan_coupon_id" 

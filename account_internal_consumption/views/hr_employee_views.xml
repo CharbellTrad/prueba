@@ -10,20 +10,68 @@
                 <page string="Consumo Interno"
                       name="internal_consumption">
                     <group>
-                        <group string="Estado del Consumo">
-                            <field name="is_internal_consumption" readonly="1"/>
-                             <field name="allow_internal_consumption" readonly="not is_internal_consumption"/>
-                            <field name="consumption_currency_id" invisible="1"/>
-                            <field name="consumption_limit_info"/>
-                            <field name="consumed_limit_info"/>
-                            <field name="available_limit_info"/>
+                        <field name="consumption_currency_id" invisible="1"/>
+                        <field name="is_unlimited_personal" invisible="1"/>
+                        <field name="is_unlimited_attention" invisible="1"/>
+                        <field name="allowed_consumption_types" invisible="1"/>
+                        <group>
+                            <group string="Estado">
+                                <field name="is_internal_consumption" readonly="1"/>
+                                <field name="allow_personal_consumption"
+                                       readonly="not is_internal_consumption"
+                                       invisible="allowed_consumption_types == 'attention_only'"/>
+                                <field name="allow_attention_consumption"
+                                       readonly="not is_internal_consumption"
+                                       invisible="allowed_consumption_types == 'personal_only'"/>
+                            </group>
+                            <group string="Período Vigente">
+                                <field name="period_start_info"/>
+                                <field name="period_end_info"/>
+                            </group>
                         </group>
-                        <group string="Período Vigente">
-                            <field name="period_start_info"/>
-                            <field name="period_end_info"/>
+                        <group>
+                            <group string="Personal"
+                                   invisible="allowed_consumption_types == 'attention_only'">
+                                <field name="personal_limit_info" invisible="is_unlimited_personal" string="Límite Consumible"/>
+                                <div class="o_td_label" invisible="not is_unlimited_personal"><label for="personal_limit_info" string="Límite Consumible"/></div>
+                                <span invisible="not is_unlimited_personal" class="fw-semibold text-success">Sin Límite</span>
+                                <field name="available_personal_info" invisible="is_unlimited_personal" string="Disponible General"/>
+                                <field name="consumed_personal_info" string="Consumido General"/>
+                                <field name="individual_consumed_personal" string="Consumido Individual"/>
+                            </group>
+                            <group string="Personal"
+                                   invisible="allowed_consumption_types != 'attention_only'">
+                                <field name="not_configured_personal_label" string="Límite Consumible" readonly="1"/>
+                            </group>
+                            <group string="Atención"
+                                   invisible="allowed_consumption_types == 'personal_only'">
+                                <field name="attention_limit_info" invisible="is_unlimited_attention" string="Límite Consumible"/>
+                                <div class="o_td_label" invisible="not is_unlimited_attention"><label for="attention_limit_info" string="Límite Consumible"/></div>
+                                <span invisible="not is_unlimited_attention" class="fw-semibold text-success">Sin Límite</span>
+                                <field name="available_attention_info" invisible="is_unlimited_attention" string="Disponible General"/>
+                                <field name="consumed_attention_info" string="Consumido General"/>
+                                <field name="individual_consumed_attention" string="Consumido Individual"/>
+                            </group>
+                            <group string="Atención"
+                                   invisible="allowed_consumption_types != 'personal_only'">
+                                <field name="not_configured_attention_label" string="Límite Consumible" readonly="1"/>
+                            </group>
                         </group>
                     </group>
                 </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_hr_employee_tree_consumption" model="ir.ui.view">
+        <field name="name">hr.employee.tree.consumption</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='department_id']" position="after">
+                <field name="is_internal_consumption" string="Consumo Interno" width="125px" optional="show"/>
+                <field name="allow_personal_consumption" string="Permitir Cons. Personales" width="175px" optional="show"/>
+                <field name="allow_attention_consumption" string="Permitir Cons. Atención" width="165px" optional="show"/>
             </xpath>
         </field>
     </record>

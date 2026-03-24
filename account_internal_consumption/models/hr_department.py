@@ -11,18 +11,33 @@ class HrDepartment(models.Model):
         compute='_compute_is_internal_consumption',
         help='Indica si este departamento tiene configuración de consumo interno activa.',
     )
-    consumption_limit_info = fields.Monetary(
-        string='Límite de Consumo',
+    personal_limit_info = fields.Monetary(
+        string='Límite Personal',
         compute='_compute_consumption_info',
         currency_field='consumption_currency_id',
     )
-    consumed_limit_info = fields.Monetary(
-        string='Límite Consumido',
+    attention_limit_info = fields.Monetary(
+        string='Límite Atención',
         compute='_compute_consumption_info',
         currency_field='consumption_currency_id',
     )
-    available_limit_info = fields.Monetary(
-        string='Límite Disponible',
+    consumed_personal_info = fields.Monetary(
+        string='Consumido Personal',
+        compute='_compute_consumption_info',
+        currency_field='consumption_currency_id',
+    )
+    consumed_attention_info = fields.Monetary(
+        string='Consumido Atención',
+        compute='_compute_consumption_info',
+        currency_field='consumption_currency_id',
+    )
+    available_personal_info = fields.Monetary(
+        string='Disponible Personal',
+        compute='_compute_consumption_info',
+        currency_field='consumption_currency_id',
+    )
+    available_attention_info = fields.Monetary(
+        string='Disponible Atención',
         compute='_compute_consumption_info',
         currency_field='consumption_currency_id',
     )
@@ -37,6 +52,31 @@ class HrDepartment(models.Model):
     consumption_currency_id = fields.Many2one(
         'res.currency',
         string='Moneda de Consumo',
+        compute='_compute_consumption_info',
+    )
+    is_unlimited_personal = fields.Boolean(
+        string='Personal Ilimitado',
+        compute='_compute_consumption_info',
+    )
+    is_unlimited_attention = fields.Boolean(
+        string='Atención Ilimitada',
+        compute='_compute_consumption_info',
+    )
+    allowed_consumption_types = fields.Selection(
+        selection=[
+            ('personal_only', 'Solo Personales'),
+            ('attention_only', 'Solo Atención'),
+            ('both', 'Personales y Atención'),
+        ],
+        string='Consumos Emitibles',
+        compute='_compute_consumption_info',
+    )
+    not_configured_personal_label = fields.Char(
+        string='Límite Consumible',
+        compute='_compute_consumption_info',
+    )
+    not_configured_attention_label = fields.Char(
+        string='Límite Consumible',
         compute='_compute_consumption_info',
     )
 
@@ -85,16 +125,36 @@ class HrDepartment(models.Model):
                 ('account_id', '!=', False),
             ], limit=1)
             if config:
-                dept.consumption_limit_info = config.consumption_limit
-                dept.consumed_limit_info = config.consumed_limit
-                dept.available_limit_info = config.available_limit
+                dept.personal_limit_info = config.personal_limit
+                dept.attention_limit_info = config.attention_limit
+                dept.consumed_personal_info = config.consumed_personal
+                dept.consumed_attention_info = config.consumed_attention
+                dept.available_personal_info = config.available_personal
+                dept.available_attention_info = config.available_attention
                 dept.period_start_info = config.period_start
                 dept.period_end_info = config.period_end
                 dept.consumption_currency_id = config.currency_id
+                dept.is_unlimited_personal = not config.personal_limit
+                dept.is_unlimited_attention = not config.attention_limit
+                dept.allowed_consumption_types = config.allowed_consumption_types or 'both'
+                dept.not_configured_personal_label = (
+                    'No Configurado' if config.allowed_consumption_types == 'attention_only' else ''
+                )
+                dept.not_configured_attention_label = (
+                    'No Configurado' if config.allowed_consumption_types == 'personal_only' else ''
+                )
             else:
-                dept.consumption_limit_info = 0.0
-                dept.consumed_limit_info = 0.0
-                dept.available_limit_info = 0.0
+                dept.personal_limit_info = 0.0
+                dept.attention_limit_info = 0.0
+                dept.consumed_personal_info = 0.0
+                dept.consumed_attention_info = 0.0
+                dept.available_personal_info = 0.0
+                dept.available_attention_info = 0.0
                 dept.period_start_info = False
                 dept.period_end_info = False
                 dept.consumption_currency_id = False
+                dept.is_unlimited_personal = False
+                dept.is_unlimited_attention = False
+                dept.allowed_consumption_types = False
+                dept.not_configured_personal_label = ''
+                dept.not_configured_attention_label = ''

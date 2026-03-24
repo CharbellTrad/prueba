@@ -5,5 +5,6 @@ from . import internal_consumption_config
 from . import internal_consumption_audit
 from . import internal_consumption_config_log
 from . import pos_payment_method
+from . import pos_payment
 from . import pos_order
 from . import pos_session

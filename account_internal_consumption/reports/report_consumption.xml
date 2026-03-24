@@ -62,6 +62,7 @@
                                                 <thead t-attf-style="background-color: #dddddd; color: #333;">
                                                     <tr>
                                                         <th>Empleado</th>
+                                                        <th>Tipo</th>
                                                         <th class="text-end">Consumos</th>
                                                         <th>Primer Consumo</th>
                                                         <th>Último Consumo</th>
@@ -72,6 +73,7 @@
                                                     <t t-foreach="dpt['employees']" t-as="emp_row">
                                                         <tr>
                                                             <td><t t-out="emp_row['employee'].name"/></td>
+                                                            <td><t t-out="emp_row['consumption_type_label']"/></td>
                                                             <td class="text-end"><t t-out="emp_row['total_count']"/></td>
                                                             <td><t t-out="emp_row['date_first'].strftime('%d/%m/%Y')"/></td>
                                                             <td><t t-out="emp_row['date_last'].strftime('%d/%m/%Y')"/></td>
@@ -79,7 +81,7 @@
                                                         </tr>
                                                     </t>
                                                     <tr class="fw-bold table-active">
-                                                        <td colspan="4" class="text-end">TOTAL DEPARTAMENTO:</td>
+                                                        <td colspan="5" class="text-end">TOTAL DEPARTAMENTO:</td>
                                                         <td class="text-end"><t t-out="'${:,.2f}'.format(dpt['total_amount'])"/></td>
                                                     </tr>
                                                 </tbody>
@@ -90,10 +92,11 @@
                                             <table class="table table-sm table-bordered mb-0">
                                                 <thead t-attf-style="background-color: #dddddd; color: #333;">
                                                     <tr>
-                                                        <th style="width: 18%;">Fecha</th>
-                                                        <th style="width: 16%;">Referencia</th>
-                                                        <th style="width: 30%;">Empleado</th>
-                                                        <th style="width: 24%;">Punto de Venta</th>
+                                                        <th style="width: 16%;">Fecha</th>
+                                                        <th style="width: 13%;">Referencia</th>
+                                                        <th style="width: 25%;">Empleado</th>
+                                                        <th style="width: 12%;">Tipo</th>
+                                                        <th style="width: 22%;">Punto de Venta</th>
                                                         <th class="text-end" style="width: 12%;">Monto</th>
                                                     </tr>
                                                 </thead>
@@ -103,12 +106,13 @@
                                                             <td><t t-out="c.consumption_date.strftime('%d/%m/%Y %H:%M')"/></td>
                                                             <td><t t-out="c.name"/></td>
                                                             <td><t t-out="c.employee_id.name if c.employee_id else '-'"/></td>
+                                                            <td><t t-out="'Personal' if c.consumption_type == 'personal' else 'Atención'"/></td>
                                                             <td><t t-out="c.pos_config_id.name if c.pos_config_id else '-'"/></td>
                                                             <td class="text-end"><t t-out="'${:,.2f}'.format(c.amount_total)"/></td>
                                                         </tr>
                                                     </t>
                                                     <tr class="fw-bold table-active">
-                                                        <td colspan="4" class="text-end">TOTAL DEPARTAMENTO:</td>
+                                                        <td colspan="5" class="text-end">TOTAL DEPARTAMENTO:</td>
                                                         <td class="text-end"><t t-out="'${:,.2f}'.format(dpt['total_amount'])"/></td>
                                                     </tr>
                                                 </tbody>
@@ -203,6 +207,7 @@
                                                 <thead t-attf-style="background-color: #dddddd; color: #333;">
                                                     <tr>
                                                         <th>Contacto</th>
+                                                        <th>Tipo</th>
                                                         <th class="text-end">Consumos</th>
                                                         <th>Primer Consumo</th>
                                                         <th>Último Consumo</th>
@@ -213,6 +218,7 @@
                                                     <t t-foreach="prt['children']" t-as="child_row">
                                                         <tr>
                                                             <td><t t-out="child_row['partner'].name"/></td>
+                                                            <td><t t-out="child_row['consumption_type_label']"/></td>
                                                             <td class="text-end"><t t-out="child_row['total_count']"/></td>
                                                             <td><t t-out="child_row['date_first'].strftime('%d/%m/%Y')"/></td>
                                                             <td><t t-out="child_row['date_last'].strftime('%d/%m/%Y')"/></td>
@@ -220,7 +226,7 @@
                                                         </tr>
                                                     </t>
                                                     <tr class="fw-bold table-active">
-                                                        <td colspan="4" class="text-end">TOTAL EMPRESA:</td>
+                                                        <td colspan="5" class="text-end">TOTAL EMPRESA:</td>
                                                         <td class="text-end"><t t-out="'${:,.2f}'.format(prt['total_amount'])"/></td>
                                                     </tr>
                                                 </tbody>
@@ -231,9 +237,10 @@
                                             <table class="table table-sm table-bordered mb-0">
                                                 <thead t-attf-style="background-color: #dddddd; color: #333;">
                                                     <tr>
-                                                        <th style="width: 18%;">Fecha</th>
-                                                        <th style="width: 14%;">Referencia</th>
-                                                        <th style="width: 38%;">Contacto</th>
+                                                        <th style="width: 16%;">Fecha</th>
+                                                        <th style="width: 12%;">Referencia</th>
+                                                        <th style="width: 30%;">Contacto</th>
+                                                        <th style="width: 12%;">Tipo</th>
                                                         <th style="width: 18%;">Punto de Venta</th>
                                                         <th class="text-end" style="width: 12%;">Monto</th>
                                                     </tr>
@@ -244,12 +251,13 @@
                                                             <td><t t-out="c.consumption_date.strftime('%d/%m/%Y %H:%M')"/></td>
                                                             <td><t t-out="c.name"/></td>
                                                             <td><t t-out="c.partner_id.name"/></td>
+                                                            <td><t t-out="'Personal' if c.consumption_type == 'personal' else 'Atención'"/></td>
                                                             <td><t t-out="c.pos_config_id.name if c.pos_config_id else '-'"/></td>
                                                             <td class="text-end"><t t-out="'${:,.2f}'.format(c.amount_total)"/></td>
                                                         </tr>
                                                     </t>
                                                     <tr class="fw-bold table-active">
-                                                        <td colspan="4" class="text-end">TOTAL EMPRESA:</td>
+                                                        <td colspan="5" class="text-end">TOTAL EMPRESA:</td>
                                                         <td class="text-end"><t t-out="'${:,.2f}'.format(prt['total_amount'])"/></td>
                                                     </tr>
                                                 </tbody>
@@ -336,6 +344,7 @@
                                                     <thead t-attf-style="background-color: #dddddd; color: #333;">
                                                         <tr>
                                                             <th>Empleado</th>
+                                                            <th>Tipo</th>
                                                             <th class="text-end">Consumos</th>
                                                             <th>Primer Consumo</th>
                                                             <th>Último Consumo</th>
@@ -346,6 +355,7 @@
                                                         <t t-foreach="dpt['employees']" t-as="emp_row">
                                                             <tr>
                                                                 <td><t t-out="emp_row['employee'].name"/></td>
+                                                                <td><t t-out="emp_row['consumption_type_label']"/></td>
                                                                 <td class="text-end"><t t-out="emp_row['total_count']"/></td>
                                                                 <td><t t-out="emp_row['date_first'].strftime('%d/%m/%Y')"/></td>
                                                                 <td><t t-out="emp_row['date_last'].strftime('%d/%m/%Y')"/></td>
@@ -353,7 +363,7 @@
                                                             </tr>
                                                         </t>
                                                         <tr class="fw-bold table-active">
-                                                            <td colspan="4" class="text-end">TOTAL:</td>
+                                                            <td colspan="5" class="text-end">TOTAL:</td>
                                                             <td class="text-end"><t t-out="'${:,.2f}'.format(dpt['total_amount'])"/></td>
                                                         </tr>
                                                     </tbody>
@@ -363,10 +373,11 @@
                                                 <table class="table table-sm table-bordered mt-1 mb-0">
                                                     <thead t-attf-style="background-color: #dddddd; color: #333;">
                                                         <tr>
-                                                            <th style="width: 18%;">Fecha</th>
-                                                            <th style="width: 16%;">Referencia</th>
-                                                            <th style="width: 30%;">Empleado</th>
-                                                            <th style="width: 24%;">POS</th>
+                                                            <th style="width: 16%;">Fecha</th>
+                                                            <th style="width: 13%;">Referencia</th>
+                                                            <th style="width: 25%;">Empleado</th>
+                                                            <th style="width: 12%;">Tipo</th>
+                                                            <th style="width: 22%;">POS</th>
                                                             <th class="text-end" style="width: 12%;">Monto</th>
                                                         </tr>
                                                     </thead>
@@ -376,12 +387,13 @@
                                                                 <td><t t-out="c.consumption_date.strftime('%d/%m/%Y')"/></td>
                                                                 <td><t t-out="c.name"/></td>
                                                                 <td><t t-out="c.employee_id.name if c.employee_id else '-'"/></td>
+                                                                <td><t t-out="'Personal' if c.consumption_type == 'personal' else 'Atención'"/></td>
                                                                 <td><t t-out="c.pos_config_id.name if c.pos_config_id else '-'"/></td>
                                                                 <td class="text-end"><t t-out="'${:,.2f}'.format(c.amount_total)"/></td>
                                                             </tr>
                                                         </t>
                                                         <tr class="fw-bold table-active">
-                                                            <td colspan="4" class="text-end">TOTAL:</td>
+                                                            <td colspan="5" class="text-end">TOTAL:</td>
                                                             <td class="text-end"><t t-out="'${:,.2f}'.format(dpt['total_amount'])"/></td>
                                                         </tr>
                                                     </tbody>
@@ -411,6 +423,7 @@
                                                     <thead t-attf-style="background-color: #dddddd; color: #333;">
                                                         <tr>
                                                             <th>Contacto</th>
+                                                            <th>Tipo</th>
                                                             <th class="text-end">Consumos</th>
                                                             <th>Primer Consumo</th>
                                                             <th>Último Consumo</th>
@@ -421,6 +434,7 @@
                                                         <t t-foreach="prt['children']" t-as="child_row">
                                                             <tr>
                                                                 <td><t t-out="child_row['partner'].name"/></td>
+                                                                <td><t t-out="child_row['consumption_type_label']"/></td>
                                                                 <td class="text-end"><t t-out="child_row['total_count']"/></td>
                                                                 <td><t t-out="child_row['date_first'].strftime('%d/%m/%Y')"/></td>
                                                                 <td><t t-out="child_row['date_last'].strftime('%d/%m/%Y')"/></td>
@@ -428,7 +442,7 @@
                                                             </tr>
                                                         </t>
                                                         <tr class="fw-bold table-active">
-                                                            <td colspan="4" class="text-end">TOTAL:</td>
+                                                            <td colspan="5" class="text-end">TOTAL:</td>
                                                             <td class="text-end"><t t-out="'${:,.2f}'.format(prt['total_amount'])"/></td>
                                                         </tr>
                                                     </tbody>
@@ -438,9 +452,10 @@
                                                 <table class="table table-sm table-bordered mt-1 mb-0">
                                                     <thead t-attf-style="background-color: #dddddd; color: #333;">
                                                         <tr>
-                                                            <th style="width: 18%;">Fecha</th>
-                                                            <th style="width: 14%;">Referencia</th>
-                                                            <th style="width: 38%;">Contacto</th>
+                                                            <th style="width: 16%;">Fecha</th>
+                                                            <th style="width: 12%;">Referencia</th>
+                                                            <th style="width: 30%;">Contacto</th>
+                                                            <th style="width: 12%;">Tipo</th>
                                                             <th style="width: 18%;">POS</th>
                                                             <th class="text-end" style="width: 12%;">Monto</th>
                                                         </tr>
@@ -451,12 +466,13 @@
                                                                 <td><t t-out="c.consumption_date.strftime('%d/%m/%Y')"/></td>
                                                                 <td><t t-out="c.name"/></td>
                                                                 <td><t t-out="c.partner_id.name"/></td>
+                                                                <td><t t-out="'Personal' if c.consumption_type == 'personal' else 'Atención'"/></td>
                                                                 <td><t t-out="c.pos_config_id.name if c.pos_config_id else '-'"/></td>
                                                                 <td class="text-end"><t t-out="'${:,.2f}'.format(c.amount_total)"/></td>
                                                             </tr>
                                                         </t>
                                                         <tr class="fw-bold table-active">
-                                                            <td colspan="4" class="text-end">TOTAL:</td>
+                                                            <td colspan="5" class="text-end">TOTAL:</td>
                                                             <td class="text-end"><t t-out="'${:,.2f}'.format(prt['total_amount'])"/></td>
                                                         </tr>
                                                     </tbody>

@@ -124,52 +124,91 @@ class PosOrder(models.Model):
         """
         is_consumption = order.get('is_internal_consumption') or order.get('data', {}).get('is_internal_consumption', False)
         
+        # Agrupar montos por tipo de consumo desde las líneas de pago
+        amounts_by_type = {}  # {'personal': amount, 'attention': amount}
+        
         if is_consumption:
             partner_id = order.get('partner_id') or order.get('data', {}).get('partner_id', False)
             
             data = order.get('data', {})
-            statement_ids = order.get('statement_ids') or data.get('statement_ids') or []
+            statement_ids = order.get('payment_ids') or order.get('statement_ids') or data.get('payment_ids') or data.get('statement_ids') or []
             
-            consumption_amount = 0.0
+            _logger.info("[Consumo Interno] _process_order: is_consumption=%s, partner_id=%s, statement_ids count=%s",
+                         is_consumption, partner_id, len(statement_ids) if statement_ids else 0)
+            
+            internal_methods = []
+            total_consumption_amount = 0.0
+            
             if statement_ids:
                 internal_methods = self.env['pos.payment.method'].search([('is_internal_consumption', '=', True)]).ids
+                _logger.info("[Consumo Interno] Internal payment method IDs: %s", internal_methods)
                 
                 for stmt in statement_ids:
                     if len(stmt) == 3 and isinstance(stmt[2], dict):
                         vals = stmt[2]
                         pm_id = vals.get('payment_method_id')
                         amount = vals.get('amount', 0.0)
-                        if pm_id in internal_methods:
-                            consumption_amount += amount
+                        line_type = vals.get('consumption_type', '')
+                        _logger.info("[Consumo Interno] Statement: pm_id=%s, amount=%s, consumption_type='%s', keys=%s",
+                                     pm_id, amount, line_type, list(vals.keys()))
+                        if pm_id in internal_methods and amount > 0:
+                            total_consumption_amount += amount
+                            if line_type:
+                                amounts_by_type[line_type] = amounts_by_type.get(line_type, 0.0) + amount
             
-
+            # Fallback: si no se encontró consumption_type en las líneas de pago,
+            # usar el total como 'personal' por defecto
+            if total_consumption_amount > 0 and not amounts_by_type:
+                _logger.warning("[Consumo Interno] No se encontró consumption_type en statement_ids, usando total como 'personal'")
+                amounts_by_type['personal'] = total_consumption_amount
+            
+            _logger.info("[Consumo Interno] amounts_by_type: %s", amounts_by_type)
+            
+            # Validar cada tipo por separado
             if partner_id:
-                self._validate_consumption_limit(partner_id, consumption_amount)
+                for ctype, amount in amounts_by_type.items():
+                    if amount > 0:
+                        self._validate_consumption_limit(partner_id, amount, ctype)
 
         result = super()._process_order(order, existing_order)
 
         if is_consumption and result:
             pos_order = self.browse(result)
             if pos_order.exists():
-                self._create_consumption_audit(pos_order)
+                _logger.info("[Consumo Interno] Creating audit records for order %s, amounts_by_type=%s", result, amounts_by_type)
+                # Crear un audit record por cada tipo de consumo utilizado
+                for ctype, amount in amounts_by_type.items():
+                    if amount > 0:
+                        self._create_consumption_audit(pos_order, ctype, amount)
 
         return result
 
-    def _validate_consumption_limit(self, partner_id, amount_total):
+    def _validate_consumption_limit(self, partner_id, amount_total, consumption_type):
         if amount_total > 0:
             partner = self.env['res.partner'].browse(partner_id)
             employee = self.env['hr.employee'].sudo().search([
                 ('work_contact_id', '=', partner_id)
             ], limit=1)
 
-            # Validar permiso explícito SOLO si es un empleado
-            if employee and not partner.allow_internal_consumption:
-                 raise UserError(
-                    'El cliente "%s" tiene el consumo interno deshabilitado.\n'
+            if partner.is_internal_consumption:
+                if consumption_type == 'personal' and not partner.allow_personal_consumption:
+                    raise UserError(
+                        'El cliente "%s" tiene el consumo personal deshabilitado.\n'
+                        'Por favor contacte al administrador.' % partner.name
+                    )
+                if consumption_type == 'attention' and not partner.allow_attention_consumption:
+                    raise UserError(
+                        'El cliente "%s" tiene el consumo de atención deshabilitado.\n'
+                        'Por favor contacte al administrador.' % partner.name
+                    )
+
+            if not partner.is_internal_consumption and employee:
+                raise UserError(
+                    'El cliente "%s" no tiene configuración de consumo interno activa '
+                    'pero tiene un empleado asociado. No puede usar este método de pago.\n'
                     'Por favor contacte al administrador.' % partner.name
                 )
-            
-            # Validar departamento
+
             if employee and not employee.department_id:
                 raise UserError(
                     'El empleado "%s" no tiene un departamento asignado. '
@@ -178,8 +217,6 @@ class PosOrder(models.Model):
                 )
 
         ConsumptionConfig = self.env['internal.consumption.config']
-
-        # Buscar la configuración correspondiente
         config = ConsumptionConfig.get_consumption_info(partner_id)
 
         if not config.get('found'):
@@ -193,17 +230,27 @@ class PosOrder(models.Model):
             )
 
         config_record = ConsumptionConfig.browse(config_id)
-        available = (config_record.consumption_limit or 0.0) - config_record.consumed_limit
 
-        if config_record.consumption_limit and amount_total > available:
+        # Validar según el tipo de consumo
+        if consumption_type == 'personal':
+            limit_val = config_record.personal_limit or 0.0
+            consumed_val = config_record.consumed_personal
+        else:
+            limit_val = config_record.attention_limit or 0.0
+            consumed_val = config_record.consumed_attention
+
+        available = limit_val - consumed_val
+        type_label = 'personal' if consumption_type == 'personal' else 'de atención'
+
+        if limit_val and amount_total > available:
             raise UserError(
-                'Límite de consumo excedido.\n\n'
+                'Límite de consumo %s excedido.\n\n'
                 'Límite disponible: $%.2f\n'
                 'Total de la orden: $%.2f\n\n'
-                'Por favor reduzca el monto de la orden.' % (available, amount_total)
+                'Por favor reduzca el monto de la orden.' % (type_label, available, amount_total)
             )
 
-    def _create_consumption_audit(self, pos_order):
+    def _create_consumption_audit(self, pos_order, consumption_type, specific_amount=None):
         """
         Crea un registro de consumo emitido y adjunta el ticket (PDF).
         """
@@ -213,16 +260,17 @@ class PosOrder(models.Model):
                 return
 
             ConsumptionConfig = self.env['internal.consumption.config']
-            config = False
-            employee = False
-            
+
+            # 1. Buscar como partner externo
             config = ConsumptionConfig.sudo().search([
                 ('partner_id', '=', partner.id),
                 ('belongs_to_odoo', '=', False),
             ], limit=1)
 
+            employee = False
+
             if not config:
-                # 2. Si no tiene propia, buscar si hereda de la empresa padre (parent_id)
+                # 2. Buscar por parent_id (empresas hijas)
                 if partner.parent_id:
                     config = ConsumptionConfig.sudo().search([
                         ('partner_id', '=', partner.parent_id.id),
@@ -243,17 +291,34 @@ class PosOrder(models.Model):
             if not config:
                 return
 
-            internal_consumption_amount = sum(
-                payment.amount for payment in pos_order.payment_ids
-                if payment.payment_method_id.is_internal_consumption
-            )
+            if specific_amount is not None:
+                internal_consumption_amount = specific_amount
+            else:
+                internal_consumption_amount = sum(
+                    payment.amount for payment in pos_order.payment_ids
+                    if payment.payment_method_id.is_internal_consumption
+                )
 
-            if internal_consumption_amount <= 0:
+            if not internal_consumption_amount or internal_consumption_amount <= 0:
                 return
 
-            limit_before = (config.consumption_limit or 0.0) - config.consumed_limit
-            
-            limit_after = limit_before - internal_consumption_amount
+            # Calcular límites según tipo
+            if consumption_type == 'personal':
+                is_unlimited = not config.personal_limit
+                if is_unlimited:
+                    limit_before = 0.0
+                    limit_after = 0.0
+                else:
+                    limit_before = config.personal_limit - config.consumed_personal
+                    limit_after = limit_before - internal_consumption_amount
+            else:
+                is_unlimited = not config.attention_limit
+                if is_unlimited:
+                    limit_before = 0.0
+                    limit_after = 0.0
+                else:
+                    limit_before = config.attention_limit - config.consumed_attention
+                    limit_after = limit_before - internal_consumption_amount
 
             audit_vals = {
                 'config_id': config.id,
@@ -261,12 +326,13 @@ class PosOrder(models.Model):
                 'employee_id': employee.id if employee else False,
                 'partner_id': partner.id,
                 'consumption_date': fields.Datetime.now(),
-                'amount_total': internal_consumption_amount,  # Corregido: Solo el monto de consumo
+                'amount_total': internal_consumption_amount,
+                'consumption_type': consumption_type,
                 'currency_id': pos_order.currency_id.id,
                 'period_start': config.period_start,
                 'period_end': config.period_end,
-                'limit_before': max(limit_before, 0.0),
-                'limit_after': max(limit_after, 0.0),
+                'limit_before': max(limit_before, 0.0) if not is_unlimited else 0.0,
+                'limit_after': max(limit_after, 0.0) if not is_unlimited else 0.0,
                 'pos_config_id': pos_order.config_id.id,
                 'user_id': pos_order.user_id.id,
                 'session_id': pos_order.session_id.id,
@@ -283,7 +349,7 @@ class PosOrder(models.Model):
                     'price_subtotal': line.price_subtotal_incl,
                 })
 
-            _logger.info("[Consumo Interno Log] Consumo emitido creado: '%s'", audit.name)
+            _logger.info("[Consumo Interno Log] Consumo emitido creado: '%s' (tipo: %s)", audit.name, consumption_type)
 
         except Exception as e:
             _logger.error("[Consumo Interno Log] Error consumos emitidos: %s", e, exc_info=True)
@@ -291,7 +357,7 @@ class PosOrder(models.Model):
 
     # =========================================================================
     @api.model
-    def validate_consumption_limit_rpc(self, partner_id, amount_total):
+    def validate_consumption_limit_rpc(self, partner_id, amount_total, consumption_type='personal'):
         """
         Método llamado desde el frontend del POS para validar si el monto
         de la orden excede el límite de consumo antes de confirmar.
@@ -299,36 +365,58 @@ class PosOrder(models.Model):
         Retorna un dict con el resultado de la validación.
         """
         partner = self.env['res.partner'].browse(partner_id)
-        
-        # 1. Validación de permiso explícito (Solo para empleados)
-        employee = self.env['hr.employee'].sudo().search([
-            ('work_contact_id', '=', partner_id)
-        ], limit=1)
 
-        if amount_total > 0 and employee and not partner.allow_internal_consumption:
-            return {
-                'valid': False,
-                'title': 'Operación Invalida',
-                'error': 'El cliente "%s" tiene el consumo interno deshabilitado.\nPor favor contacte al administrador.' % partner.name,
-            }
+        if amount_total > 0:
+            if partner.is_internal_consumption:
+                if consumption_type == 'personal' and not partner.allow_personal_consumption:
+                    return {
+                        'valid': False,
+                        'title': 'Operación Invalida',
+                        'error': 'El consumo personal está deshabilitado para este cliente. \nPor favor contacte al administrador.',
+                    }
+                if consumption_type == 'attention' and not partner.allow_attention_consumption:
+                    return {
+                        'valid': False,
+                        'title': 'Operación Invalida',
+                        'error': 'El consumo de atención está deshabilitado para este cliente. \nPor favor contacte al administrador.',
+                    }
+
+            if not partner.is_internal_consumption:
+                employee = self.env['hr.employee'].sudo().search([
+                    ('work_contact_id', '=', partner_id)
+                ], limit=1)
+                if employee:
+                    return {
+                        'valid': False,
+                        'title': 'Operación Invalida',
+                        'error': 'El consumo interno no esta configurado para este cliente.\n'
+                                 'Por favor contacte al administrador.',
+                    }
 
         ConsumptionConfig = self.env['internal.consumption.config']
         info = ConsumptionConfig.get_consumption_info(partner_id)
 
         if not info.get('found'):
-            # Si no hay configuración, se permite la venta como si fuera un método de pago normal
-            # NOTA: Esto solo ocurre si tiene permiso pero no configuración (raro, pero posible)
             return {
                 'valid': True,
                 'warning': 'Cliente sin consumo interno asignado. Se procesará como venta estándar.'
             }
 
-        available = info.get('available_limit', 0.0)
-        consumption_limit = info.get('consumption_limit', 0.0)
+        # Seleccionar límites según tipo
+        if consumption_type == 'personal':
+            limit_val = info.get('personal_limit', 0.0)
+            consumed = info.get('consumed_personal', 0.0)
+            available = info.get('available_personal', 0.0)
+            is_unlimited = info.get('is_unlimited_personal', False)
+        else:
+            limit_val = info.get('attention_limit', 0.0)
+            consumed = info.get('consumed_attention', 0.0)
+            available = info.get('available_attention', 0.0)
+            is_unlimited = info.get('is_unlimited_attention', False)
 
-        # 2. Validación de Límite
-        if consumption_limit and amount_total > available:
-            consumed = info.get('consumed_limit', 0.0)
+        type_label = 'Personal' if consumption_type == 'personal' else 'de Atención'
+
+        if limit_val and amount_total > available:
             available_previous = available
             consumed_final = consumed + amount_total
             available_final = available_previous - amount_total
@@ -336,10 +424,12 @@ class PosOrder(models.Model):
 
             return {
                 'valid': False,
-                'title': 'Límite Excedido',
-                'error': 'Límite Excedido',
+                'title': 'Límite %s Excedido' % type_label,
+                'error': 'Límite %s Excedido' % type_label,
                 'dialog_data': {
-                    'consumption_limit': consumption_limit,
+                    'consumption_type': consumption_type,
+                    'type_label': type_label,
+                    'consumption_limit': limit_val,
                     'consumed_limit': consumed,
                     'available_previous': available_previous,
                     'amount_total': amount_total,
@@ -354,6 +444,8 @@ class PosOrder(models.Model):
         return {
             'valid': True,
             'available_limit': available,
+            'is_unlimited': is_unlimited,
+            'consumption_type': consumption_type,
         }
 
     @api.model
@@ -369,7 +461,13 @@ class PosOrder(models.Model):
             return False
             
         return {
-            'consumption_limit_info': info.get('consumption_limit'),
-            'consumed_limit_info': info.get('consumed_limit'),
+            'personal_limit_info': info.get('personal_limit'),
+            'attention_limit_info': info.get('attention_limit'),
+            'consumed_personal_info': info.get('consumed_personal'),
+            'consumed_attention_info': info.get('consumed_attention'),
+            'available_personal_info': info.get('available_personal'),
+            'available_attention_info': info.get('available_attention'),
             'currency_symbol': info.get('currency_symbol', '$'),
+            'is_unlimited_personal': info.get('is_unlimited_personal', False),
+            'is_unlimited_attention': info.get('is_unlimited_attention', False),
         }

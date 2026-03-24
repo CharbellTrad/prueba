@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.account_policy_sender</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="account.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//app[@name='account']" position="inside">
+                <block title="Envío de Pólizas Externas" name="policy_sender_block">
+
+                    <!-- Endpoint -->
+                    <setting string="Conexión al Endpoint"
+                             help="URL y credenciales del servicio HTTP externo.">
+                        <div class="content-group">
+                            <div class="row mt16">
+                                <label for="policy_endpoint_url"
+                                       string="Endpoint"
+                                       class="col-lg-3 o_light_label"/>
+                                <field name="policy_endpoint_url"
+                                       placeholder="https://ejemplo.com/api/v1/poliza"
+                                       style="width:70%;"/>
+                            </div>
+                            <div class="row mt8">
+                                <label for="policy_auth_user"
+                                       string="Usuario"
+                                       class="col-lg-3 o_light_label"/>
+                                <field name="policy_auth_user"
+                                       placeholder="********"
+                                       style="width:70%;"/>
+                            </div>
+                            <div class="row mt8">
+                                <label for="policy_auth_password"
+                                       string="Contraseña"
+                                       class="col-lg-3 o_light_label"/>
+                                <field name="policy_auth_password"
+                                       password="True"
+                                       placeholder="********"
+                                       style="width:70%;"/>
+                            </div>
+                            <div class="row mt8 align-items-center">
+                                <label for="policy_request_timeout"
+                                       string="Timeout"
+                                       class="col-lg-3 o_light_label"/>
+                                <field name="policy_request_timeout"
+                                       nolabel="1"
+                                       class="col-auto"
+                                       style="width:70px;"/>
+                                <span class="col-auto text-muted small">segundos</span>
+                            </div>
+                            <div class="mt12">
+                                <button name="action_test_connection"
+                                        type="object"
+                                        string="Probar Conexión"
+                                        class="btn-secondary btn-sm"
+                                        icon="fa-plug"/>
+                            </div>
+                        </div>
+                    </setting>
+
+                    <!-- Configuración por Empresa y Condiciones por Diario (misma sección) -->
+                    <setting string="Configuración por Empresa y Condiciones por Diario"
+                             help="Defina las empresas habilitadas y las condiciones especiales por diario.">
+                        <div class="content-group">
+                            <div class="mt16 d-flex flex-column gap-3">
+                                <button name="action_open_company_config"
+                                        type="object"
+                                        string="Configurar Empresas"
+                                        class="btn-secondary"
+                                        icon="fa-building"/>
+                                <button name="action_open_journal_conditions"
+                                        type="object"
+                                        string="Configurar Condiciones por Diario"
+                                        class="btn-secondary"
+                                        icon="fa-book"/>
+                            </div>
+                        </div>
+                    </setting>
+
+                    <!-- Envío automático -->
+                    <setting string="Envío Automático"
+                             help="Envía automáticamente las pólizas del día anterior a la hora indicada.">
+                        <field name="policy_auto_send_enabled"/>
+                        <div class="content-group" invisible="not policy_auto_send_enabled">
+                            <div class="row mt16">
+                                    <label for="policy_auto_send_frequency"
+                                           string="Frecuencia"
+                                           class="col-lg-3 o_light_label"/>
+                                    <field name="policy_auto_send_frequency"
+                                           nolabel="1"
+                                           style="width:70%;"/>
+                                </div>
+                                <div class="row mt8 align-items-center">
+                                    <label for="policy_auto_send_hour_local"
+                                           string="Hora de envío"
+                                           class="col-lg-3 o_light_label"/>
+                                    <field name="policy_auto_send_hour_local"
+                                           widget="float_time"
+                                           nolabel="1"
+                                           class="col-auto"
+                                           style="width:100px;"/>
+                                    <span class="col-auto text-muted small ms-2">(tu hora local)</span>
+                                </div>
+                                <!-- Hidden field needed for compute dependency -->
+                                <field name="policy_auto_send_hour" invisible="1"/>
+                                <div class="row mt8">
+                                    <label for="policy_last_auto_send_date"
+                                           string="Último envío"
+                                           class="col-lg-3 o_light_label"/>
+                                    <field name="policy_last_auto_send_date"
+                                           nolabel="1"
+                                           readonly="1"
+                                           style="width:70%;"/>
+                                </div>
+                        </div>
+                    </setting>
+
+                    <!-- Acciones -->
+                    <setting string="Acciones"
+                             help="Envío manual o consulta del historial de pólizas enviadas.">
+                        <div class="content-group">
+                            <div class="mt16 d-flex flex-column gap-3">
+                                <button name="action_open_manual_send_wizard"
+                                        type="object"
+                                        string="Enviar Pólizas Manualmente"
+                                        class="btn-primary"
+                                        icon="fa-paper-plane"/>
+                                <button name="action_open_send_log"
+                                        type="object"
+                                        string="Ver Historial de Envíos"
+                                        class="btn-secondary"
+                                        icon="fa-history"/>
+                            </div>
+                        </div>
+                    </setting>
+
+                </block>
+            </xpath>
+        </field>
+    </record>
+</odoo>

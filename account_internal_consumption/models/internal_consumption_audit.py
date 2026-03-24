@@ -64,6 +64,11 @@ class InternalConsumptionAudit(models.Model):
         currency_field='currency_id',
         help='Monto total de la orden de consumo.',
     )
+    consumption_type = fields.Selection([
+        ('personal', 'Consumo Personal'),
+        ('attention', 'Consumo de Atención'),
+    ], string='Tipo de Consumo', required=True,
+       help='Indica si el consumo fue personal o de atención.')
 
     period_start = fields.Datetime(
         string='Inicio del Período',
@@ -82,6 +87,11 @@ class InternalConsumptionAudit(models.Model):
         string='Disponible Después',
         currency_field='currency_id',
         help='Límite disponible después de este consumo.',
+    )
+    is_unlimited = fields.Boolean(
+        string='Sin Límite',
+        compute='_compute_is_unlimited',
+        help='Indica si la configuración de consumo no tiene límite.',
     )
 
     pos_config_id = fields.Many2one(
@@ -132,6 +142,18 @@ class InternalConsumptionAudit(models.Model):
                     'internal.consumption.audit'
                 ) or 'AUD/%s' % fields.Datetime.now().strftime('%Y%m%d%H%M%S')
         return super().create(vals_list)
+
+    def _compute_is_unlimited(self):
+        """Determina si la configuración asociada tiene consumo ilimitado para el tipo registrado."""
+        for audit in self:
+            if not audit.config_id:
+                audit.is_unlimited = False
+            elif audit.consumption_type == 'personal':
+                audit.is_unlimited = not audit.config_id.personal_limit
+            elif audit.consumption_type == 'attention':
+                audit.is_unlimited = not audit.config_id.attention_limit
+            else:
+                audit.is_unlimited = False
 
     def unlink(self):
         """Evita la eliminación manual de auditorías para preservar el historial."""

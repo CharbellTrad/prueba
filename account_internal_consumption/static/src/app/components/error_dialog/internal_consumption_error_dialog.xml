@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+
+    <t t-name="account_internal_consumption.InternalConsumptionErrorDialog">
+        <Dialog title="props.title || 'Operación Inválida'" footer="false" header="false">
+            <div class="ic-error-dialog-container">
+                <button class="ic-error-dialog-close" t-on-click="props.close">
+                    <span class="fa fa-times text-muted fs-3"></span>
+                </button>
+                <div class="ic-error-dialog-icon-wrapper">
+                    <span class="fa fa-exclamation ic-error-dialog-icon"></span>
+                </div>
+                <h2 class="ic-error-dialog-title">
+                    <t t-esc="props.title || 'Operación Inválida'"/>
+                </h2>
+                
+                <div class="ic-error-dialog-content">
+                    <div class="ic-error-dialog-partner-card">
+                        <p class="ic-error-dialog-partner-label">Cliente</p>
+                        <p class="ic-error-dialog-partner-name"><t t-esc="partnerNameText"/></p>
+                    </div>
+                    
+                    <div class="ic-error-dialog-messages">
+                        <t t-foreach="messages" t-as="msg" t-key="msg_index">
+                            <p t-att-class="'ic-error-dialog-message ' + (msg_index == 0 ? 'ic-error-dialog-message-main' : 'ic-error-dialog-message-sub')">
+                                <t t-esc="msg"/>
+                            </p>
+                        </t>
+                    </div>
+                </div>
+
+                <div class="ic-error-dialog-footer">
+                    <button class="ic-error-dialog-btn" t-on-click="props.close">
+                        De acuerdo
+                    </button>
+                </div>
+            </div>
+        </Dialog>
+    </t>
+
+</templates>

@@ -265,11 +265,21 @@ class InternalConsumptionConfigReportWizard(models.TransientModel):
         config_info['period_consumed'] = consumed_amount
         config_info['period_consumption_count'] = len(consumptions)
         
-        # Calcular porcentaje
-        if config.consumption_limit and config.consumption_limit > 0:
-            config_info['period_percentage'] = (consumed_amount / config.consumption_limit) * 100
+        # Calcular porcentajes
+        if config.personal_limit and config.personal_limit > 0:
+            config_info['personal_percentage'] = (consumed_amount / config.personal_limit) * 100
         else:
-            config_info['period_percentage'] = 0.0
+            config_info['personal_percentage'] = 0.0
+
+        if config.attention_limit and config.attention_limit > 0:
+            # Calcular consumo de atención separado
+            attention_consumed = sum(consumptions.filtered(lambda c: c.consumption_type == 'attention').mapped('amount_total'))
+            config_info['attention_percentage'] = (attention_consumed / config.attention_limit) * 100
+        else:
+            config_info['attention_percentage'] = 0.0
+
+        # Para backwards compat en template
+        config_info['period_percentage'] = config_info['personal_percentage']
 
         # Historial
         if self.include_changelog:

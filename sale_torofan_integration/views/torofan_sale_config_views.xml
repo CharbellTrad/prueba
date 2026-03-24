@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Vista de lista/árbol -->
+    <record id="view_torofan_sale_config_list" model="ir.ui.view">
+        <field name="name">torofan.sale.config.list</field>
+        <field name="model">torofan.sale.config</field>
+        <field name="arch" type="xml">
+            <list string="Catálogos Torofan">
+                <field name="name"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="access_token" password="True"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Vista de formulario -->
+    <record id="view_torofan_sale_config_form" model="ir.ui.view">
+        <field name="name">torofan.sale.config.form</field>
+        <field name="model">torofan.sale.config</field>
+        <field name="arch" type="xml">
+            <form string="Catálogo Torofan">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name" class="oe_edit_only" string="Nombre del Catálogo"/>
+                        <h1>
+                            <field name="name" placeholder="Ej. Catálogo General Torofan..."/>
+                        </h1>
+                    </div>
+                    
+                    <group>
+                        <!-- Top-level general settings -->
+                        <group string="Configuración General" colspan="2">
+                            <field name="company_id" 
+                                   options="{'no_create': True}" 
+                                   readonly="product_ids"
+                                   groups="base.group_multi_company"/>
+                            <field name="warehouse_id"
+                                   options="{'no_create': True}"/>
+                        </group>
+                    </group>
+                    
+                    <!-- Sección de Autenticación a Ancho Completo -->
+                    <group string="Autenticación y Endpoints">
+                        <label for="access_token"/>
+                        <div class="o_row">
+                            <field name="access_token" 
+                                   readonly="1"
+                                   widget="CopyClipboardChar"
+                                   class="oe_inline"
+                                   nolabel="1"/>
+                            <button name="action_generate_token" 
+                                    string="Generar Nuevo Token" 
+                                    type="object" 
+                                    class="btn-primary"
+                                    icon="fa-refresh"
+                                    confirm="¿Estás seguro de regenerar el token? El token anterior dejará de funcionar."/>
+                        </div>
+                        
+                        <field name="endpoint_products_url" 
+                               string="Endpoint Catálogo (GET)"
+                               widget="CopyClipboardURL"
+                               readonly="1"/>
+                        
+                        <field name="endpoint_cart_url" 
+                               string="Endpoint Carrito (POST)"
+                               widget="CopyClipboardURL"
+                               readonly="1"/>
+                    </group>
+                    
+                    <notebook>
+                        <page string="Productos del Catálogo" name="products">
+                            <field name="product_ids" widget="many2many" context="{'warehouse_id': [warehouse_id], 'torofan_company_id': company_id}" options="{'no_open': True, 'no_create': True}">
+                                <list string="Productos" limit="20" editable="bottom">
+                                    <field name="image_128" string="Imagen" widget="image" options="{'size': [100, 100]}" readonly="1"/>
+                                    <field name="default_code" string="SKU" optional="show" readonly="1"/>
+                                    <field name="name" readonly="1"/>
+                                    <field name="product_template_variant_value_ids" widget="many2many_tags" string="Variantes" readonly="1"/>
+                                    <field name="list_price" widget="monetary" options="{'currency_field': 'currency_id'}" readonly="1"/>
+                                    <field name="torofan_tax_amount" string="Impuestos" widget="monetary" options="{'currency_field': 'currency_id'}" readonly="1"/>
+                                    <field name="torofan_virtual_available" string="Stock Previsto" readonly="1"/>
+                                    <field name="uom_id" optional="show" readonly="1"/>
+                                    <button name="get_formview_action" type="object" icon="fa-external-link" title="Abrir Producto"/>
+                                </list>
+                            </field>
+                            <p class="text-muted mt-2">
+                                <em>Selecciona los productos que Torofan podrá consultar mediante el endpoint GET y agregar a las ventas. Estos productos se reportarán con su precio, SKU e IVA correspondiente.</em>
+                            </p>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Acción de ventana -->
+    <record id="action_torofan_sale_config" model="ir.actions.act_window">
+        <field name="name">Catálogos de Venta</field>
+        <field name="res_model">torofan.sale.config</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Crea tu primer catálogo de ventas para Torofan
+            </p>
+            <p>
+                Configura un token único y selecciona qué productos estarán disponibles 
+                para la aplicación móvil a través de los endpoints integrados en vivo.
+            </p>
+        </field>
+    </record>
+
+    <!-- Submenú Catálogos de Venta -->
+    <menuitem id="menu_torofan_sale_config"
+              name="Catálogos de Venta"
+              parent="crm_torofan_integration.menu_torofan_root"
+              action="action_torofan_sale_config"
+              sequence="5"/>
+
+</odoo>

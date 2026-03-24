@@ -12,7 +12,45 @@ patch(PartnerList.prototype, {
         this.sound = useService("mail.sound_effects");
         onWillStart(() => {
             this.state.scanning = false;
+            this.state.filterConsumption = false;
         });
+    },
+
+    async toggleConsumptionFilter() {
+        this.state.filterConsumption = !this.state.filterConsumption;
+        if (this.state.filterConsumption) {
+            // Cargar partners con consumo interno desde el backend
+            await this.loadConsumptionPartners();
+        }
+    },
+
+    async loadConsumptionPartners() {
+        try {
+            this.state.loading = true;
+            const result = await this.pos.data.callRelated("res.partner", "get_new_partner", [
+                this.pos.config.id,
+                [["is_internal_consumption", "=", true]],
+                0,
+            ]);
+            for (const partner of result["res.partner"]) {
+                if (!this.loadedPartnerIds.has(partner.id)) {
+                    this.loadedPartnerIds.add(partner.id);
+                    this.state.loadedPartners.push(partner);
+                }
+            }
+        } catch (error) {
+            console.error("Error loading consumption partners:", error);
+        } finally {
+            this.state.loading = false;
+        }
+    },
+
+    getPartners(partners) {
+        let filtered = partners;
+        if (this.state.filterConsumption) {
+            filtered = partners.filter(p => p.is_internal_consumption);
+        }
+        return super.getPartners(filtered);
     },
 
     toggleScanning() {
