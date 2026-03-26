@@ -6,7 +6,7 @@
         <field name="inherit_id" ref="point_of_sale.res_config_settings_view_form"/>
         <field name="arch" type="xml">
             <div id="pos_payment_section" position="after">
-                <h2>Pasarela de Pagos Bancaria VE</h2>
+                <h2>Verificación de Pagos Bancarios</h2>
                 <div class="row mt16 o_settings_container" id="ve_payment_section">
                     <!-- Activar pasarela -->
                     <div class="col-12 col-lg-6 o_setting_box">
@@ -43,7 +43,7 @@
                                  attrs="{'invisible': [('ve_payment_config_id','=',False)]}">
                                 <field name="ve_pos_enabled_services"
                                        widget="many2many_checkboxes"
-                                       domain="[('gateway_config_id', '=', ve_payment_config_id), ('active', '=', True)]"/>
+                                       domain="[('gateway_config_id', '=', ve_payment_config_id), ('active', '=', True), ('service_code', '!=', 'tarjeta')]"/>
                             </div>
                             <div class="content-group mt8 text-muted"
                                  attrs="{'invisible': [('ve_payment_config_id','!=',False)]}">

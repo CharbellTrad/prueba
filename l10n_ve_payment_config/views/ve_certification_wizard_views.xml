@@ -21,12 +21,14 @@
                         <h1>Wizard de Certificación MegaSoft</h1>
                     </div>
 
-                    <!-- Información de sesión POS -->
-                    <div class="alert alert-info" role="alert"
-                         attrs="{'invisible': [('state', '!=', 'draft')]}">
-                        <strong>Sesión POS activa:</strong>
-                        <field name="active_pos_session_display" readonly="1" nolabel="1"/>
-                    </div>
+                    <!-- Sesión POS -->
+                    <group attrs="{'invisible': [('state', '!=', 'draft')]}">
+                        <group string="Sesión POS">
+                            <field name="pos_session_id" required="1"/>
+                            <field name="active_pos_session_display" readonly="1"
+                                   widget="char" nolabel="0"/>
+                        </group>
+                    </group>
 
                     <!-- Configuración -->
                     <group attrs="{'invisible': [('state', '!=', 'draft')]}">
@@ -35,6 +37,7 @@
                             <field name="ci_integrador"/>
                             <field name="telefono_integrador"/>
                             <field name="banco_p2c_id"/>
+                            <field name="banco_zelle_id"/>
                         </group>
                     </group>
 

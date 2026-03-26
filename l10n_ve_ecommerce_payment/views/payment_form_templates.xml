@@ -10,13 +10,7 @@
         <xpath expr="//div[@name='o_payment_option_card']" position="inside">
             <t t-if="provider.code == 've_payment_gateway'">
                 <div id="ve-payment-card-form"
-                     class="ve-card-payment-wrap"
-                     t-att-data-tx-id="transaction_id">
-
-                    <!-- ID oculto para el JS -->
-                    <input id="ve_transaction_id"
-                           type="hidden"
-                           t-att-value="transaction_id"/>
+                     class="ve-card-payment-wrap">
 
                     <div class="ve-card-header">
                         <h4>Pago con Tarjeta</h4>
@@ -24,7 +18,7 @@
                     </div>
 
                     <div class="ve-card-icon-row">
-                        <span>💳</span>
+                        <i class="fa fa-credit-card" style="font-size:1.5rem;color:#6366f1;"/>
                     </div>
                     <div id="ve-card-icon" class="ve-card-icon"></div>
 
@@ -86,12 +80,12 @@
 
                     <!-- Badge de seguridad -->
                     <div class="ve-security-badge">
-                        🔒 Los datos de su tarjeta NO se almacenan en este sitio
+                        <i class="fa fa-lock"/> Los datos de su tarjeta NO se almacenan en este sitio
                     </div>
 
                     <!-- Botón de pago -->
                     <button id="ve-pay-btn" class="ve-pay-button" type="button">
-                        🔒 Pagar Ahora
+                        Pagar Ahora
                     </button>
 
                     <!-- Resultado -->

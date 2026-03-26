@@ -205,7 +205,7 @@ class VePosPaymentController(http.Controller):
                         currency_rate_ref_id=False, currency_rate_value=0, **kw):
         def _do(session, client):
             result = client.pago_movil_p2c(
-                control=control, cid=cid,
+                control=control,
                 telefonoCliente=telefonoCliente,
                 codigobancoCliente=codigobancoCliente,
                 telefonoComercio=telefonoComercio,
@@ -247,7 +247,7 @@ class VePosPaymentController(http.Controller):
                            cuentaOrigen='',
                            telefonoOrigen='', codigobancoOrigen='',
                            telefonoCliente='', codigobancoCliente='',
-                           cuentaDestino='', amount='', referencia='', factura='',
+                            cuentaDestino='', amount='', factura='',
                            currency_rate_ref_id=False, currency_rate_value=0, **kw):
         def _do(session, client):
             result = client.credito_inmediato(
@@ -256,7 +256,7 @@ class VePosPaymentController(http.Controller):
                 telefonoOrigen=telefonoOrigen or telefonoCliente,
                 codigobancoOrigen=codigobancoOrigen or codigobancoCliente,
                 cuentaDestino=cuentaDestino,
-                amount=amount, referencia=referencia, factura=factura,
+                amount=amount, factura=factura,
             )
             is_success = result.get('codigo') == '00'
             self._register_transaction(session, 'transferencia', result, {
@@ -281,7 +281,7 @@ class VePosPaymentController(http.Controller):
                 control=control, cid=cid,
                 codigobancoComercio=codigobancoComercio,
                 referencia=referencia, amount=amount,
-                client=client_name, email=email, factura=factura,
+                factura=factura,
             )
             is_success = result.get('codigo') == '00'
             self._register_transaction(session, 'zelle', result, {
@@ -320,14 +320,7 @@ class VePosPaymentController(http.Controller):
     @http.route('/ve_pos_payment/crypto_confirmacion', type='json', auth='user')
     def crypto_confirmacion(self, pos_session_id, control, **kw):
         def _do(session, client):
-            result = client.crypto_confirmacion(control=control)
-            is_success = result.get('codigo') == '00'
-            self._register_transaction(session, 'crypto', result, {
-                'amount': 0,
-                'factura': '',
-                'partner_name': '',
-            }, success=is_success)
-            return result
+            return client.crypto_confirmacion(control=control)
         return self._safe_call(_do, pos_session_id)
 
 
@@ -373,7 +366,7 @@ class VePosPaymentController(http.Controller):
             domain.append(('approved', '=', False))
 
         if filter_service:
-            domain.append(('service_code', '=', filter_service))
+            domain.append(('service_code', '=', filter_service.upper()))
 
         logs = request.env['ve.bank.transaction.log'].sudo().search_read(
             domain,

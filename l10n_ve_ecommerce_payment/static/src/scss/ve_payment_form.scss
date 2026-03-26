@@ -152,3 +152,129 @@
         border: 1px solid #93c5fd;
     }
 }
+
+/* Detalles de transacción e-commerce */
+.ve-ecom-success {
+    text-align: left;
+}
+
+.ve-ecom-header {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #15803d;
+    margin-bottom: 12px;
+
+    i {
+        margin-right: 6px;
+    }
+}
+
+.ve-ecom-details {
+    margin-bottom: 10px;
+}
+
+.ve-ecom-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+
+    &:last-child {
+        border-bottom: none;
+    }
+}
+
+.ve-ecom-label {
+    font-weight: 600;
+    color: #374151;
+    font-size: 0.85rem;
+}
+
+.ve-ecom-value {
+    font-weight: 700;
+    color: #1a3a5c;
+    font-size: 0.85rem;
+}
+
+.ve-ecom-voucher {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 10px;
+    margin-top: 8px;
+}
+
+.ve-ecom-voucher-title {
+    font-weight: 700;
+    font-size: 0.8rem;
+    color: #374151;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.ve-ecom-voucher-text {
+    font-family: 'Courier New', monospace;
+    font-size: 0.72rem;
+    line-height: 1.3;
+    white-space: pre-wrap;
+    word-break: break-all;
+    margin: 0;
+    max-height: 200px;
+    overflow-y: auto;
+    color: #1e293b;
+}
+
+/* Modal overlay */
+.ve-ecom-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10500;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+
+    &.ve-ecom-modal-visible {
+        opacity: 1;
+    }
+}
+
+.ve-ecom-modal {
+    background: white;
+    border-radius: 16px;
+    padding: 28px;
+    max-width: 460px;
+    width: 90%;
+    max-height: 85vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+    font-family: 'Inter', 'Roboto', sans-serif;
+    transform: translateY(20px);
+    animation: ve-modal-slide-up 0.3s ease forwards;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+
+    &::-webkit-scrollbar {
+        display: none;
+    }
+}
+
+@keyframes ve-modal-slide-up {
+    to {
+        transform: translateY(0);
+    }
+}
+
+.ve-ecom-modal-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 16px;
+}

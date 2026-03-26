@@ -11,6 +11,7 @@ class VePaymentServiceBank(models.Model):
     """
     _name = 've.payment.service.bank'
     _description = 'Banco/Plataforma por Servicio de Pago'
+    _rec_name = 'bank_name'
     _order = 'sequence, id'
 
     service_id = fields.Many2one(
@@ -70,10 +71,6 @@ class VePaymentServiceBank(models.Model):
         string='Teléfono Comercio',
         help='Teléfono registrado del comercio en este banco (11 dígitos: 04XXXXXXXXX)',
     )
-    zelle_email = fields.Char(
-        string='Email/Alias Zelle',
-        help='Email o alias para recibir pagos Zelle',
-    )
     notes = fields.Text(string='Notas')
 
     # ----------------------------------------------------------------
@@ -104,17 +101,6 @@ class VePaymentServiceBank(models.Model):
                         "Debe ser exactamente 20 dígitos."
                     )
 
-    @api.constrains('zelle_email')
-    def _check_zelle_email(self):
-        """Valida que el email Zelle tenga formato básico."""
-        for rec in self:
-            if rec.zelle_email and rec.service_code == 'zelle':
-                email = rec.zelle_email.strip()
-                if '@' not in email or '.' not in email:
-                    raise ValidationError(
-                        f"Email Zelle inválido: '{rec.zelle_email}'. "
-                        "Debe contener @ y un dominio válido."
-                    )
 
     @api.constrains('is_default', 'service_id')
     def _check_unique_default(self):
@@ -144,7 +130,7 @@ class VePaymentServiceBank(models.Model):
             'bank_type': self.bank_id.bank_type,
             'account_number': self.account_number or '',
             'phone_number': self.phone_number or '',
-            'zelle_email': self.zelle_email or '',
+
             'is_default': self.is_default,
             'notes': self.notes or '',
             'service_code': self.service_id.service_code or '',

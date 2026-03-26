@@ -98,7 +98,7 @@ class PosSession(models.Model):
                 'fields': [
                     'service_id', 'service_code', 'bank_id',
                     'bank_code', 'bank_name', 'bank_type',
-                    'account_number', 'phone_number', 'zelle_email',
+                    'account_number', 'phone_number',
                     'is_default', 'notes', 'sequence',
                 ],
             },

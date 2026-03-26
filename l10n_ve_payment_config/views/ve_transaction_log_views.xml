@@ -19,71 +19,105 @@
                         <group string="Identificación">
                             <field name="service_code"/>
                             <field name="gateway_config_id"/>
-                            <field name="factura"/>
-                            <field name="amount"/>
-                            <field name="control"/>
+                            <field name="factura"
+                                   attrs="{'invisible': [('factura', 'in', [False, ''])]}"/>
+                            <field name="amount"
+                                   attrs="{'invisible': [('amount', '=', 0)]}"/>
+                            <field name="control"
+                                   attrs="{'invisible': [('control', 'in', [False, ''])]}"/>
+                            <field name="pos_session_id"
+                                   attrs="{'invisible': [('pos_session_id', '=', False)]}"/>
+                            <field name="payment_transaction_id"
+                                   attrs="{'invisible': [('payment_transaction_id', '=', False)]}"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
                         </group>
                         <group string="Respuesta">
                             <field name="approved"/>
-                            <field name="codigo"/>
-                            <field name="descripcion"/>
-                            <field name="referencia"/>
-                            <field name="seqnum"/>
-                            <field name="authid"/>
-                            <field name="authname"/>
+                            <field name="codigo"
+                                   attrs="{'invisible': [('codigo', 'in', [False, ''])]}"/>
+                            <field name="descripcion"
+                                   attrs="{'invisible': [('descripcion', 'in', [False, ''])]}"/>
+                            <field name="referencia"
+                                   attrs="{'invisible': [('referencia', 'in', [False, ''])]}"/>
+                            <field name="seqnum"
+                                   attrs="{'invisible': [('seqnum', 'in', [False, ''])]}"/>
+                            <field name="authid"
+                                   attrs="{'invisible': [('authid', 'in', [False, ''])]}"/>
+                            <field name="authname"
+                                   attrs="{'invisible': [('authname', 'in', [False, ''])]}"/>
                         </group>
                     </group>
 
                     <notebook>
-                        <page string="Detalles Transacción" name="details">
-                            <group>
-                                <group string="Terminal y Lote">
-                                    <field name="terminal"/>
-                                    <field name="lote"/>
-                                    <field name="afiliacion" string="Afiliación"/>
-                                    <field name="vtid"/>
-                                    <field name="tipotrx"/>
-                                </group>
-                                <group string="Moneda">
-                                    <field name="monto_divisa"/>
-                                    <field name="moneda_inicio"/>
-                                    <field name="moneda_fin"/>
-                                </group>
-                            </group>
-                            <group>
-                                <group string="Datos Bancarios">
-                                    <field name="tarjeta_enmascarada"/>
-                                    <field name="banco_emisor"/>
-                                    <field name="banco_adquiriente"/>
-                                    <field name="telefono_emisor"/>
-                                    <field name="telefono_adquiriente"/>
-                                    <field name="cuenta_cliente"/>
-                                    <field name="cuenta_comercio"/>
-                                </group>
-                                <group string="Criptomonedas">
-                                    <field name="monto_crypto"/>
-                                    <field name="nombre_moneda"/>
-                                    <field name="tipo_moneda_crypto"/>
-                                </group>
-                            </group>
-                        </page>
                         <page string="Voucher" name="voucher">
                             <field name="voucher" readonly="1"
                                    widget="text"
                                    placeholder="Sin voucher disponible"
                                    style="font-family: monospace; white-space: pre;"/>
                         </page>
-                        <page string="XML Crudo" name="raw_xml"
+                        <page string="Solicitud Enviada" name="request"
+                              groups="base.group_system">
+                            <field name="request_data" readonly="1"
+                                   widget="text"
+                                   placeholder="Sin datos de solicitud disponibles"
+                                   style="font-family: monospace; white-space: pre-wrap; word-break: break-all;"/>
+                        </page>
+                        <page string="XML Respuesta" name="raw_xml"
                               groups="base.group_system">
                             <field name="response_raw" readonly="1"
                                    widget="text"
                                    placeholder="Sin XML disponible"
-                                   style="font-family: monospace; white-space: pre;"/>
+                                   style="font-family: monospace; white-space: pre-wrap; word-break: break-all;"/>
                         </page>
-                        <page string="Otros" name="other">
+                        <page string="Detalles Transacci&#243;n" name="details">
                             <group>
-                                <field name="payment_transaction_id"/>
-                                <field name="company_id" groups="base.group_multi_company"/>
+                                <group string="Terminal y Lote"
+                                       attrs="{'invisible': ['&amp;', '&amp;', '&amp;', '&amp;', ('terminal', 'in', [False, '']), ('lote', 'in', [False, '']), ('afiliacion', 'in', [False, '']), ('vtid', 'in', [False, '']), ('tipotrx', 'in', [False, ''])]}">
+                                    <field name="terminal"/>
+                                    <field name="lote"
+                                           attrs="{'invisible': [('lote', 'in', [False, ''])]}"/>
+                                    <field name="afiliacion" string="Afiliaci&#243;n"
+                                           attrs="{'invisible': [('afiliacion', 'in', [False, ''])]}"/>
+                                    <field name="vtid"
+                                           attrs="{'invisible': [('vtid', 'in', [False, ''])]}"/>
+                                    <field name="tipotrx"
+                                           attrs="{'invisible': ['|', ('tipotrx', 'in', [False, '']), ('service_code', 'in', ['C2P', 'P2C', 'VUELTO', 'ZELLE', 'CRYPTO'])]}"/>
+                                </group>
+                                <group string="Moneda"
+                                       attrs="{'invisible': ['&amp;', '&amp;', ('monto_divisa', 'in', [False, '']), ('moneda_inicio', 'in', [False, '']), ('moneda_fin', 'in', [False, ''])]}">
+                                    <field name="monto_divisa"/>
+                                    <field name="moneda_inicio"
+                                           attrs="{'invisible': [('moneda_inicio', 'in', [False, ''])]}"/>
+                                    <field name="moneda_fin"
+                                           attrs="{'invisible': [('moneda_fin', 'in', [False, ''])]}"/>
+                                </group>
+                            </group>
+                            <group>
+                                <group string="Datos Bancarios"
+                                       attrs="{'invisible': ['&amp;', '&amp;', '&amp;', '&amp;', '&amp;', '&amp;', ('tarjeta_enmascarada', 'in', [False, '']), ('banco_emisor', 'in', [False, '']), ('banco_adquiriente', 'in', [False, '']), ('telefono_emisor', 'in', [False, '']), ('telefono_adquiriente', 'in', [False, '']), ('cuenta_cliente', 'in', [False, '']), ('cuenta_comercio', 'in', [False, ''])]}">
+                                    <field name="tarjeta_enmascarada"
+                                           attrs="{'invisible': [('tarjeta_enmascarada', 'in', [False, ''])]}"/>
+                                    <field name="banco_emisor"
+                                           attrs="{'invisible': [('banco_emisor', 'in', [False, ''])]}"/>
+                                    <field name="banco_adquiriente"
+                                           attrs="{'invisible': [('banco_adquiriente', 'in', [False, ''])]}"/>
+                                    <field name="telefono_emisor"
+                                           attrs="{'invisible': [('telefono_emisor', 'in', [False, ''])]}"/>
+                                    <field name="telefono_adquiriente"
+                                           attrs="{'invisible': [('telefono_adquiriente', 'in', [False, ''])]}"/>
+                                    <field name="cuenta_cliente"
+                                           attrs="{'invisible': [('cuenta_cliente', 'in', [False, ''])]}"/>
+                                    <field name="cuenta_comercio"
+                                           attrs="{'invisible': [('cuenta_comercio', 'in', [False, ''])]}"/>
+                                </group>
+                                <group string="Criptomonedas"
+                                       attrs="{'invisible': ['&amp;', '&amp;', ('monto_crypto', 'in', [False, '']), ('nombre_moneda', 'in', [False, '']), ('tipo_moneda_crypto', 'in', [False, ''])]}">
+                                    <field name="monto_crypto"/>
+                                    <field name="nombre_moneda"
+                                           attrs="{'invisible': [('nombre_moneda', 'in', [False, ''])]}"/>
+                                    <field name="tipo_moneda_crypto"
+                                           attrs="{'invisible': [('tipo_moneda_crypto', 'in', [False, ''])]}"/>
+                                </group>
                             </group>
                         </page>
                     </notebook>
@@ -134,19 +168,19 @@
                         domain="[('create_date', '&gt;=', (context_today()).strftime('%Y-%m-%d'))]"/>
                 <separator/>
                 <filter string="C2P" name="filter_c2p"
-                        domain="[('service_code', '=', 'c2p')]"/>
+                        domain="[('service_code', '=', 'C2P')]"/>
                 <filter string="P2C" name="filter_p2c"
-                        domain="[('service_code', '=', 'p2c')]"/>
+                        domain="[('service_code', '=', 'P2C')]"/>
                 <filter string="Zelle" name="filter_zelle"
-                        domain="[('service_code', '=', 'zelle')]"/>
+                        domain="[('service_code', '=', 'ZELLE')]"/>
                 <filter string="Tarjeta" name="filter_tarjeta"
-                        domain="[('service_code', '=', 'tarjeta')]"/>
+                        domain="[('service_code', '=', 'TARJETA')]"/>
                 <filter string="Crypto" name="filter_crypto"
-                        domain="[('service_code', '=', 'crypto')]"/>
+                        domain="[('service_code', '=', 'CRYPTO')]"/>
                 <filter string="Transferencia / Crédito Inmediato" name="filter_transferencia"
-                        domain="[('service_code', '=', 'transferencia')]"/>
+                        domain="[('service_code', '=', 'TRANSFERENCIA')]"/>
                 <filter string="Vuelto" name="filter_vuelto"
-                        domain="[('service_code', '=', 'vuelto')]"/>
+                        domain="[('service_code', '=', 'VUELTO')]"/>
                 <separator/>
                 <filter string="Sesión POS" name="filter_pos"
                         domain="[('pos_session_id', '!=', False)]"/>

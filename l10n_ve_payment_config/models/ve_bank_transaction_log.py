@@ -86,6 +86,11 @@ class VeBankTransactionLog(models.Model):
         groups='base.group_system',
         readonly=True,
     )
+    request_data = fields.Text(
+        string='Solicitud Enviada',
+        groups='base.group_system',
+        readonly=True,
+    )
 
     # -- Computed -----------------------------------------------------------
 
@@ -109,13 +114,23 @@ class VeBankTransactionLog(models.Model):
         vals tiene keys en minúsculas (resultado del parseo XML).
         NUNCA almacena PAN, CVV2 ni expdate.
         """
+        # De-duplicación: si ya existe un log con el mismo control, no crear otro
+        control_val = vals.get('control', '')
+        if control_val:
+            existing = self.sudo().search([
+                ('control', '=', control_val),
+                ('service_code', '=', (service_code or '').upper()),
+            ], limit=1)
+            if existing:
+                return existing
+
         try:
             amount_val = float(vals.get('amount', 0))
         except (ValueError, TypeError):
             amount_val = 0.0
 
         log_vals = {
-            'service_code': service_code,
+            'service_code': (service_code or '').upper(),
             'gateway_config_id': gateway_config.id,
             'approved': vals.get('codigo') == '00',
             'codigo': vals.get('codigo', ''),
@@ -136,9 +151,9 @@ class VeBankTransactionLog(models.Model):
             'factura': vals.get('factura', ''),
             'amount': amount_val,
             'tarjeta_enmascarada': vals.get('tarjeta', ''),
-            'banco_emisor': vals.get('bancoemisores') or vals.get('bancocliente', ''),
+            'banco_emisor': vals.get('bancoemisor') or vals.get('bancoemisores') or vals.get('bancocliente', ''),
             'banco_adquiriente': vals.get('bancoadquiriente', ''),
-            'telefono_emisor': vals.get('telefonoemisores') or vals.get('telefonocliente', ''),
+            'telefono_emisor': vals.get('telefonoemisor') or vals.get('telefonoemisores') or vals.get('telefonocliente', ''),
             'telefono_adquiriente': vals.get('telefonoadquiriente', ''),
             'cuenta_cliente': vals.get('cuentacliente', ''),
             'cuenta_comercio': vals.get('cuentacomercio', ''),
@@ -147,6 +162,7 @@ class VeBankTransactionLog(models.Model):
             'tipo_moneda_crypto': vals.get('tipomoneda', ''),
             'voucher': vals.get('voucher', ''),
             'response_raw': vals.get('_raw_xml') or vals.get('gateway_response_xml', ''),
+            'request_data': vals.get('_request_xml', ''),
             'pos_session_id': pos_session.id if pos_session else False,
             'payment_transaction_id': payment_tx.id if payment_tx else False,
             'company_id': gateway_config.company_id.id,

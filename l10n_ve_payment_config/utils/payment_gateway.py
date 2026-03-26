@@ -2,8 +2,8 @@
 =============================================================================
   Pasarela de Pagos VE — Cliente Python (REST v2)
   Gateway: MegaSoft Computación C.A.
-  Cubre: Tarjeta Crédito/Débito, Pago Móvil C2P/P2C, Vuelto Pago Móvil,
-         Crédito Inmediato, Depósito, Zelle, Criptomonedas (vía CryptoBuyer)
+   Cubre: Tarjeta Crédito/Débito, Pago Móvil C2P/P2C, Vuelto Pago Móvil,
+          Crédito Inmediato, Zelle, Criptomonedas (vía CryptoBuyer)
 =============================================================================
 """
 import base64
@@ -58,11 +58,9 @@ _RE_CODIGO_C2P = re.compile(r'^\d{8}$')
 _RE_PAN = re.compile(r'^\d{13,19}$')
 _RE_CVV = re.compile(r'^\d{3,4}$')
 _RE_EXPDATE = re.compile(r'^\d{4}$')  # MMAA
-_RE_CUENTA = re.compile(r'^\d{20}$')
-_RE_REFERENCIA = re.compile(r'^[A-Za-z0-9]{1,12}$')
+_RE_CUENTA = re.compile(r'^\d{10,20}$')
+_RE_REFERENCIA = re.compile(r'^[A-Za-z0-9 ]{1,50}$')
 _RE_FACTURA = re.compile(r'^[A-Za-z0-9]{0,20}$')
-_RE_OTP = re.compile(r'^\d{1,12}$')
-_RE_NUM_DEPOSITO = re.compile(r'^[A-Za-z0-9]{1,20}$')
 
 
 def validate_cid(value: str) -> str:
@@ -180,40 +178,27 @@ def validate_expdate(value: str) -> str:
 
 
 def validate_cuenta(value: str) -> str:
-    """Valida número de cuenta bancaria: exactamente 20 dígitos."""
+    """Valida número de cuenta bancaria: 10 a 20 dígitos."""
     if not value:
         raise ValueError("El número de cuenta es requerido.")
     val = re.sub(r'[\s\-]', '', value.strip())
     if not _RE_CUENTA.match(val):
         raise ValueError(
             f"Número de cuenta inválido: '{value}'. "
-            "Debe ser exactamente 20 dígitos."
+            "Debe tener entre 10 y 20 dígitos."
         )
     return val
 
 
 def validate_referencia(value: str) -> str:
-    """Valida referencia: alfanumérico, hasta 12 caracteres."""
+    """Valida referencia: alfanumérico (puede incluir espacios), hasta 50 caracteres."""
     if not value:
         raise ValueError("La referencia es requerida.")
     val = value.strip()
     if not _RE_REFERENCIA.match(val):
         raise ValueError(
             f"Referencia inválida: '{value}'. "
-            "Debe ser alfanumérica, máximo 12 caracteres."
-        )
-    return val
-
-
-def validate_otp(value: str) -> str:
-    """Valida código OTP: 1-12 dígitos."""
-    if not value:
-        raise ValueError("El código OTP es requerido.")
-    val = value.strip()
-    if not _RE_OTP.match(val):
-        raise ValueError(
-            f"Código OTP inválido: '{value}'. "
-            "Debe ser numérico, entre 1 y 12 dígitos."
+            "Debe ser alfanumérica (se permiten espacios), máximo 50 caracteres."
         )
     return val
 
@@ -231,18 +216,6 @@ def validate_amount(value) -> str:
         raise ValueError(f"El monto debe ser mayor a cero. Recibido: {amt}")
     return "{:.2f}".format(amt)
 
-
-def validate_num_deposito(value: str) -> str:
-    """Valida número de depósito: alfanumérico, hasta 20 caracteres."""
-    if not value:
-        raise ValueError("El número de depósito es requerido.")
-    val = value.strip()
-    if not _RE_NUM_DEPOSITO.match(val):
-        raise ValueError(
-            f"Número de depósito inválido: '{value}'. "
-            "Alfanumérico, máximo 20 caracteres."
-        )
-    return val
 
 
 # ---------------------------------------------------------------------------
@@ -306,6 +279,49 @@ def build_xml(tag: str, fields: dict) -> str:
     return f"<{tag}>{inner}</{tag}>"
 
 
+def format_xml(xml_text: str) -> str:
+    """Formatea XML con indentación para mejor legibilidad."""
+    try:
+        from xml.dom.minidom import parseString
+        dom = parseString(xml_text)
+        pretty = dom.toprettyxml(indent="  ")
+        # Quitar la declaración <?xml ...?> que agrega minidom
+        lines = pretty.split('\n')
+        return '\n'.join(line for line in lines if not line.startswith('<?xml'))
+    except Exception:
+        return xml_text
+
+
+def _mask_pan(match):
+    """Enmascara PAN: mantiene primeros 6 y últimos 4 dígitos."""
+    pan = match.group(1)
+    if len(pan) <= 10:
+        return '<pan>%s</pan>' % ('*' * len(pan))
+    return '<pan>%s%s%s</pan>' % (pan[:6], '*' * (len(pan) - 10), pan[-4:])
+
+
+def sanitize_request_xml(xml_text: str) -> str:
+    """
+    Enmascara datos sensibles (PAN, CVV2) del XML de request
+    antes de almacenarlos en logs de transacciones.
+    PAN: primeros 6 + últimos 4 visibles, medio con asteriscos.
+    CVV2: completamente enmascarado.
+    """
+    if not xml_text:
+        return xml_text
+    sanitized = re.sub(
+        r'<pan>([^<]*)</pan>',
+        _mask_pan,
+        xml_text, flags=re.IGNORECASE,
+    )
+    sanitized = re.sub(
+        r'<cvv2>[^<]*</cvv2>',
+        '<cvv2>***</cvv2>',
+        sanitized, flags=re.IGNORECASE,
+    )
+    return sanitized
+
+
 # ---------------------------------------------------------------------------
 # CLIENTE BASE
 # ---------------------------------------------------------------------------
@@ -333,19 +349,20 @@ class PaymentGatewayClient:
             _logger.debug("PG Response: %s", resp.text)
             result = parse_xml_response(resp.text)
             result['_raw_xml'] = resp.text
+            result['_request_xml'] = sanitize_request_xml(format_xml(body))
             return result
         except requests.exceptions.Timeout:
             _logger.error("Timeout PG: %s", url)
-            return {"error": "Timeout al conectar con la Pasarela de Pagos", "codigo": "TO"}
+            return {"error": "Timeout al conectar con la Pasarela de Pagos", "codigo": "TO", "_request_xml": sanitize_request_xml(format_xml(body))}
         except requests.exceptions.SSLError as e:
             _logger.error("SSL PG: %s -- %s", url, e)
-            return {"error": "Error de seguridad SSL: %s" % str(e), "codigo": "SS"}
+            return {"error": "Error de seguridad SSL: %s" % str(e), "codigo": "SS", "_request_xml": sanitize_request_xml(format_xml(body))}
         except requests.exceptions.ConnectionError as e:
             _logger.error("Conexion PG: %s -- %s", url, e)
-            return {"error": "No se pudo conectar con la Pasarela. Verifique la URL y su conexion.", "codigo": "CE"}
+            return {"error": "No se pudo conectar con la Pasarela. Verifique la URL y su conexion.", "codigo": "CE", "_request_xml": sanitize_request_xml(format_xml(body))}
         except requests.exceptions.RequestException as e:
             _logger.error("HTTP PG: %s -- %s", url, e)
-            return {"error": str(e), "codigo": "RE"}
+            return {"error": str(e), "codigo": "RE", "_request_xml": sanitize_request_xml(format_xml(body))}
 
     # -----------------------------------------------------------------------
     # 1. PRE-REGISTRO (obligatorio antes de cualquier transacción)
@@ -391,15 +408,14 @@ class PaymentGatewayClient:
         client: str,
         factura: Optional[str] = None,
         mode: int = 4,
-        tipoPago: str = "10",
-        plan: str = "00",
         terminal: Optional[str] = None,
     ) -> dict:
         """
         Procesa un pago con tarjeta de crédito o débito.
         Valida: pan, cvv2, expdate, cid, amount
-        tipoPago: '10'=Bs, '40'=USD, '90'=EUR
-        mode:     4=Internet (default), 2=Manual Online
+        Campos según documentación oficial MegaSoft:
+        cod_afiliacion, control, transcode, pan, cvv2, cid, expdate,
+        amount, client, factura, mode
         """
         # Validaciones
         pan = validate_pan(pan)
@@ -420,9 +436,6 @@ class PaymentGatewayClient:
             "client": client or "",
             "factura": factura,
             "mode": mode,
-            "tipoPago": tipoPago,
-            "plan": plan,
-            "terminal": terminal,
         })
         return self._post("/payment/action/v2-procesar-compra", body)
 
@@ -468,7 +481,6 @@ class PaymentGatewayClient:
     def pago_movil_p2c(
         self,
         control: str,
-        cid: str,
         telefonoCliente: str,
         codigobancoCliente: str,
         telefonoComercio: str,
@@ -479,11 +491,11 @@ class PaymentGatewayClient:
     ) -> dict:
         """
         Verifica un pago recibido por Pago Móvil P2C.
-        tipoPago: '10'=Bs, '40'=USD, '90'=EUR
+        Campos según documentación oficial MegaSoft:
+        cod_afiliacion, control, telefonoCliente, codigobancoCliente,
+        telefonoComercio, codigobancoComercio, tipoPago, amount, factura
         """
         # Validaciones
-        if cid:  # Cédula es opcional en P2C según manual
-            cid = validate_cid(cid)
         telefonoCliente = validate_telefono(telefonoCliente)
         codigobancoCliente = validate_banco_ve(codigobancoCliente)
         telefonoComercio = validate_telefono(telefonoComercio)
@@ -493,7 +505,6 @@ class PaymentGatewayClient:
         body = build_xml("request", {
             "cod_afiliacion": self.config.codafiliacion,
             "control": control,
-            "cid": cid,
             "telefonoCliente": telefonoCliente,
             "codigobancoCliente": codigobancoCliente,
             "telefonoComercio": telefonoComercio,
@@ -551,11 +562,13 @@ class PaymentGatewayClient:
         codigobancoOrigen: str,
         cuentaDestino: str,
         amount,
-        referencia: Optional[str] = None,
         factura: Optional[str] = None,
     ) -> dict:
         """
         Verifica una transferencia bancaria recibida (crédito inmediato).
+        Campos según documentación oficial MegaSoft:
+        cod_afiliacion, control, cid, cuentaOrigen, telefonoOrigen,
+        codigobancoOrigen, cuentaDestino, amount, factura
         """
         # Validaciones
         cid = validate_cid(cid)
@@ -564,8 +577,6 @@ class PaymentGatewayClient:
         codigobancoOrigen = validate_banco_ve(codigobancoOrigen)
         cuentaDestino = validate_cuenta(cuentaDestino)
         amount = validate_amount(amount)
-        if referencia:
-            referencia = validate_referencia(referencia)
 
         body = build_xml("request", {
             "cod_afiliacion": self.config.codafiliacion,
@@ -576,40 +587,10 @@ class PaymentGatewayClient:
             "codigobancoOrigen": codigobancoOrigen,
             "cuentaDestino": cuentaDestino,
             "amount": amount,
-            "referencia": referencia,
             "factura": factura,
         })
         return self._post("/payment/action/v2-procesar-compra-creditoinmediato", body)
 
-    # -----------------------------------------------------------------------
-    # 8. DEPÓSITO
-    # -----------------------------------------------------------------------
-    def deposito(
-        self,
-        control: str,
-        cid: str,
-        numDeposito: str,
-        cuentaDestino: str,
-        amount,
-        factura: Optional[str] = None,
-    ) -> dict:
-        """Verifica un depósito bancario recibido."""
-        # Validaciones
-        cid = validate_cid(cid)
-        numDeposito = validate_num_deposito(numDeposito)
-        cuentaDestino = validate_cuenta(cuentaDestino)
-        amount = validate_amount(amount)
-
-        body = build_xml("request", {
-            "cod_afiliacion": self.config.codafiliacion,
-            "control": control,
-            "cid": cid,
-            "numDeposito": numDeposito,
-            "cuentaDestino": cuentaDestino,
-            "amount": amount,
-            "factura": factura,
-        })
-        return self._post("/payment/action/v2-procesar-compra-deposito", body)
 
     # -----------------------------------------------------------------------
     # 9. ZELLE
@@ -621,14 +602,13 @@ class PaymentGatewayClient:
         codigobancoComercio: str,
         referencia: str,
         amount,
-        tipoPago: str = "40",
-        client: Optional[str] = None,
-        email: Optional[str] = None,
         factura: Optional[str] = None,
     ) -> dict:
         """
         Verifica un pago recibido vía Zelle.
-        tipoPago SIEMPRE es '40' (USD) — Zelle es exclusivamente en dólares.
+        Campos según documentación oficial MegaSoft:
+        cod_afiliacion, control, cid, codigobancoComercio,
+        referencia, amount, factura
         """
         # Validaciones
         cid = validate_cid(cid)
@@ -645,8 +625,6 @@ class PaymentGatewayClient:
             "codigobancoComercio": codigobancoComercio.strip(),
             "referencia": referencia,
             "amount": amount,
-            "client": client,
-            "email": email,
             "factura": factura,
         })
         return self._post("/payment/action/v2-procesar-compra-zelle", body)
@@ -714,41 +692,6 @@ class PaymentGatewayClient:
         })
         return self._post("/payment/action/v2-procesar-cierre", body)
 
-    # -----------------------------------------------------------------------
-    # 18. ANULACIÓN
-    # -----------------------------------------------------------------------
-    def anulacion(
-        self,
-        control: str,
-        terminal: str,
-        seqnum: str,
-        monto: str,
-        factura: str,
-        referencia: str,
-        ult: str,
-        authid: str,
-    ) -> dict:
-        """
-        Reversa una transacción previamente procesada.
-        terminal: terminal de la transacción original
-        seqnum: número de secuencia de la transacción original
-        monto: monto de la transacción original
-        referencia: referencia de la transacción original
-        ult: últimos 4 dígitos de la tarjeta
-        authid: código de autorización de la transacción original
-        """
-        body = build_xml("request", {
-            "cod_afiliacion": self.config.codafiliacion,
-            "control": control,
-            "terminal": terminal,
-            "seqnum": seqnum,
-            "monto": monto,
-            "factura": factura,
-            "referencia": referencia,
-            "ult": ult,
-            "authid": authid,
-        })
-        return self._post("/payment/action/v2-procesar-anulacion", body)
 
 
 # ---------------------------------------------------------------------------
@@ -793,6 +736,10 @@ CODIGOS_RESPUESTA = {
     "OO": "Cierre aprobado",
     "Y9": "Monto máximo de lote alcanzado",
     "ZZ": "Servicio no existe",
+    "AG": "Cuerpo de la petición mal formado",
+    "VS": "Falla de comunicación con el merchant server",
+    "EE": "Falla de comunicación con el merchant server",
+    "PB": "Error en la plataforma bancaria",
 }
 
 

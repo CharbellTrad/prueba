@@ -20,7 +20,7 @@
         - Criptomonedas (vía CryptoBuyer)
 
     """,
-    'depends': ['base', 'account'],
+    'depends': ['base', 'account', 'point_of_sale'],
     'data': [
         'security/ir.model.access.csv',
         'data/ve_service_type_data.xml',
@@ -29,8 +29,8 @@
         'views/ve_payment_config_views.xml',
         'views/ve_payment_service_views.xml',
         'views/ve_transaction_log_views.xml',
-        'views/ve_certification_wizard_views.xml',
         'views/ve_payment_menu.xml',
+        'views/ve_certification_wizard_views.xml',
     ],
     'application': False,
     'installable': True,

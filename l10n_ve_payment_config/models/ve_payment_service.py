@@ -22,9 +22,7 @@ class VePaymentService(models.Model):
     @api.depends('service_type_id', 'gateway_config_id')
     def _compute_display_name(self):
         for rec in self:
-            tipo = rec.service_type_id.name or ''
-            config = rec.gateway_config_id.name or ''
-            rec.display_name = f'{tipo} — {config}' if config else tipo
+            rec.display_name = rec.service_type_id.name or ''
 
     sequence = fields.Integer(default=10)
     gateway_config_id = fields.Many2one(
@@ -114,6 +112,20 @@ class VePaymentService(models.Model):
                 raise ValidationError(
                     f'Ya existe un servicio de tipo "{rec.service_type_id.name}" '
                     f'en la configuración "{rec.gateway_config_id.name}".'
+                )
+
+    # Servicios que requieren al menos un banco configurado
+    _SERVICES_REQUIRE_BANK = ('p2c', 'transferencia', 'zelle')
+
+    @api.constrains('bank_ids', 'service_code', 'active')
+    def _check_bank_required(self):
+        for rec in self:
+            if (rec.active
+                    and rec.service_code in self._SERVICES_REQUIRE_BANK
+                    and not rec.bank_ids.filtered('active')):
+                raise ValidationError(
+                    f'El servicio "{rec.service_type_id.name}" requiere al menos '
+                    f'un banco/plataforma configurado y activo.'
                 )
 
     def get_service_label(self):

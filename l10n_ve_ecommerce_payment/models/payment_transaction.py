@@ -59,11 +59,12 @@ class PaymentTransaction(models.Model):
         self.sudo().write({'ve_gateway_control': control})
 
         # 2. Compra con tarjeta
-        cid = ''
-        if self.partner_id and self.partner_id.vat:
-            cid = self.partner_id.vat
-        elif self.partner_id:
-            cid = f"V{self.partner_id.id}"
+        cid = card_data.get('cid', '').strip() if card_data.get('cid') else ''
+        if not cid:
+            if self.partner_id and self.partner_id.vat:
+                cid = self.partner_id.vat
+            elif self.partner_id:
+                cid = f"V{self.partner_id.id}"
 
         amount = "{:.2f}".format(self.amount)
         factura = self.reference or ''
@@ -78,7 +79,6 @@ class PaymentTransaction(models.Model):
             client=card_data.get('client', ''),
             factura=factura,
             mode=int(provider.ve_gateway_mode_card or 4),
-            tipoPago=provider.ve_gateway_currency or '10',
         )
 
         # 3. Procesar resultado
@@ -91,7 +91,7 @@ class PaymentTransaction(models.Model):
 
         # 3D Secure
         if codigo == 'YQ':
-            redirect_url = result.get('url3ds', '') or result.get('url', '')
+            redirect_url = result.get('redireccion3ds', '')
             if redirect_url:
                 self.sudo().write({'ve_gateway_3ds_url': redirect_url})
                 self._set_pending()
@@ -111,13 +111,20 @@ class PaymentTransaction(models.Model):
             return {
                 'success': True,
                 'referencia': result.get('referencia', ''),
+                'codigo': codigo,
                 'voucher': result.get('voucher', ''),
             }
 
-        # Error
+        # Error — registrar en log y devolver voucher si existe
+        self._ve_register_in_log(result)
         _, error_msg = interpretar_respuesta(result)
         self._set_error(error_msg)
-        return {'error': error_msg}
+        return {
+            'error': error_msg,
+            'referencia': result.get('referencia', ''),
+            'codigo': codigo,
+            'voucher': result.get('voucher', ''),
+        }
 
     def _ve_register_in_log(self, result):
         """Registra la transacción aprobada en el log."""
@@ -170,7 +177,6 @@ class PaymentTransaction(models.Model):
             return res
 
         res.update({
-            've_gateway_url': '/payment/ve_gateway/process',
             've_gateway_3ds_return': f'/payment/ve_gateway/3ds_return?reference={self.reference}',
         })
         return res

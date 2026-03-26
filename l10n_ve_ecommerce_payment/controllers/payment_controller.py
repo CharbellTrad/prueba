@@ -14,58 +14,79 @@ _logger = logging.getLogger(__name__)
 
 class VeEcommercePaymentController(http.Controller):
 
-    @http.route('/payment/ve_gateway/process', type='json', auth='public',
-                methods=['POST'], csrf=False)
-    def process_payment(self, transaction_id, card_number, card_cvv,
-                        card_expiry, card_holder='', **kw):
+    @http.route('/payment/ve_gateway/pay', type='json', auth='public',
+                methods=['POST'], csrf=False, website=True)
+    def pay(self, pan='', cvv2='', expdate='', cid='', client_name='', **kw):
         """
-        Procesa un pago con tarjeta de crédito/débito desde el checkout.
-        Valida inputs, busca la transacción y delega al modelo.
+        Endpoint unificado: crea la transaccion y procesa el pago con tarjeta.
+        No requiere transaction_id previo.
         """
         try:
-            # Validar ID de transacción
-            if not transaction_id or not str(transaction_id).isdigit():
-                return {'error': 'ID de transacción inválido.'}
+            # --- 1. Buscar la orden de venta actual del checkout ---
+            sale_order = request.website.sale_get_order()
+            if not sale_order:
+                return {'error': 'No se encontro la orden de venta. Intente nuevamente.'}
 
-            tx = request.env['payment.transaction'].sudo().browse(int(transaction_id))
-            if not tx.exists():
-                return {'error': 'Transacción no encontrada.'}
-            if tx.state not in ('draft', 'pending'):
-                return {'error': f'La transacción ya está en estado: {tx.state}'}
-            if tx.provider_code != 've_payment_gateway':
-                return {'error': 'Proveedor de pago incorrecto.'}
+            # --- 2. Buscar el provider VE gateway activo ---
+            provider = request.env['payment.provider'].sudo().search([
+                ('code', '=', 've_payment_gateway'),
+                ('state', 'in', ('enabled', 'test')),
+            ], limit=1)
+            if not provider:
+                return {'error': 'Proveedor de pago no configurado.'}
 
-            # Verificar que la transacción pertenece al usuario (CSRF)
-            if request.env.user and not request.env.user._is_public():
-                if tx.partner_id and tx.partner_id != request.env.user.partner_id:
-                    _logger.warning(
-                        "Intento de pago de transacción %s por usuario %s (esperado: %s)",
-                        transaction_id, request.env.user.id, tx.partner_id.id
-                    )
-                    return {'error': 'No tiene permiso para procesar esta transacción.'}
+            # --- 3. Buscar o crear la transaccion ---
+            partner = sale_order.partner_id
+            amount = sale_order.amount_total
+            currency = sale_order.currency_id
 
-            # Limpiar inputs
-            pan = re.sub(r'[\s\-]', '', str(card_number or '')).strip()
-            cvv = str(card_cvv or '').strip()
-            exp = re.sub(r'[/\-]', '', str(card_expiry or '')).strip()
+            # Buscar tx existente en draft para esta orden
+            tx = request.env['payment.transaction'].sudo().search([
+                ('provider_id', '=', provider.id),
+                ('sale_order_ids', 'in', [sale_order.id]),
+                ('state', 'in', ('draft', 'pending')),
+            ], order='create_date desc', limit=1)
 
-            # Validaciones de formato básicas (el gateway hace validación profunda)
-            if not pan or len(pan) < 13 or len(pan) > 19 or not pan.isdigit():
-                return {'error': 'Número de tarjeta inválido.'}
-            if not cvv or len(cvv) < 3 or len(cvv) > 4 or not cvv.isdigit():
-                return {'error': 'CVV inválido.'}
-            if not exp or len(exp) != 4 or not exp.isdigit():
-                return {'error': 'Fecha de vencimiento inválida. Formato: MMAA'}
-            mes = int(exp[:2])
+            if not tx:
+                # Crear nueva transaccion
+                reference = request.env['payment.transaction'].sudo()._compute_reference(
+                    provider.code, prefix=sale_order.name
+                )
+                tx = request.env['payment.transaction'].sudo().create({
+                    'provider_id': provider.id,
+                    'reference': reference,
+                    'amount': amount,
+                    'currency_id': currency.id,
+                    'partner_id': partner.id,
+                    'operation': 'online_direct',
+                    'sale_order_ids': [(6, 0, [sale_order.id])],
+                })
+
+            # --- 4. Validar datos de tarjeta ---
+            pan_clean = re.sub(r'[\s\-]', '', str(pan or '')).strip()
+            cvv_clean = str(cvv2 or '').strip()
+            exp_clean = re.sub(r'[/\-]', '', str(expdate or '')).strip()
+            cid_clean = str(cid or '').strip()
+
+            if not pan_clean or len(pan_clean) < 13 or len(pan_clean) > 19 or not pan_clean.isdigit():
+                return {'error': 'Numero de tarjeta invalido.'}
+            if not cvv_clean or len(cvv_clean) < 3 or len(cvv_clean) > 4 or not cvv_clean.isdigit():
+                return {'error': 'CVV invalido.'}
+            if not exp_clean or len(exp_clean) != 4 or not exp_clean.isdigit():
+                return {'error': 'Fecha de vencimiento invalida. Formato: MMAA'}
+            mes = int(exp_clean[:2])
             if mes < 1 or mes > 12:
-                return {'error': f'Mes de vencimiento inválido: {mes:02d}'}
+                return {'error': f'Mes de vencimiento invalido: {mes:02d}'}
+            if not cid_clean:
+                return {'error': 'Ingrese su cedula o RIF.'}
 
-            # Delegar al modelo
+            # --- 5. Procesar con el gateway ---
             card_data = {
-                'pan': pan,
-                'cvv2': cvv,
-                'expdate': exp,
-                'client': (card_holder or '').strip(),
+                'pan': pan_clean,
+                'cvv2': cvv_clean,
+                'expdate': exp_clean,
+                'client': (client_name or '').strip(),
+                'cid': cid_clean,
             }
             result = tx._ve_gateway_process_payment(card_data)
             return result

@@ -25,7 +25,6 @@ odoo.define('l10n_ve_pos_payment.VeTransactionHistoryPopup', function (require) 
             // Cargar tipos de servicio disponibles desde los datos del POS
             const serviceTypes = this.env.pos.ve_payment_service_type || [];
             this.state.availableServices = serviceTypes
-                .filter(st => st.active)
                 .map(st => ({ code: st.code, name: st.name }));
         }
 
@@ -63,6 +62,11 @@ odoo.define('l10n_ve_pos_payment.VeTransactionHistoryPopup', function (require) 
         formatAmount(amount) {
             if (!amount && amount !== 0) return '';
             return parseFloat(amount).toFixed(2);
+        }
+
+        getCurrencyLabel(log) {
+            const code = (log.service_code || '').toUpperCase();
+            return code === 'ZELLE' ? 'USD' : 'Bs';
         }
 
         viewLog(log) {

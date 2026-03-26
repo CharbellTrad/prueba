@@ -29,19 +29,21 @@
                                placeholder="Ej: Solicite al cliente la referencia de 8 dígitos que le envió el banco..."/>
                     </group>
 
-                    <separator string="Bancos / Plataformas Habilitadas"/>
-                    <field name="bank_ids">
+                    <separator string="Bancos / Plataformas Habilitadas"
+                               attrs="{'invisible': [('service_code', 'not in', ['p2c','transferencia','zelle'])]}"/>
+                    <field name="bank_ids"
+                           attrs="{'invisible': [('service_code', 'not in', ['p2c','transferencia','zelle'])]}">
                         <tree editable="bottom" decoration-muted="active == False">
                             <field name="sequence" widget="handle"/>
                             <field name="service_code" invisible="1"/>
                             <field name="bank_id" string="Banco / Plataforma"
-                                   options="{'no_create': True}"/>
+                                   options="{'no_create': True}"
+                                   context="{'service_code': parent.service_code}"
+                                   domain="[('bank_type', '=', 'zelle' if context.get('service_code') == 'zelle' else 've')]"/>
                             <field name="account_number" string="Cuenta Destino"
-                                   attrs="{'column_invisible': [('parent.service_code', 'not in', ['transferencia','deposito'])]}"/>
+                                   attrs="{'column_invisible': [('parent.service_code', '!=', 'transferencia')]}"/>
                             <field name="phone_number" string="Teléfono Comercio"
-                                   attrs="{'column_invisible': [('parent.service_code', 'not in', ['c2p','p2c','transferencia','vuelto'])]}"/>
-                            <field name="zelle_email" string="Email/Alias Zelle"
-                                   attrs="{'column_invisible': [('parent.service_code', '!=', 'zelle')]}"/>
+                                   attrs="{'column_invisible': [('parent.service_code', '!=', 'p2c')]}"/>
 
                             <field name="notes" string="Nota" optional="hide"/>
                             <field name="is_default" string="Principal" widget="boolean_toggle"/>

@@ -15,7 +15,7 @@ odoo.define('l10n_ve_pos_payment.PaymentGatewayPopup', function (require) {
         p2c: 'multi',       // tipoPago: 10=Bs, 40=USD, 90=EUR
         vuelto: 'bs',       // Vuelto solo en Bs
         zelle: 'usd',       // Zelle siempre en USD
-        crypto: 'usd',      // Crypto: amount fiat en USD
+        crypto: 'bs',       // Crypto: amount en Bs (el gateway convierte a USD/crypto)
         transferencia: 'bs', // Crédito Inmediato siempre en Bs
 
     };
@@ -43,8 +43,8 @@ odoo.define('l10n_ve_pos_payment.PaymentGatewayPopup', function (require) {
             msg: 'Fecha de vencimiento inválida. Formato MMAA (ej: 1226).',
         },
         cuenta: {
-            regex: /^\d{20}$/,
-            msg: 'Número de cuenta inválido. Debe ser exactamente 20 dígitos.',
+            regex: /^\d{10,20}$/,
+            msg: 'Número de cuenta inválido. Debe tener entre 10 y 20 dígitos.',
         },
         otp: {
             regex: /^\d{1,12}$/,
@@ -136,7 +136,7 @@ odoo.define('l10n_ve_pos_payment.PaymentGatewayPopup', function (require) {
                 zelle_banco: '',
                 zelle_referencia: '',
                 zelle_clientName: '',
-                zelle_email: '',
+
 
                 // Crypto
                 crypto_codigo_api: '',
@@ -389,6 +389,40 @@ odoo.define('l10n_ve_pos_payment.PaymentGatewayPopup', function (require) {
             this.state.loading = false;
         }
 
+        /**
+         * Show a full transaction result view (hides tabs, shows details + voucher).
+         * Works for both approved and rejected gateway responses.
+         */
+        _showTransactionResult(serviceType, result, control, approved) {
+            const tabInfo = this.tabs.find(t => t.id === serviceType);
+            this.state.lastTransaction = {
+                approved,
+                serviceLabel: tabInfo ? tabInfo.label : serviceType,
+                referencia: result.referencia || result.numcontrol || control || '',
+                control: control || '',
+                amount: this.isUsdTab()
+                    ? `USD ${this.state.amount_usd.toFixed(2)}`
+                    : (this.state.amount_bs
+                        ? `Bs ${this.state.amount_bs.toFixed(2)}`
+                        : (this.state.vuelto_amount ? `Bs ${parseFloat(this.state.vuelto_amount).toFixed(2)}` : '')),
+                authid: result.authid || '',
+                seqnum: result.seqnum || '',
+                codigo: result.codigo || '',
+                descripcion: result.descripcion || '',
+                voucher: result.voucher || '',
+            };
+            // Clear crypto QR state
+            this.state.crypto_qrurl = null;
+            this.state.crypto_montocrypto = null;
+            this.state.loading = false;
+
+            if (approved) {
+                this.setResult('Transaccion Aprobada', 'success');
+            } else {
+                this.setResult(this.gwService.getErrorMessage(result), 'rejected');
+            }
+        }
+
         // ─── Validación Frontend ─────────────────────────────────
 
         _validate(checks) {
@@ -464,7 +498,7 @@ odoo.define('l10n_ve_pos_payment.PaymentGatewayPopup', function (require) {
             if (this.gwService.isApproved(result)) {
                 await this._registerAndClose('c2p', result, control);
             } else {
-                this.setResult(this.gwService.getErrorMessage(result), 'error');
+                this._showTransactionResult('c2p', result, control, false);
             }
         }
 
@@ -512,7 +546,7 @@ odoo.define('l10n_ve_pos_payment.PaymentGatewayPopup', function (require) {
             if (this.gwService.isApproved(result)) {
                 await this._registerAndClose('p2c', result, control);
             } else {
-                this.setResult(this.gwService.getErrorMessage(result), 'error');
+                this._showTransactionResult('p2c', result, control, false);
             }
         }
 
@@ -550,7 +584,7 @@ odoo.define('l10n_ve_pos_payment.PaymentGatewayPopup', function (require) {
             if (this.gwService.isApproved(result)) {
                 await this._registerAndClose('vuelto', result, control);
             } else {
-                this.setResult(this.gwService.getErrorMessage(result), 'error');
+                this._showTransactionResult('vuelto', result, control, false);
             }
         }
 
@@ -589,14 +623,14 @@ odoo.define('l10n_ve_pos_payment.PaymentGatewayPopup', function (require) {
                 referencia: this.state.zelle_referencia.trim(),
                 amount: formatBs(this.state.amount_usd), // Zelle siempre USD
                 clientName: this.state.zelle_clientName,
-                email: this.state.zelle_email,
+
                 factura: this.state.factura,
                 ...rateParams,
             });
             if (this.gwService.isApproved(result)) {
                 await this._registerAndClose('zelle', result, control);
             } else {
-                this.setResult(this.gwService.getErrorMessage(result), 'error');
+                this._showTransactionResult('zelle', result, control, false);
             }
         }
 
@@ -642,7 +676,6 @@ odoo.define('l10n_ve_pos_payment.PaymentGatewayPopup', function (require) {
                 codigobancoOrigen: this.state.ci_codigobancoOrigen,
                 cuentaDestino: cuentaDestino,
                 amount: formatBs(this.state.amount_bs),
-                referencia: (this.state.ci_referencia || '').trim() || undefined,
                 factura: this.state.factura,
                 ...rateParams,
             });
@@ -650,7 +683,7 @@ odoo.define('l10n_ve_pos_payment.PaymentGatewayPopup', function (require) {
             if (this.gwService.isApproved(result)) {
                 await this._registerAndClose('transferencia', result, control);
             } else {
-                this.setResult(this.gwService.getErrorMessage(result), 'error');
+                this._showTransactionResult('transferencia', result, control, false);
             }
         }
 
@@ -666,6 +699,27 @@ odoo.define('l10n_ve_pos_payment.PaymentGatewayPopup', function (require) {
             for (const b of cryptoBanks) {
                 cryptoMap[b.code] = { display: b.name, red: b.name };
             }
+            // Friendly name map for crypto codes returned by MegaSoft API
+            const CRYPTO_NAMES = {
+                'BSC_BNB': 'BNB (BSC)',
+                'BSC_BUSD': 'BUSD (BSC)',
+                'BSC_USDT': 'USDT (BSC)',
+                'TRX_USDT': 'USDT (Tron)',
+                'TRXUSDT': 'USDT (Tron)',
+                'Bitcoin (BTC)': 'Bitcoin (BTC)',
+                'Litecoin (LTC)': 'Litecoin (LTC)',
+                'Dash': 'Dash',
+                'ETH': 'Ethereum (ETH)',
+            };
+            const getNetwork = (codigo) => {
+                if (codigo.startsWith('BSC_')) return 'Binance Smart Chain (BSC)';
+                if (codigo.startsWith('TRX') || codigo === 'TRXUSDT') return 'Tron (TRC-20)';
+                if (codigo.includes('BTC') || codigo.includes('Bitcoin')) return 'Bitcoin';
+                if (codigo.includes('LTC') || codigo.includes('Litecoin')) return 'Litecoin';
+                if (codigo.includes('ETH')) return 'Ethereum';
+                if (codigo.includes('Dash') || codigo === 'DASH') return 'Dash';
+                return codigo;
+            };
             try {
                 const result = await this.gwService.getCryptoMonedas();
                 if (result && result.lista_codigos) {
@@ -673,8 +727,8 @@ odoo.define('l10n_ve_pos_payment.PaymentGatewayPopup', function (require) {
                         .split(',').map(c => c.trim()).filter(Boolean);
                     this.state.crypto_monedas = codigos.map(codigo => ({
                         codigo,
-                        display: cryptoMap[codigo]?.display || codigo,
-                        red: cryptoMap[codigo]?.red || 'Red no identificada',
+                        display: cryptoMap[codigo]?.display || CRYPTO_NAMES[codigo] || codigo,
+                        red: getNetwork(codigo),
                     }));
                     const preferido = this.state.crypto_monedas.find(m => m.codigo === 'TRXUSDT')
                         || this.state.crypto_monedas[0];
@@ -715,7 +769,7 @@ odoo.define('l10n_ve_pos_payment.PaymentGatewayPopup', function (require) {
                 this.state.validationError = 'Seleccione una criptomoneda y red.';
                 return;
             }
-            if (!this.state.amount_usd || this.state.amount_usd <= 0) {
+            if (!this.state.amount_bs || this.state.amount_bs <= 0) {
                 this.state.validationError = 'El monto debe ser mayor a cero.';
                 return;
             }
@@ -727,29 +781,55 @@ odoo.define('l10n_ve_pos_payment.PaymentGatewayPopup', function (require) {
 
             const result = await this.gwService.cryptoSolicitud({
                 control,
-                amount: formatBs(this.state.amount_usd), // Crypto siempre en USD
+                amount: formatBs(this.state.amount_bs), // Crypto: amount en Bs
                 tipomoneda: this.state.crypto_codigo_api,
                 factura: this.state.factura,
             });
             if (result.error) {
                 this.setResult(result.error, 'error');
+                this.state.loading = false;
                 return;
             }
-            this.state.crypto_qrurl = result.qrurl;
-            this.state.crypto_montocrypto = result.montocrypto || result.monto_crypto;
-            this.state.loading = false;
+            // Si hay QR, mostrarlo para que el cliente pague
+            if (result.qrurl) {
+                this.state.crypto_qrurl = result.qrurl;
+                this.state.crypto_montocrypto = result.montocrypto || result.monto_crypto;
+                this.state.loading = false;
+            } else {
+                // Rechazo: no se generó QR (codigo != '00')
+                result.tipomoneda = this.state.crypto_codigo_api;
+                // Registrar log de rechazo
+                try {
+                    await this.gwService.registerTransaction({
+                        serviceType: 'crypto',
+                        transactionData: {
+                            ...result,
+                            control,
+                            amount: this.getAmountForGateway(),
+                            factura: this.state.factura,
+                            cid: this.state.cid,
+                            telefono: this.state.telefono,
+                        },
+                    });
+                } catch (err) {
+                    console.warn('Error registrando rechazo crypto', err);
+                }
+                this._showTransactionResult('crypto', result, control, false);
+            }
         }
 
         async onConfirmarCrypto() {
             if (!this.state.control) return;
             this.state.loading = true;
             const result = await this.gwService.cryptoConfirmacion({ control: this.state.control });
+            result.tipomoneda = this.state.crypto_codigo_api;
             if (this.gwService.isApproved(result)) {
                 await this._registerAndClose('crypto', result, this.state.control);
             } else if (result.codigo === 'ME') {
                 this.setResult('El pago aún no se ha realizado. Solicite al cliente que pague y vuelva a intentarlo.', 'error');
+                this.state.loading = false;
             } else {
-                this.setResult(this.gwService.getErrorMessage(result), 'error');
+                this._showTransactionResult('crypto', result, this.state.control, false);
             }
         }
 
@@ -771,22 +851,7 @@ odoo.define('l10n_ve_pos_payment.PaymentGatewayPopup', function (require) {
                 console.warn('Error registrando transaccion', err);
             }
 
-            // Poblar lastTransaction para el modal de exito
-            const tabInfo = this.tabs.find(t => t.id === serviceType);
-            this.state.lastTransaction = {
-                serviceLabel: tabInfo ? tabInfo.label : serviceType,
-                referencia: result.referencia || result.numcontrol || control || '',
-                control: control || '',
-                amount: this.state.amount_bs
-                    ? `Bs ${this.state.amount_bs.toFixed(2)}`
-                    : (this.state.amount_usd ? `$ ${this.state.amount_usd.toFixed(2)}` : ''),
-                authid: result.authid || '',
-                seqnum: result.seqnum || '',
-                voucher: result.voucher || '',
-            };
-
-            this.setResult('Transaccion Aprobada', 'success');
-            this.state.loading = false;
+            this._showTransactionResult(serviceType, result, control, true);
         }
 
         printVoucher() {

@@ -27,8 +27,14 @@ class VeCertificationWizard(models.TransientModel):
         string='Configuración de Pasarela',
         required=True,
     )
+    pos_session_id = fields.Many2one(
+        'pos.session',
+        string='Sesión POS',
+        domain="[('state', '=', 'opened')]",
+        help='Seleccione la sesión POS abierta donde se registrarán las transacciones de prueba.',
+    )
     active_pos_session_display = fields.Char(
-        string='Sesión POS Activa',
+        string='Info Sesión',
         compute='_compute_active_pos_session',
     )
 
@@ -47,6 +53,11 @@ class VeCertificationWizard(models.TransientModel):
         've.payment.service.bank',
         string='Banco Comercio P2C',
         domain="[('service_id.service_code', '=', 'p2c')]",
+    )
+    banco_zelle_id = fields.Many2one(
+        've.payment.service.bank',
+        string='Banco Comercio Zelle',
+        domain="[('service_id.service_code', '=', 'zelle')]",
     )
 
     # Resultados
@@ -77,32 +88,33 @@ class VeCertificationWizard(models.TransientModel):
 
     def _compute_active_pos_session(self):
         for rec in self:
-            session = rec._get_open_pos_session()
-            if session:
+            if rec.pos_session_id:
                 rec.active_pos_session_display = '%s (ID: %s)' % (
-                    session.name, session.id
+                    rec.pos_session_id.name, rec.pos_session_id.id
                 )
             else:
-                rec.active_pos_session_display = (
-                    'ADVERTENCIA: No hay sesión POS abierta. '
-                    'Abra una sesión antes de ejecutar las pruebas.'
-                )
-
-    def _get_open_pos_session(self):
-        return self.env['pos.session'].search([
-            ('state', '=', 'opened'),
-            ('company_id', '=', self.env.company.id),
-        ], limit=1)
+                # Intentar autodetectar
+                session = self.env['pos.session'].search([
+                    ('state', '=', 'opened'),
+                ], limit=1)
+                if session:
+                    rec.active_pos_session_display = (
+                        'Sesión disponible: %s — selecciónela arriba.' % session.name
+                    )
+                else:
+                    rec.active_pos_session_display = (
+                        'No hay sesión POS abierta. Abra una sesión antes de ejecutar las pruebas.'
+                    )
 
     # ── Ejecución de pruebas ──────────────────────────────────────
 
     def action_run_tests(self):
         self.ensure_one()
-        pos_session = self._get_open_pos_session()
+        pos_session = self.pos_session_id
         if not pos_session:
             raise UserError(
-                'No hay ninguna sesión del Punto de Venta abierta. '
-                'Debe abrir una sesión POS antes de ejecutar las pruebas de certificación.'
+                'Debe seleccionar una sesión del Punto de Venta. '
+                'Seleccione una sesión POS abierta antes de ejecutar las pruebas de certificación.'
             )
 
         # Validar teléfono del banco P2C
@@ -166,11 +178,8 @@ class VeCertificationWizard(models.TransientModel):
         ], limit=1)
         cuenta_transf = banco_transf.account_number if banco_transf else ''
 
-        # Código banco origen — primeros 4 dígitos de la cuenta origen del script
-        banco_origen_transf = '01051234567894568975'[:4]  # = '0105'
-
-        # Teléfono origen — reutiliza el teléfono del integrador
-        tel_transf = self.telefono_integrador
+        # Datos de Zelle — banco del comercio desde la selección del wizard
+        codigo_banco_zelle = self.banco_zelle_id.bank_id.code if self.banco_zelle_id else 'BOFA'
 
         return [
             # 1-3: Tarjeta
@@ -215,7 +224,7 @@ class VeCertificationWizard(models.TransientModel):
                                codigobancoComercio=banco_p2c_code,
                                telefonoComercio=telefono_comercio_p2c,
                                amount='1000.00',
-                               cid=cid, factura='CERT-05'),
+                               factura='CERT-05'),
                 'expect_approved': True,
             },
             {
@@ -226,7 +235,7 @@ class VeCertificationWizard(models.TransientModel):
                                codigobancoComercio=banco_p2c_code,
                                telefonoComercio=telefono_comercio_p2c,
                                amount='25300.02',
-                               cid=cid, factura='CERT-06'),
+                               factura='CERT-06'),
                 'expect_approved': True,
             },
             {
@@ -237,7 +246,7 @@ class VeCertificationWizard(models.TransientModel):
                                codigobancoComercio=banco_p2c_code,
                                telefonoComercio=telefono_comercio_p2c,
                                amount='25300.03',
-                               cid=cid, factura='CERT-07'),
+                               factura='CERT-07'),
                 'expect_approved': False,
             },
             # 8-10: C2P
@@ -286,35 +295,39 @@ class VeCertificationWizard(models.TransientModel):
                 'expect_approved': True,
             },
             # 13-14: Transferencia (credito_inmediato)
+            # Datos según corrección MegaSoft: cuentaOrigen puede ser 16 dígitos (PAN),
+            # telefonoOrigen vacío, cid de prueba 'v6457425', banco origen '0105'
             {
                 'test_id': 13, 'test_name': 'Transferencia - Aprobada 0.01',
                 'service_code': 'transferencia', 'amount': '0.01',
                 'method': 'credito_inmediato',
-                'params': dict(cuentaOrigen='01051234567894568975',
-                               telefonoOrigen=tel_transf,
-                               codigobanco=banco_origen_transf,
+                'params': dict(cuentaOrigen='5420070695259279',
+                               telefonoOrigen=telefono,
+                               codigobancoOrigen='0105',
                                cuentaDestino=cuenta_transf,
-                               amount='0.01', cid=cid, factura='CERT-13'),
+                               amount='0.01', cid='V6457425', factura='CERT-13'),
                 'expect_approved': True,
             },
             {
                 'test_id': 14, 'test_name': 'Transferencia - Rechazada 33500.01',
                 'service_code': 'transferencia', 'amount': '33500.01',
                 'method': 'credito_inmediato',
-                'params': dict(cuentaOrigen='01051234567894568975',
-                               telefonoOrigen=tel_transf,
-                               codigobanco=banco_origen_transf,
+                'params': dict(cuentaOrigen='5420070695259279',
+                               telefonoOrigen=telefono,
+                               codigobancoOrigen='0105',
                                cuentaDestino=cuenta_transf,
-                               amount='33500.01', cid=cid, factura='CERT-14'),
+                               amount='33500.01', cid='V6457425', factura='CERT-14'),
                 'expect_approved': False,
             },
             # 15-16: Zelle
+            # Datos según corrección MegaSoft: codigobancoComercio debe ser 'BOFA' (no 'CHAS'),
+            # cid de prueba 'V6457425'
             {
                 'test_id': 15, 'test_name': 'Zelle - Aprobada 100000',
                 'service_code': 'zelle', 'amount': '100000.00',
                 'method': 'zelle',
-                'params': dict(cid='V6721116', client='Test Zelle',
-                               codigobancoComercio='CHAS',
+                'params': dict(cid='V6457425',
+                               codigobancoComercio=codigo_banco_zelle,
                                referencia='CERTZELLE1',
                                amount='100000.00',
                                factura='CERT-15'),
@@ -324,31 +337,31 @@ class VeCertificationWizard(models.TransientModel):
                 'test_id': 16, 'test_name': 'Zelle - Rechazada 33500.01',
                 'service_code': 'zelle', 'amount': '33500.01',
                 'method': 'zelle',
-                'params': dict(cid='V6721116', client='Test Zelle',
-                               codigobancoComercio='CHAS',
+                'params': dict(cid='V6457425',
+                               codigobancoComercio=codigo_banco_zelle,
                                referencia='CERTZELLE2',
                                amount='33500.01',
                                factura='CERT-16'),
                 'expect_approved': False,
             },
-            # 17-18: Crypto BTC
+            # 17-18: Crypto BTC (solicitud + confirmación automática)
             {
-                'test_id': 17, 'test_name': 'Crypto BTC - QR 4000000',
+                'test_id': 17, 'test_name': 'Crypto BTC - Aprobada 4000000',
                 'service_code': 'crypto', 'amount': '4000000.00',
                 'method': 'crypto_solicitud',
-                'params': dict(codigo='BTC', amount='4000000.00',
-                               cid=cid, factura='CERT-17'),
-                'expect_approved': None,  # manual
-                'requires_manual': True,
+                'follow_up': 'crypto_confirmacion',
+                'params': dict(tipomoneda='BTC', amount='4000000.00',
+                               factura='CERT-17'),
+                'expect_approved': True,
             },
             {
-                'test_id': 18, 'test_name': 'Crypto BTC - QR 33500.01',
+                'test_id': 18, 'test_name': 'Crypto BTC - Rechazada 33500.01',
                 'service_code': 'crypto', 'amount': '33500.01',
                 'method': 'crypto_solicitud',
-                'params': dict(codigo='BTC', amount='33500.01',
-                               cid=cid, factura='CERT-18'),
-                'expect_approved': None,  # manual
-                'requires_manual': True,
+                'follow_up': 'crypto_confirmacion',
+                'params': dict(tipomoneda='BTC', amount='33500.01',
+                               factura='CERT-18'),
+                'expect_approved': False,
             },
         ]
 
@@ -374,10 +387,14 @@ class VeCertificationWizard(models.TransientModel):
 
             # Preregistro
             prereg = client.preregistro()
+            prereg_request_xml = prereg.get('_request_xml', '')
+            prereg_response_xml = prereg.get('_raw_xml', '')
             if prereg.get('error') or prereg.get('codigo') != '00':
                 line_vals['error_detail'] = 'Preregistro falló: %s' % (
                     prereg.get('error') or prereg.get('descripcion', 'Error desconocido')
                 )
+                line_vals['request_xml'] = prereg_request_xml
+                line_vals['response_xml'] = prereg_response_xml
                 return line_vals
 
             control = prereg.get('control', '')
@@ -388,30 +405,45 @@ class VeCertificationWizard(models.TransientModel):
             method = getattr(client, method_name)
             result = method(**params)
 
+            # Capturar XML de solicitud y respuesta
+            line_vals['request_xml'] = result.get('_request_xml', '')
+            line_vals['response_xml'] = result.get('_raw_xml', '')
+            line_vals['prereg_request_xml'] = prereg_request_xml
+            line_vals['prereg_response_xml'] = prereg_response_xml
+
             # Registrar resultado
             line_vals['referencia'] = result.get('referencia', '')
             line_vals['codigo'] = result.get('codigo', '')
             line_vals['descripcion'] = result.get('descripcion', '')
             line_vals['voucher'] = result.get('voucher', '')
 
-            # Crypto: evaluar QR
-            if test_def.get('requires_manual'):
+            # Crypto: solicitud + confirmación automática
+            if test_def.get('follow_up') == 'crypto_confirmacion':
                 qr_url = result.get('qrurl', '')
                 line_vals['qr_url'] = qr_url
-                line_vals['passed'] = bool(qr_url)
-                if not qr_url:
-                    line_vals['error_detail'] = 'No se generó QR. Código: %s' % result.get('codigo', '')
+                # Paso 2: Confirmación automática con el mismo control
+                try:
+                    confirm_result = client.crypto_confirmacion(control=control)
+                    line_vals['response_xml'] = confirm_result.get('_raw_xml', '')
+                    result = confirm_result  # Usar resultado de confirmación
+                    line_vals['referencia'] = confirm_result.get('referencia', '') or line_vals.get('referencia', '')
+                    line_vals['codigo'] = confirm_result.get('codigo', '')
+                    line_vals['descripcion'] = confirm_result.get('descripcion', '')
+                    line_vals['voucher'] = confirm_result.get('voucher', '')
+                except Exception as e:
+                    line_vals['error_detail'] = 'Error en crypto_confirmacion: %s' % str(e)
+                    return line_vals
+
+            # Evaluar PASS/FAIL
+            codigo = line_vals.get('codigo') or result.get('codigo', '')
+            if test_def['expect_approved']:
+                line_vals['passed'] = (codigo == '00')
+                if not line_vals['passed']:
+                    line_vals['error_detail'] = 'Esperaba código 00, recibió: %s' % codigo
             else:
-                # Evaluar PASS/FAIL
-                codigo = result.get('codigo', '')
-                if test_def['expect_approved']:
-                    line_vals['passed'] = (codigo == '00')
-                    if not line_vals['passed']:
-                        line_vals['error_detail'] = 'Esperaba código 00, recibió: %s' % codigo
-                else:
-                    line_vals['passed'] = (codigo != '00')
-                    if not line_vals['passed']:
-                        line_vals['error_detail'] = 'Esperaba rechazo, pero recibió código 00'
+                line_vals['passed'] = (codigo != '00')
+                if not line_vals['passed']:
+                    line_vals['error_detail'] = 'Esperaba rechazo, pero recibió código 00'
 
             # Registrar en log
             try:
@@ -420,7 +452,7 @@ class VeCertificationWizard(models.TransientModel):
                           'factura': params.get('factura', '')},
                     gateway_config=config,
                     service_code=test_def['service_code'],
-                    pos_session=pos_session,
+                    pos_session=pos_session if test_def['service_code'] != 'tarjeta' else None,
                 )
                 line_vals['log_id'] = log.id if log else False
             except Exception as e:
@@ -525,6 +557,63 @@ class VeCertificationWizard(models.TransientModel):
                 line.descripcion or '', line.referencia or '',
             ])
 
+        # Hoja 4: Solicitudes y Respuestas
+        ws4 = wb.create_sheet('Solicitudes y Respuestas')
+        detail_headers = [
+            '#', 'Prueba', 'Servicio', 'Resultado',
+            'PreRegistro - Solicitud XML', 'PreRegistro - Respuesta XML',
+            'Solicitud XML', 'Respuesta XML',
+            'Código', 'Descripción', 'Control', 'Referencia', 'Detalle Error',
+        ]
+        ws4.append(detail_headers)
+        header_fill = PatternFill(start_color='4472C4', end_color='4472C4', fill_type='solid')
+        header_font_white = Font(bold=True, size=10, color='FFFFFF')
+        for cell in ws4[1]:
+            cell.font = header_font_white
+            cell.fill = header_fill
+            cell.alignment = Alignment(horizontal='center', wrap_text=True)
+
+        for line in self.result_line_ids:
+            row = [
+                line.test_id,
+                line.test_name,
+                line.service_code,
+                'PASS' if line.passed else 'FAIL',
+                line.prereg_request_xml or '',
+                line.prereg_response_xml or '',
+                line.request_xml or '',
+                line.response_xml or '',
+                line.codigo or '',
+                line.descripcion or '',
+                line.control or '',
+                line.referencia or '',
+                line.error_detail or '',
+            ]
+            ws4.append(row)
+            # Colorear resultado
+            result_cell = ws4.cell(row=ws4.max_row, column=4)
+            result_cell.fill = pass_fill if line.passed else fail_fill
+            # Formato monoespaciado para XML
+            for col_idx in (5, 6, 7, 8):
+                xml_cell = ws4.cell(row=ws4.max_row, column=col_idx)
+                xml_cell.font = mono_font
+                xml_cell.alignment = Alignment(wrap_text=True, vertical='top')
+
+        # Ajustar anchos hoja 4
+        ws4.column_dimensions['A'].width = 5
+        ws4.column_dimensions['B'].width = 30
+        ws4.column_dimensions['C'].width = 14
+        ws4.column_dimensions['D'].width = 10
+        ws4.column_dimensions['E'].width = 50
+        ws4.column_dimensions['F'].width = 50
+        ws4.column_dimensions['G'].width = 60
+        ws4.column_dimensions['H'].width = 60
+        ws4.column_dimensions['I'].width = 10
+        ws4.column_dimensions['J'].width = 25
+        ws4.column_dimensions['K'].width = 22
+        ws4.column_dimensions['L'].width = 15
+        ws4.column_dimensions['M'].width = 35
+
         # Guardar
         output = io.BytesIO()
         wb.save(output)
@@ -564,3 +653,7 @@ class VeCertificationResultLine(models.TransientModel):
     log_id = fields.Many2one('ve.bank.transaction.log', string='Log Generado')
     requires_manual = fields.Boolean(string='Requiere acción manual')
     qr_url = fields.Char(string='URL QR (Crypto)')
+    request_xml = fields.Text(string='Solicitud XML')
+    response_xml = fields.Text(string='Respuesta XML')
+    prereg_request_xml = fields.Text(string='PreRegistro Solicitud XML')
+    prereg_response_xml = fields.Text(string='PreRegistro Respuesta XML')
