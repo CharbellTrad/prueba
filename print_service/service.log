@@ -1,0 +1,501 @@
+2026-03-31 22:35:26,526 [INFO] DirectPrint.Config: Config created at C:\Users\Charbel\OneDrive\Escritorio\Odoo Trabajo\Odoo\odoo-19.0\v19\print_service\config.json
+2026-03-31 22:35:28,057 [INFO] DirectPrint: DirectPrint Service starting on 127.0.0.1:7865
+2026-03-31 22:35:28,058 [INFO] DirectPrint.Tray: System tray icon started
+2026-03-31 22:35:28,129 [INFO] DirectPrint: Dashboard: http://127.0.0.1:7865/dashboard
+2026-03-31 22:35:29,813 [INFO] waitress: Serving on http://127.0.0.1:7865
+2026-03-31 22:35:56,123 [INFO] DirectPrint.Config: Printers config updated: 1 printers
+2026-03-31 22:36:09,521 [INFO] DirectPrint.Config: Printers config updated: 2 printers
+2026-03-31 22:36:11,851 [INFO] DirectPrint.Config: Printers config updated: 1 printers
+2026-03-31 22:36:17,036 [INFO] DirectPrint.Config: Printers config updated: 2 printers
+2026-03-31 22:49:27,334 [INFO] DirectPrint.Config: Config loaded from C:\Users\Charbel\OneDrive\Escritorio\Odoo Trabajo\Odoo\odoo-19.0\v19\print_service\config.json
+2026-03-31 22:49:27,393 [INFO] DirectPrint: DirectPrint Service starting on 127.0.0.1:7865
+2026-03-31 22:49:27,393 [INFO] DirectPrint.Tray: System tray icon started
+2026-03-31 22:49:27,393 [INFO] DirectPrint: Dashboard: http://127.0.0.1:7865/dashboard
+2026-03-31 22:49:27,520 [INFO] waitress: Serving on http://127.0.0.1:7865
+2026-03-31 22:53:46,382 [INFO] DirectPrint.Config: Config loaded from C:\Users\Charbel\OneDrive\Escritorio\Odoo Trabajo\Odoo\odoo-19.0\v19\print_service\config.json
+2026-03-31 22:53:46,449 [INFO] DirectPrint: DirectPrint Service starting on 127.0.0.1:7865
+2026-03-31 22:53:46,449 [INFO] DirectPrint.Tray: System tray icon started
+2026-03-31 22:53:46,450 [INFO] DirectPrint: Dashboard: http://127.0.0.1:7865/dashboard
+2026-03-31 22:53:46,571 [INFO] waitress: Serving on http://127.0.0.1:7865
+2026-03-31 22:54:19,609 [INFO] DirectPrint: Allowed origins updated: ['https://torostj-main-20260303-29281277.dev.odoo.com']
+2026-03-31 22:54:31,051 [INFO] DirectPrint: Allowed origins updated: ['https://torostj-main-20260303-29281277.dev.odoo.com']
+2026-03-31 22:54:40,764 [INFO] DirectPrint.Config: Config loaded from C:\Users\Charbel\OneDrive\Escritorio\Odoo Trabajo\Odoo\odoo-19.0\v19\print_service\config.json
+2026-03-31 22:54:40,827 [INFO] DirectPrint: DirectPrint Service starting on 127.0.0.1:7865
+2026-03-31 22:54:40,827 [INFO] DirectPrint.Tray: System tray icon started
+2026-03-31 22:54:40,827 [INFO] DirectPrint: Dashboard: http://127.0.0.1:7865/dashboard
+2026-03-31 22:54:40,936 [INFO] waitress: Serving on http://127.0.0.1:7865
+2026-03-31 22:55:40,626 [INFO] DirectPrint: Allowed origins updated: ['* (all)']
+2026-03-31 22:55:49,154 [INFO] DirectPrint.Config: Config loaded from C:\Users\Charbel\OneDrive\Escritorio\Odoo Trabajo\Odoo\odoo-19.0\v19\print_service\config.json
+2026-03-31 22:55:49,221 [INFO] DirectPrint: DirectPrint Service starting on 127.0.0.1:7865
+2026-03-31 22:55:49,224 [INFO] DirectPrint: Dashboard: http://127.0.0.1:7865/dashboard
+2026-03-31 22:55:49,224 [INFO] DirectPrint.Tray: System tray icon started
+2026-03-31 22:55:49,360 [INFO] waitress: Serving on http://127.0.0.1:7865
+2026-03-31 22:57:26,092 [INFO] DirectPrint: Allowed origins updated: ['https://torostj-main-20260303-29281277.dev.odoo.com']
+2026-03-31 22:57:34,027 [INFO] DirectPrint.Config: Config loaded from C:\Users\Charbel\OneDrive\Escritorio\Odoo Trabajo\Odoo\odoo-19.0\v19\print_service\config.json
+2026-03-31 22:57:34,084 [INFO] DirectPrint: DirectPrint Service starting on 127.0.0.1:7865
+2026-03-31 22:57:34,084 [INFO] DirectPrint.Tray: System tray icon started
+2026-03-31 22:57:34,084 [INFO] DirectPrint: Dashboard: http://127.0.0.1:7865/dashboard
+2026-03-31 22:57:34,231 [INFO] waitress: Serving on http://127.0.0.1:7865
+2026-03-31 23:02:36,327 [INFO] DirectPrint.Config: Config loaded from C:\Users\Charbel\OneDrive\Escritorio\Odoo Trabajo\Odoo\odoo-19.0\v19\print_service\config.json
+2026-03-31 23:02:36,392 [INFO] DirectPrint: DirectPrint Service starting on 127.0.0.1:7865
+2026-03-31 23:02:36,392 [INFO] DirectPrint.Tray: System tray icon started
+2026-03-31 23:02:36,392 [INFO] DirectPrint: Dashboard: http://127.0.0.1:7865/dashboard
+2026-03-31 23:02:36,521 [INFO] waitress: Serving on http://127.0.0.1:7865
+2026-03-31 23:02:57,690 [INFO] DirectPrint: Allowed origins updated: ['* (all)']
+2026-03-31 23:03:05,100 [INFO] DirectPrint.Config: Config loaded from C:\Users\Charbel\OneDrive\Escritorio\Odoo Trabajo\Odoo\odoo-19.0\v19\print_service\config.json
+2026-03-31 23:03:05,192 [INFO] DirectPrint: DirectPrint Service starting on 127.0.0.1:7865
+2026-03-31 23:03:05,192 [INFO] DirectPrint.Tray: System tray icon started
+2026-03-31 23:03:05,192 [INFO] DirectPrint: Dashboard: http://127.0.0.1:7865/dashboard
+2026-03-31 23:03:05,347 [INFO] waitress: Serving on http://127.0.0.1:7865
+2026-03-31 23:08:34,205 [INFO] DirectPrint.Config: Config loaded from C:\Users\Charbel\OneDrive\Escritorio\Odoo Trabajo\Odoo\odoo-19.0\v19\print_service\config.json
+2026-03-31 23:08:34,277 [INFO] DirectPrint: DirectPrint Service starting on 127.0.0.1:7865
+2026-03-31 23:08:34,277 [INFO] DirectPrint.Tray: System tray icon started
+2026-03-31 23:08:34,278 [INFO] DirectPrint: Dashboard: http://127.0.0.1:7865/dashboard
+2026-03-31 23:08:34,400 [INFO] waitress: Serving on http://127.0.0.1:7865
+2026-03-31 23:10:27,766 [INFO] DirectPrint.Config: Config loaded from C:\Users\Charbel\OneDrive\Escritorio\Odoo Trabajo\Odoo\odoo-19.0\v19\print_service\config.json
+2026-03-31 23:10:27,807 [INFO] DirectPrint: DirectPrint Service starting on 127.0.0.1:7865
+2026-03-31 23:10:27,807 [INFO] DirectPrint.Tray: System tray icon started
+2026-03-31 23:10:27,807 [INFO] DirectPrint: Dashboard: http://127.0.0.1:7865/dashboard
+2026-03-31 23:10:27,898 [INFO] waitress: Serving on http://127.0.0.1:7865
+2026-03-31 23:11:45,404 [INFO] DirectPrint: Allowed origins updated: ['https://torostj-main-20260303-29281277.dev.odoo.comm']
+2026-03-31 23:12:18,653 [INFO] DirectPrint: Allowed origins updated: ['https://torostj-main-20260303-29281277.dev.odoo.com']
+2026-03-31 23:32:33,444 [INFO] DirectPrint.Printer: Successfully printed to 'HP LaserJet 1018' (512x1457)
+2026-03-31 23:32:33,462 [INFO] DirectPrint: Printed order 22016 on 'HP LaserJet 1018' ()
+2026-03-31 23:59:40,388 [INFO] DirectPrint.Printer: Successfully printed to 'HP LaserJet 1018' (512x1433)
+2026-03-31 23:59:40,397 [INFO] DirectPrint: Printed order 22017 on 'HP LaserJet 1018' (HP LaserJet 101)
+2026-04-01 00:00:58,986 [INFO] DirectPrint.Printer: Successfully printed to 'HP LaserJet 1018' (512x1433)
+2026-04-01 00:00:58,989 [INFO] DirectPrint: Reprinted entry 625edd07-043 on 'HP LaserJet 1018'
+2026-04-01 00:02:19,501 [WARNING] waitress.queue: Task queue depth is 1
+2026-04-01 00:03:31,134 [INFO] DirectPrint.Printer: Successfully printed to 'Microsoft Print to PDF' (512x1433)
+2026-04-01 00:03:31,140 [INFO] DirectPrint: Printed order 22018 on 'Microsoft Print to PDF' (Microsoft Print)
+2026-04-01 01:03:46,707 [INFO] DirectPrint.Config: Config loaded from C:\Users\Charbel\OneDrive\Escritorio\Odoo Trabajo\Odoo\odoo-19.0\v19\print_service\config.json
+2026-04-01 01:03:46,888 [INFO] DirectPrint: DirectPrint Service starting on 127.0.0.1:7865
+2026-04-01 01:03:46,888 [INFO] DirectPrint.Tray: System tray icon started
+2026-04-01 01:03:46,888 [INFO] DirectPrint: Dashboard: http://127.0.0.1:7865/dashboard
+2026-04-01 01:03:47,167 [INFO] waitress: Serving on http://127.0.0.1:7865
+2026-04-01 01:05:16,721 [INFO] DirectPrint.Printer: Successfully printed to 'HP LaserJet 1018' (512x1433)
+2026-04-01 01:05:16,729 [INFO] DirectPrint: Printed order 22022 on 'HP LaserJet 1018' (HP LaserJet 101)
+2026-04-01 01:09:18,979 [ERROR] DirectPrint.Printer: Print error on 'Microsoft Print to PDF': StartDoc failed
+2026-04-01 01:09:18,980 [ERROR] DirectPrint: Print failed: StartDoc failed
+2026-04-01 01:12:26,434 [INFO] DirectPrint.Config: Config loaded from C:\Users\Charbel\OneDrive\Escritorio\Odoo Trabajo\Odoo\odoo-19.0\v19\print_service\config.json
+2026-04-01 01:12:26,517 [INFO] DirectPrint: DirectPrint Service starting on 127.0.0.1:7865
+2026-04-01 01:12:26,518 [INFO] DirectPrint.Tray: System tray icon started
+2026-04-01 01:12:26,518 [INFO] DirectPrint: Dashboard: http://127.0.0.1:7865/dashboard
+2026-04-01 01:12:26,650 [INFO] waitress: Serving on http://127.0.0.1:7865
+2026-04-01 01:14:15,603 [INFO] DirectPrint.Config: Config loaded from C:\Users\Charbel\OneDrive\Escritorio\Odoo Trabajo\Odoo\odoo-19.0\v19\print_service\config.json
+2026-04-01 01:14:15,649 [INFO] DirectPrint: DirectPrint Service starting on 127.0.0.1:7865
+2026-04-01 01:14:15,649 [INFO] DirectPrint.Tray: System tray icon started
+2026-04-01 01:14:15,649 [INFO] DirectPrint: Dashboard: http://127.0.0.1:7865/dashboard
+2026-04-01 01:14:15,745 [INFO] waitress: Serving on http://127.0.0.1:7865
+2026-04-01 01:39:30,960 [INFO] DirectPrint.Config: Config loaded from C:\Users\Charbel\OneDrive\Escritorio\Odoo Trabajo\Odoo\odoo-19.0\v19\print_service\config.json
+2026-04-01 01:39:31,099 [INFO] DirectPrint: DirectPrint Service starting on 127.0.0.1:7865
+2026-04-01 01:39:31,103 [INFO] DirectPrint.Tray: System tray icon started
+2026-04-01 01:39:31,104 [INFO] DirectPrint: Dashboard: http://127.0.0.1:7865/dashboard
+2026-04-01 01:39:31,355 [INFO] waitress: Serving on http://127.0.0.1:7865
+2026-04-01 01:43:10,543 [INFO] DirectPrint.Config: Config loaded from C:\Users\Charbel\OneDrive\Escritorio\Odoo Trabajo\Odoo\odoo-19.0\v19\print_service\config.json
+2026-04-01 01:43:10,595 [INFO] DirectPrint: DirectPrint Service starting on 127.0.0.1:7865
+2026-04-01 01:43:10,602 [INFO] DirectPrint.Tray: System tray icon started
+2026-04-01 01:43:10,602 [INFO] DirectPrint: Dashboard: http://127.0.0.1:7865/dashboard
+2026-04-01 01:43:10,790 [INFO] waitress: Serving on http://127.0.0.1:7865
+2026-04-01 01:47:43,235 [INFO] DirectPrint.Config: Config loaded from C:\Users\Charbel\OneDrive\Escritorio\Odoo Trabajo\Odoo\odoo-19.0\v19\print_service\config.json
+2026-04-01 01:47:43,282 [INFO] DirectPrint: DirectPrint Service starting on 127.0.0.1:7865
+2026-04-01 01:47:43,282 [INFO] DirectPrint.Tray: System tray icon started
+2026-04-01 01:47:43,282 [INFO] DirectPrint: Dashboard: http://127.0.0.1:7865/dashboard
+2026-04-01 01:47:43,488 [INFO] waitress: Serving on http://127.0.0.1:7865
+2026-04-01 01:48:14,325 [INFO] DirectPrint.Config: Config loaded from C:\Users\Charbel\OneDrive\Escritorio\Odoo Trabajo\Odoo\odoo-19.0\v19\print_service\config.json
+2026-04-01 01:48:14,386 [INFO] DirectPrint: DirectPrint Service starting on 127.0.0.1:7865
+2026-04-01 01:48:14,387 [INFO] DirectPrint.Tray: System tray icon started
+2026-04-01 01:48:14,387 [INFO] DirectPrint: Dashboard: http://127.0.0.1:7865/dashboard
+2026-04-01 01:48:14,525 [INFO] waitress: Serving on http://127.0.0.1:7865
+2026-04-01 01:54:41,865 [ERROR] DirectPrint.Printer: Print error on 'Microsoft Print to PDF': StartDoc failed
+2026-04-01 01:54:41,866 [ERROR] DirectPrint: Print failed: StartDoc failed
+2026-04-01 01:57:31,002 [INFO] DirectPrint.Config: Config loaded from C:\Users\Charbel\OneDrive\Escritorio\Odoo Trabajo\Odoo\odoo-19.0\v19\print_service\config.json
+2026-04-01 01:57:31,054 [INFO] DirectPrint: DirectPrint Service starting on 127.0.0.1:7865
+2026-04-01 01:57:31,054 [INFO] DirectPrint.Tray: System tray icon started
+2026-04-01 01:57:31,054 [INFO] DirectPrint: Dashboard: http://127.0.0.1:7865/dashboard
+2026-04-01 01:57:31,159 [INFO] waitress: Serving on http://127.0.0.1:7865
+2026-04-01 02:10:09,799 [INFO] DirectPrint.Config: Printers config updated: 2 printers
+2026-04-01 02:10:11,648 [INFO] DirectPrint.Config: Printers config updated: 2 printers
+2026-04-01 02:12:55,525 [INFO] DirectPrint.Config: Printers config updated: 2 printers
+2026-04-01 02:12:57,760 [INFO] DirectPrint.Config: Printers config updated: 2 printers
+2026-04-01 02:12:59,637 [INFO] DirectPrint.Config: Printers config updated: 2 printers
+2026-04-01 02:13:06,669 [INFO] DirectPrint.Config: Printers config updated: 2 printers
+2026-04-01 02:16:52,998 [INFO] DirectPrint.Config: Config loaded from C:\Users\Charbel\OneDrive\Escritorio\Odoo Trabajo\Odoo\odoo-19.0\v19\print_service\config.json
+2026-04-01 02:16:53,076 [INFO] DirectPrint: DirectPrint Service starting on 127.0.0.1:7865
+2026-04-01 02:16:53,076 [INFO] DirectPrint.Tray: System tray icon started
+2026-04-01 02:16:53,076 [INFO] DirectPrint: Dashboard: http://127.0.0.1:7865/dashboard
+2026-04-01 02:16:53,217 [INFO] waitress: Serving on http://127.0.0.1:7865
+2026-04-01 02:16:55,230 [WARNING] waitress.queue: Task queue depth is 1
+2026-04-01 02:16:57,300 [WARNING] waitress.queue: Task queue depth is 1
+2026-04-01 02:17:42,614 [INFO] DirectPrint.Config: Printers config updated: 2 printers
+2026-04-01 02:29:42,125 [INFO] POSPrintAgent.Config: Config loaded from C:\Users\Charbel\OneDrive\Escritorio\Odoo Trabajo\Odoo\odoo-19.0\v19\print_service\config.json
+2026-04-01 02:29:42,182 [INFO] POSPrintAgent: [POS] Print Agent starting on 127.0.0.1:7865
+2026-04-01 02:29:42,182 [INFO] POSPrintAgent.Tray: System tray icon started
+2026-04-01 02:29:42,183 [INFO] POSPrintAgent: Dashboard: http://127.0.0.1:7865/dashboard
+2026-04-01 02:29:42,317 [INFO] waitress: Serving on http://127.0.0.1:7865
+2026-04-01 02:29:56,636 [WARNING] waitress.queue: Task queue depth is 1
+2026-04-01 02:40:41,561 [WARNING] waitress.queue: Task queue depth is 1
+2026-04-01 02:40:54,799 [INFO] POSPrintAgent.Config: Config loaded from C:\Users\Charbel\OneDrive\Escritorio\Odoo Trabajo\Odoo\odoo-19.0\v19\print_service\config.json
+2026-04-01 02:40:54,928 [INFO] POSPrintAgent: [POS] Print Agent starting on 127.0.0.1:7865
+2026-04-01 02:40:54,929 [INFO] POSPrintAgent: Dashboard: http://127.0.0.1:7865/dashboard
+2026-04-01 02:40:54,929 [INFO] POSPrintAgent.Tray: System tray icon started
+2026-04-01 02:40:55,058 [INFO] waitress: Serving on http://127.0.0.1:7865
+2026-04-01 02:40:56,450 [WARNING] waitress.queue: Task queue depth is 1
+2026-04-01 02:40:59,087 [WARNING] waitress.queue: Task queue depth is 1
+2026-04-01 02:41:30,683 [WARNING] waitress.queue: Task queue depth is 1
+2026-04-01 02:41:34,560 [WARNING] waitress.queue: Task queue depth is 1
+2026-04-01 02:48:11,642 [INFO] POSPrintAgent.Config: Config loaded from C:\Users\Charbel\OneDrive\Escritorio\Odoo Trabajo\Odoo\odoo-19.0\v19\print_service\config.json
+2026-04-01 02:48:11,731 [INFO] POSPrintAgent: [POS] Print Agent starting on 127.0.0.1:7865
+2026-04-01 02:48:11,733 [INFO] POSPrintAgent: Dashboard: http://127.0.0.1:7865/dashboard
+2026-04-01 02:48:11,733 [INFO] POSPrintAgent.Tray: System tray icon started
+2026-04-01 02:48:11,864 [INFO] waitress: Serving on http://127.0.0.1:7865
+2026-04-01 02:48:23,120 [WARNING] waitress.queue: Task queue depth is 1
+2026-04-01 02:48:23,124 [WARNING] waitress.queue: Task queue depth is 2
+2026-04-01 02:48:31,907 [INFO] POSPrintAgent.Config: Config loaded from C:\Users\Charbel\OneDrive\Escritorio\Odoo Trabajo\Odoo\odoo-19.0\v19\print_service\config.json
+2026-04-01 02:48:31,991 [INFO] POSPrintAgent: [POS] Print Agent starting on 127.0.0.1:7865
+2026-04-01 02:48:31,993 [INFO] POSPrintAgent.Tray: System tray icon started
+2026-04-01 02:48:31,993 [INFO] POSPrintAgent: Dashboard: http://127.0.0.1:7865/dashboard
+2026-04-01 02:48:32,107 [INFO] waitress: Serving on http://127.0.0.1:7865
+2026-04-01 02:50:27,221 [INFO] POSPrintAgent.Config: Config loaded from C:\Users\Charbel\OneDrive\Escritorio\Odoo Trabajo\Odoo\odoo-19.0\v19\print_service\config.json
+2026-04-01 02:50:27,316 [INFO] POSPrintAgent: [POS] Print Agent starting on 127.0.0.1:7865
+2026-04-01 02:50:27,318 [INFO] POSPrintAgent: Dashboard: http://127.0.0.1:7865/dashboard
+2026-04-01 02:50:27,318 [INFO] POSPrintAgent.Tray: System tray icon started
+2026-04-01 02:50:27,605 [INFO] waitress: Serving on http://127.0.0.1:7865
+2026-04-01 02:51:32,521 [INFO] POSPrintAgent.Config: Config loaded from C:\Users\Charbel\OneDrive\Escritorio\Odoo Trabajo\Odoo\odoo-19.0\v19\print_service\config.json
+2026-04-01 02:51:32,632 [INFO] POSPrintAgent: [POS] Print Agent starting on 127.0.0.1:7865
+2026-04-01 02:51:32,633 [INFO] POSPrintAgent: Dashboard: http://127.0.0.1:7865/dashboard
+2026-04-01 02:51:32,633 [INFO] POSPrintAgent.Tray: System tray icon started
+2026-04-01 02:51:32,953 [INFO] waitress: Serving on http://127.0.0.1:7865
+2026-04-01 02:52:20,122 [INFO] POSPrintAgent.Config: Config loaded from C:\Users\Charbel\OneDrive\Escritorio\Odoo Trabajo\Odoo\odoo-19.0\v19\print_service\config.json
+2026-04-01 02:52:20,207 [INFO] POSPrintAgent: [POS] Print Agent starting on 127.0.0.1:7865
+2026-04-01 02:52:20,208 [INFO] POSPrintAgent.Tray: System tray icon started
+2026-04-01 02:52:20,208 [INFO] POSPrintAgent: Dashboard: http://127.0.0.1:7865/dashboard
+2026-04-01 02:52:20,329 [INFO] waitress: Serving on http://127.0.0.1:7865
+2026-04-01 02:52:49,392 [INFO] POSPrintAgent.Config: Config loaded from C:\Users\Charbel\OneDrive\Escritorio\Odoo Trabajo\Odoo\odoo-19.0\v19\print_service\config.json
+2026-04-01 02:52:49,508 [INFO] POSPrintAgent: [POS] Print Agent starting on 127.0.0.1:7865
+2026-04-01 02:52:49,509 [INFO] POSPrintAgent: Dashboard: http://127.0.0.1:7865/dashboard
+2026-04-01 02:52:49,511 [INFO] POSPrintAgent.Tray: System tray icon started
+2026-04-01 02:52:49,638 [INFO] waitress: Serving on http://127.0.0.1:7865
+2026-04-01 02:53:20,386 [INFO] POSPrintAgent.Config: Config loaded from C:\Users\Charbel\OneDrive\Escritorio\Odoo Trabajo\Odoo\odoo-19.0\v19\print_service\config.json
+2026-04-01 02:53:20,461 [INFO] POSPrintAgent: [POS] Print Agent starting on 127.0.0.1:7865
+2026-04-01 02:53:20,463 [INFO] POSPrintAgent.Tray: System tray icon started
+2026-04-01 02:53:20,463 [INFO] POSPrintAgent: Dashboard: http://127.0.0.1:7865/dashboard
+2026-04-01 02:53:20,579 [INFO] waitress: Serving on http://127.0.0.1:7865
+2026-04-01 02:53:30,033 [WARNING] waitress.queue: Task queue depth is 1
+2026-04-01 03:00:06,359 [WARNING] waitress.queue: Task queue depth is 1
+2026-04-01 03:12:36,140 [WARNING] waitress.queue: Task queue depth is 1
+2026-04-01 03:12:36,157 [WARNING] waitress.queue: Task queue depth is 2
+2026-04-01 03:22:16,587 [WARNING] waitress.queue: Task queue depth is 1
+2026-04-01 03:22:16,613 [WARNING] waitress.queue: Task queue depth is 2
+2026-04-01 03:30:06,127 [WARNING] waitress.queue: Task queue depth is 1
+2026-04-01 03:30:06,147 [WARNING] waitress.queue: Task queue depth is 2
+2026-04-01 03:40:56,115 [WARNING] waitress.queue: Task queue depth is 1
+2026-04-01 03:40:58,537 [INFO] POSPrintAgent.Tray: Service stopped from tray
+2026-04-01 03:40:58,542 [ERROR] pystray._base: An error occurred when calling message handler
+Traceback (most recent call last):
+  File "C:\Users\Charbel\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\pystray\_win32.py", line 412, in _dispatcher
+    return int(icon._message_handlers.get(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Charbel\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\pystray\_win32.py", line 224, in _on_notify
+    descriptors[index - 1](self)
+  File "C:\Users\Charbel\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\pystray\_base.py", line 328, in inner
+    callback(self)
+  File "C:\Users\Charbel\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\pystray\_base.py", line 453, in __call__
+    return self._action(icon, self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Charbel\OneDrive\Escritorio\Odoo Trabajo\Odoo\odoo-19.0\v19\print_service\tray.py", line 49, in quit_service
+    sys.exit(0)
+SystemExit: 0
+2026-04-01 03:47:46,775 [INFO] POSPrintAgent.Config: Config loaded from C:\Users\Charbel\OneDrive\Escritorio\Odoo Trabajo\Odoo\odoo-19.0\v19\print_service\config.json
+2026-04-01 03:47:46,971 [INFO] POSPrintAgent: [POS] Print Agent starting on 127.0.0.1:7865
+2026-04-01 03:47:46,977 [INFO] POSPrintAgent.Tray: System tray icon started
+2026-04-01 03:47:46,977 [INFO] POSPrintAgent: Dashboard: http://127.0.0.1:7865/dashboard
+2026-04-01 03:47:47,331 [INFO] waitress: Serving on http://127.0.0.1:7865
+2026-04-01 03:47:53,474 [INFO] POSPrintAgent.Tray: Service stopped from tray
+2026-04-01 03:50:42,074 [INFO] POSPrintAgent.Config: Config loaded from C:\Users\Charbel\OneDrive\Escritorio\Odoo Trabajo\Odoo\odoo-19.0\v19\print_service\config.json
+2026-04-01 03:50:42,141 [INFO] POSPrintAgent: [POS] Print Agent starting on 127.0.0.1:7865
+2026-04-01 03:50:42,141 [INFO] POSPrintAgent.Tray: System tray icon started
+2026-04-01 03:50:42,141 [INFO] POSPrintAgent: Dashboard: http://127.0.0.1:7865/dashboard
+2026-04-01 03:50:42,255 [INFO] waitress: Serving on http://127.0.0.1:7865
+2026-04-01 03:53:38,634 [INFO] POSPrintAgent.Config: Config loaded from C:\Users\Charbel\OneDrive\Escritorio\Odoo Trabajo\Odoo\odoo-19.0\v19\print_service\config.json
+2026-04-01 03:53:38,667 [INFO] POSPrintAgent: [POS] Print Agent starting on 127.0.0.1:7865
+2026-04-01 03:53:38,667 [INFO] POSPrintAgent: Dashboard: http://127.0.0.1:7865/dashboard
+2026-04-01 03:53:38,667 [INFO] POSPrintAgent.Tray: System tray icon started
+2026-04-01 03:53:38,774 [INFO] waitress: Serving on http://127.0.0.1:7865
+2026-04-01 03:54:16,039 [INFO] POSPrintAgent.Config: Config loaded from C:\Users\Charbel\OneDrive\Escritorio\Odoo Trabajo\Odoo\odoo-19.0\v19\print_service\config.json
+2026-04-01 03:54:16,094 [INFO] POSPrintAgent: [POS] Print Agent starting on 127.0.0.1:7865
+2026-04-01 03:54:16,094 [INFO] POSPrintAgent.Tray: System tray icon started
+2026-04-01 03:54:16,094 [INFO] POSPrintAgent: Dashboard: http://127.0.0.1:7865/dashboard
+2026-04-01 03:54:16,202 [INFO] waitress: Serving on http://127.0.0.1:7865
+2026-04-01 05:31:27,721 [INFO] POSPrintAgent.Config: Config loaded from C:\Users\Charbel\OneDrive\Escritorio\Odoo Trabajo\Odoo\odoo-19.0\v19\print_service\config.json
+2026-04-01 05:31:27,733 [INFO] POSPrintAgent: [POS] Print Agent starting on 127.0.0.1:7865
+2026-04-01 05:31:27,733 [INFO] POSPrintAgent: Dashboard: http://127.0.0.1:7865/dashboard
+2026-04-01 05:31:27,930 [INFO] POSPrintAgent.Tray: System tray icon started
+2026-04-01 05:31:28,048 [INFO] waitress: Serving on http://127.0.0.1:7865
+2026-04-01 05:32:01,780 [INFO] POSPrintAgent.Config: Printers config updated: 2 printers
+2026-04-01 05:32:02,959 [INFO] POSPrintAgent.Config: Printers config updated: 2 printers
+2026-04-01 05:33:11,632 [ERROR] POSPrintAgent.Printer: Print error on 'Microsoft Print to PDF': StartDoc failed
+2026-04-01 05:33:23,280 [INFO] POSPrintAgent.Printer: Successfully printed to 'HP LaserJet 1018' (512x1433)
+2026-04-01 05:33:23,283 [INFO] POSPrintAgent: Reprinted entry a1edc031-71f on 'HP LaserJet 1018'
+2026-04-01 05:38:56,806 [INFO] POSPrintAgent: Allowed origins updated: ['https://torostj-main-20260303-29281277.dev.odoo.com', 'https://torostj-main-20260303-29281277.dev.odoo.comm']
+2026-04-01 05:39:07,163 [INFO] POSPrintAgent: Allowed origins updated: ['https://torostj-main-20260303-29281277.dev.odoo.com']
+2026-04-01 05:39:54,242 [INFO] POSPrintAgent.Tray: Service stopped from tray
+2026-04-01 05:40:04,780 [INFO] POSPrintAgent.Config: Config loaded from C:\Users\Charbel\OneDrive\Escritorio\Odoo Trabajo\Odoo\odoo-19.0\v19\print_service\config.json
+2026-04-01 05:40:04,794 [INFO] POSPrintAgent: [POS] Print Agent starting on 127.0.0.1:7865
+2026-04-01 05:40:04,794 [INFO] POSPrintAgent: Dashboard: http://127.0.0.1:7865/dashboard
+2026-04-01 05:40:04,840 [INFO] POSPrintAgent.Tray: System tray icon started
+2026-04-01 05:40:04,901 [INFO] waitress: Serving on http://127.0.0.1:7865
+2026-04-01 05:43:45,015 [INFO] POSPrintAgent.Config: Config loaded from C:\Users\Charbel\OneDrive\Escritorio\Odoo Trabajo\Odoo\odoo-19.0\v19\print_service\config.json
+2026-04-01 05:43:45,026 [INFO] POSPrintAgent: [POS] Print Agent starting on 127.0.0.1:7865
+2026-04-01 05:43:45,026 [INFO] POSPrintAgent: Dashboard: http://127.0.0.1:7865/dashboard
+2026-04-01 05:43:45,064 [INFO] POSPrintAgent.Tray: System tray icon started
+2026-04-01 05:43:45,142 [INFO] waitress: Serving on http://127.0.0.1:7865
+2026-04-01 05:45:36,637 [INFO] POSPrintAgent.Tray: Service stopped from tray
+2026-04-01 05:45:41,439 [INFO] POSPrintAgent.Config: Config loaded from C:\Users\Charbel\OneDrive\Escritorio\Odoo Trabajo\Odoo\odoo-19.0\v19\print_service\config.json
+2026-04-01 05:45:41,450 [INFO] POSPrintAgent: [POS] Print Agent starting on 127.0.0.1:7865
+2026-04-01 05:45:41,450 [INFO] POSPrintAgent: Dashboard: http://127.0.0.1:7865/dashboard
+2026-04-01 05:45:41,492 [INFO] POSPrintAgent.Tray: System tray icon started
+2026-04-01 05:45:41,570 [INFO] waitress: Serving on http://127.0.0.1:7865
+2026-04-01 05:48:57,427 [INFO] POSPrintAgent.Tray: Service stopped from tray
+2026-04-01 05:49:01,548 [INFO] POSPrintAgent.Config: Config loaded from C:\Users\Charbel\OneDrive\Escritorio\Odoo Trabajo\Odoo\odoo-19.0\v19\print_service\config.json
+2026-04-01 05:49:01,559 [INFO] POSPrintAgent: [POS] Print Agent starting on 127.0.0.1:7865
+2026-04-01 05:49:01,559 [INFO] POSPrintAgent: Dashboard: http://127.0.0.1:7865/dashboard
+2026-04-01 05:49:01,597 [INFO] POSPrintAgent.Tray: System tray icon started
+2026-04-01 05:49:01,669 [INFO] waitress: Serving on http://127.0.0.1:7865
+2026-04-01 05:50:17,948 [INFO] POSPrintAgent.Tray: Service stopped from tray
+2026-04-01 05:50:22,852 [INFO] POSPrintAgent.Config: Config loaded from C:\Users\Charbel\OneDrive\Escritorio\Odoo Trabajo\Odoo\odoo-19.0\v19\print_service\config.json
+2026-04-01 05:50:22,869 [INFO] POSPrintAgent: [POS] Print Agent starting on 127.0.0.1:7865
+2026-04-01 05:50:22,869 [INFO] POSPrintAgent: Dashboard: http://127.0.0.1:7865/dashboard
+2026-04-01 05:50:22,918 [INFO] POSPrintAgent.Tray: System tray icon started
+2026-04-01 05:50:23,014 [INFO] waitress: Serving on http://127.0.0.1:7865
+2026-04-01 05:52:37,330 [INFO] POSPrintAgent.Tray: Service stopped from tray
+2026-04-01 05:52:41,720 [INFO] POSPrintAgent.Config: Config loaded from C:\Users\Charbel\OneDrive\Escritorio\Odoo Trabajo\Odoo\odoo-19.0\v19\print_service\config.json
+2026-04-01 05:52:41,733 [INFO] POSPrintAgent: [POS] Print Agent starting on 127.0.0.1:7865
+2026-04-01 05:52:41,733 [INFO] POSPrintAgent: Dashboard: http://127.0.0.1:7865/dashboard
+2026-04-01 05:52:41,773 [INFO] POSPrintAgent.Tray: System tray icon started
+2026-04-01 05:52:41,844 [INFO] waitress: Serving on http://127.0.0.1:7865
+2026-04-01 05:53:51,235 [INFO] POSPrintAgent.Tray: Service stopped from tray
+2026-04-01 05:55:33,331 [INFO] POSPrintAgent.Config: Config loaded from C:\Users\Charbel\OneDrive\Escritorio\Odoo Trabajo\Odoo\odoo-19.0\v19\print_service\config.json
+2026-04-01 05:55:33,346 [INFO] POSPrintAgent: [POS] Print Agent starting on 127.0.0.1:7865
+2026-04-01 05:55:33,347 [INFO] POSPrintAgent: Dashboard: http://127.0.0.1:7865/dashboard
+2026-04-01 05:55:33,376 [INFO] POSPrintAgent.Tray: System tray icon started
+2026-04-01 05:55:33,456 [INFO] waitress: Serving on http://127.0.0.1:7865
+2026-04-01 05:57:18,473 [INFO] POSPrintAgent.Config: Printers config updated: 2 printers
+2026-04-01 05:57:20,209 [INFO] POSPrintAgent.Config: Printers config updated: 2 printers
+2026-04-01 05:57:39,248 [INFO] POSPrintAgent.Tray: Service stopped from tray
+2026-04-01 05:57:43,326 [INFO] POSPrintAgent.Config: Config loaded from C:\Users\Charbel\OneDrive\Escritorio\Odoo Trabajo\Odoo\odoo-19.0\v19\print_service\config.json
+2026-04-01 05:57:43,338 [INFO] POSPrintAgent: [POS] Print Agent starting on 127.0.0.1:7865
+2026-04-01 05:57:43,338 [INFO] POSPrintAgent: Dashboard: http://127.0.0.1:7865/dashboard
+2026-04-01 05:57:43,379 [INFO] POSPrintAgent.Tray: System tray icon started
+2026-04-01 05:57:43,452 [INFO] waitress: Serving on http://127.0.0.1:7865
+2026-04-01 06:00:32,481 [INFO] POSPrintAgent.Tray: Service stopped from tray
+2026-04-01 06:00:40,968 [INFO] POSPrintAgent.Config: Config loaded from C:\Users\Charbel\OneDrive\Escritorio\Odoo Trabajo\Odoo\odoo-19.0\v19\print_service\config.json
+2026-04-01 06:00:41,026 [INFO] POSPrintAgent: [POS] Print Agent starting on 127.0.0.1:7865
+2026-04-01 06:00:41,027 [INFO] POSPrintAgent: Dashboard: http://127.0.0.1:7865/dashboard
+2026-04-01 06:00:41,078 [INFO] POSPrintAgent.Tray: System tray icon started
+2026-04-01 06:00:41,187 [INFO] waitress: Serving on http://127.0.0.1:7865
+2026-04-01 06:04:07,262 [INFO] POSPrintAgent.Tray: Service stopped from tray
+2026-04-01 06:04:12,577 [INFO] POSPrintAgent.Config: Config loaded from C:\Users\Charbel\OneDrive\Escritorio\Odoo Trabajo\Odoo\odoo-19.0\v19\print_service\config.json
+2026-04-01 06:04:12,593 [INFO] POSPrintAgent: [POS] Print Agent starting on 127.0.0.1:7865
+2026-04-01 06:04:12,593 [INFO] POSPrintAgent: Dashboard: http://127.0.0.1:7865/dashboard
+2026-04-01 06:04:12,646 [INFO] POSPrintAgent.Tray: System tray icon started
+2026-04-01 06:04:12,742 [INFO] waitress: Serving on http://127.0.0.1:7865
+2026-04-01 06:04:25,758 [INFO] POSPrintAgent.Tray: Service stopped from tray
+2026-04-01 06:04:30,028 [INFO] POSPrintAgent.Config: Config loaded from C:\Users\Charbel\OneDrive\Escritorio\Odoo Trabajo\Odoo\odoo-19.0\v19\print_service\config.json
+2026-04-01 06:04:30,063 [INFO] POSPrintAgent: [POS] Print Agent starting on 127.0.0.1:7865
+2026-04-01 06:04:30,066 [INFO] POSPrintAgent: Dashboard: http://127.0.0.1:7865/dashboard
+2026-04-01 06:04:30,167 [INFO] POSPrintAgent.Tray: System tray icon started
+2026-04-01 06:04:30,276 [INFO] waitress: Serving on http://127.0.0.1:7865
+2026-04-01 06:05:26,987 [INFO] POSPrintAgent.Tray: Service stopped from tray
+2026-04-01 06:05:31,063 [INFO] POSPrintAgent.Config: Config loaded from C:\Users\Charbel\OneDrive\Escritorio\Odoo Trabajo\Odoo\odoo-19.0\v19\print_service\config.json
+2026-04-01 06:05:31,108 [INFO] POSPrintAgent: [POS] Print Agent starting on 127.0.0.1:7865
+2026-04-01 06:05:31,108 [INFO] POSPrintAgent: Dashboard: http://127.0.0.1:7865/dashboard
+2026-04-01 06:05:31,190 [INFO] POSPrintAgent.Tray: System tray icon started
+2026-04-01 06:05:31,331 [INFO] waitress: Serving on http://127.0.0.1:7865
+2026-04-01 06:06:40,169 [INFO] POSPrintAgent.Tray: Service stopped from tray
+2026-04-01 06:06:44,949 [INFO] POSPrintAgent.Config: Config loaded from C:\Users\Charbel\OneDrive\Escritorio\Odoo Trabajo\Odoo\odoo-19.0\v19\print_service\config.json
+2026-04-01 06:06:44,963 [INFO] POSPrintAgent: [POS] Print Agent starting on 127.0.0.1:7865
+2026-04-01 06:06:44,964 [INFO] POSPrintAgent: Dashboard: http://127.0.0.1:7865/dashboard
+2026-04-01 06:06:45,004 [INFO] POSPrintAgent.Tray: System tray icon started
+2026-04-01 06:06:45,081 [INFO] waitress: Serving on http://127.0.0.1:7865
+2026-04-01 06:09:02,222 [INFO] POSPrintAgent.Tray: Service stopped from tray
+2026-04-01 06:10:48,479 [INFO] POSPrintAgent.Config: Config loaded from C:\Users\Charbel\OneDrive\Escritorio\Odoo Trabajo\Odoo\odoo-19.0\v19\print_service\config.json
+2026-04-01 06:10:48,496 [INFO] POSPrintAgent: [POS] Print Agent starting on 127.0.0.1:7865
+2026-04-01 06:10:48,496 [INFO] POSPrintAgent: Dashboard: http://127.0.0.1:7865/dashboard
+2026-04-01 06:10:48,526 [INFO] POSPrintAgent.Tray: System tray icon started
+2026-04-01 06:10:48,613 [INFO] waitress: Serving on http://127.0.0.1:7865
+2026-04-01 06:15:04,176 [INFO] POSPrintAgent.Config: Config loaded from C:\Users\Charbel\OneDrive\Escritorio\Odoo Trabajo\Odoo\odoo-19.0\v19\print_service\config.json
+2026-04-01 06:15:04,190 [INFO] POSPrintAgent: [POS] Print Agent starting on 127.0.0.1:7865
+2026-04-01 06:15:04,191 [INFO] POSPrintAgent: Dashboard: http://127.0.0.1:7865/dashboard
+2026-04-01 06:15:04,227 [INFO] POSPrintAgent.Tray: System tray icon started
+2026-04-01 06:15:04,369 [INFO] waitress: Serving on http://127.0.0.1:7865
+2026-04-01 06:15:54,823 [INFO] POSPrintAgent.Config: Config loaded from C:\Users\Charbel\OneDrive\Escritorio\Odoo Trabajo\Odoo\odoo-19.0\v19\print_service\config.json
+2026-04-01 06:15:54,844 [INFO] POSPrintAgent: [POS] Print Agent starting on 127.0.0.1:7865
+2026-04-01 06:15:54,845 [INFO] POSPrintAgent: Dashboard: http://127.0.0.1:7865/dashboard
+2026-04-01 06:15:54,899 [INFO] POSPrintAgent.Tray: System tray icon started
+2026-04-01 06:15:55,011 [INFO] waitress: Serving on http://127.0.0.1:7865
+2026-04-01 06:17:40,989 [INFO] POSPrintAgent.Config: Config loaded from C:\Users\Charbel\OneDrive\Escritorio\Odoo Trabajo\Odoo\odoo-19.0\v19\print_service\config.json
+2026-04-01 06:17:41,001 [INFO] POSPrintAgent: [POS] Print Agent starting on 127.0.0.1:7865
+2026-04-01 06:17:41,001 [INFO] POSPrintAgent: Dashboard: http://127.0.0.1:7865/dashboard
+2026-04-01 06:17:41,039 [INFO] POSPrintAgent.Tray: System tray icon started
+2026-04-01 06:17:41,131 [INFO] waitress: Serving on http://127.0.0.1:7865
+2026-04-01 06:17:58,050 [INFO] POSPrintAgent.Config: Config loaded from C:\Users\Charbel\OneDrive\Escritorio\Odoo Trabajo\Odoo\odoo-19.0\v19\print_service\config.json
+2026-04-01 06:17:58,061 [INFO] POSPrintAgent: [POS] Print Agent starting on 127.0.0.1:7865
+2026-04-01 06:17:58,062 [INFO] POSPrintAgent: Dashboard: http://127.0.0.1:7865/dashboard
+2026-04-01 06:17:58,100 [INFO] POSPrintAgent.Tray: System tray icon started
+2026-04-01 06:17:58,176 [INFO] waitress: Serving on http://127.0.0.1:7865
+2026-04-01 06:20:00,743 [INFO] POSPrintAgent.Config: Config loaded from C:\Users\Charbel\OneDrive\Escritorio\Odoo Trabajo\Odoo\odoo-19.0\v19\print_service\config.json
+2026-04-01 06:20:00,769 [INFO] POSPrintAgent: [POS] Print Agent starting on 127.0.0.1:7865
+2026-04-01 06:20:00,770 [INFO] POSPrintAgent: Dashboard: http://127.0.0.1:7865/dashboard
+2026-04-01 06:20:00,831 [INFO] POSPrintAgent.Tray: System tray icon started
+2026-04-01 06:20:00,963 [INFO] waitress: Serving on http://127.0.0.1:7865
+2026-04-01 06:22:53,177 [INFO] POSPrintAgent.Tray: Service stopped from tray
+2026-04-01 06:22:59,702 [INFO] POSPrintAgent.Config: Config loaded from C:\Users\Charbel\OneDrive\Escritorio\Odoo Trabajo\Odoo\odoo-19.0\v19\print_service\config.json
+2026-04-01 06:22:59,713 [INFO] POSPrintAgent: [POS] Print Agent starting on 127.0.0.1:7865
+2026-04-01 06:22:59,713 [INFO] POSPrintAgent: Dashboard: http://127.0.0.1:7865/dashboard
+2026-04-01 06:22:59,759 [INFO] POSPrintAgent.Tray: System tray icon started
+2026-04-01 06:22:59,833 [INFO] waitress: Serving on http://127.0.0.1:7865
+2026-04-01 06:24:01,664 [INFO] POSPrintAgent.Tray: Service stopped from tray
+2026-04-01 06:24:06,050 [INFO] POSPrintAgent.Config: Config loaded from C:\Users\Charbel\OneDrive\Escritorio\Odoo Trabajo\Odoo\odoo-19.0\v19\print_service\config.json
+2026-04-01 06:24:06,065 [INFO] POSPrintAgent: [POS] Print Agent starting on 127.0.0.1:7865
+2026-04-01 06:24:06,067 [INFO] POSPrintAgent: Dashboard: http://127.0.0.1:7865/dashboard
+2026-04-01 06:24:06,103 [INFO] POSPrintAgent.Tray: System tray icon started
+2026-04-01 06:24:06,165 [INFO] waitress: Serving on http://127.0.0.1:7865
+2026-04-01 06:24:20,697 [INFO] POSPrintAgent.Tray: Service stopped from tray
+2026-04-01 06:24:26,261 [INFO] POSPrintAgent.Config: Config loaded from C:\Users\Charbel\OneDrive\Escritorio\Odoo Trabajo\Odoo\odoo-19.0\v19\print_service\config.json
+2026-04-01 06:24:26,284 [INFO] POSPrintAgent: [POS] Print Agent starting on 127.0.0.1:7865
+2026-04-01 06:24:26,285 [INFO] POSPrintAgent: Dashboard: http://127.0.0.1:7865/dashboard
+2026-04-01 06:24:26,337 [INFO] POSPrintAgent.Tray: System tray icon started
+2026-04-01 06:24:26,436 [INFO] waitress: Serving on http://127.0.0.1:7865
+2026-04-01 06:32:16,177 [INFO] POSPrintAgent.Tray: Service stopped from tray
+2026-04-01 06:32:20,614 [INFO] POSPrintAgent.Config: Config loaded from C:\Users\Charbel\OneDrive\Escritorio\Odoo Trabajo\Odoo\odoo-19.0\v19\print_service\config.json
+2026-04-01 06:32:20,626 [INFO] POSPrintAgent: [POS] Print Agent starting on 127.0.0.1:7865
+2026-04-01 06:32:20,626 [INFO] POSPrintAgent: Dashboard: http://127.0.0.1:7865/dashboard
+2026-04-01 06:32:20,666 [INFO] POSPrintAgent.Tray: System tray icon started
+2026-04-01 06:32:20,746 [INFO] waitress: Serving on http://127.0.0.1:7865
+2026-04-01 06:33:12,737 [INFO] POSPrintAgent.Tray: Service stopped from tray
+2026-04-01 06:33:16,828 [INFO] POSPrintAgent.Config: Config loaded from C:\Users\Charbel\OneDrive\Escritorio\Odoo Trabajo\Odoo\odoo-19.0\v19\print_service\config.json
+2026-04-01 06:33:16,842 [INFO] POSPrintAgent: [POS] Print Agent starting on 127.0.0.1:7865
+2026-04-01 06:33:16,842 [INFO] POSPrintAgent: Dashboard: http://127.0.0.1:7865/dashboard
+2026-04-01 06:33:16,874 [INFO] POSPrintAgent.Tray: System tray icon started
+2026-04-01 06:33:16,940 [INFO] waitress: Serving on http://127.0.0.1:7865
+2026-04-01 06:34:26,967 [INFO] POSPrintAgent.Tray: Service stopped from tray
+2026-04-01 06:34:31,069 [INFO] POSPrintAgent.Config: Config loaded from C:\Users\Charbel\OneDrive\Escritorio\Odoo Trabajo\Odoo\odoo-19.0\v19\print_service\config.json
+2026-04-01 06:34:31,084 [INFO] POSPrintAgent: [POS] Print Agent starting on 127.0.0.1:7865
+2026-04-01 06:34:31,084 [INFO] POSPrintAgent: Dashboard: http://127.0.0.1:7865/dashboard
+2026-04-01 06:34:31,117 [INFO] POSPrintAgent.Tray: System tray icon started
+2026-04-01 06:34:31,183 [INFO] waitress: Serving on http://127.0.0.1:7865
+2026-04-01 06:35:23,607 [INFO] POSPrintAgent.Tray: Service stopped from tray
+2026-04-01 06:35:29,221 [INFO] POSPrintAgent.Config: Config loaded from C:\Users\Charbel\OneDrive\Escritorio\Odoo Trabajo\Odoo\odoo-19.0\v19\print_service\config.json
+2026-04-01 06:35:29,239 [INFO] POSPrintAgent: [POS] Print Agent starting on 127.0.0.1:7865
+2026-04-01 06:35:29,240 [INFO] POSPrintAgent: Dashboard: http://127.0.0.1:7865/dashboard
+2026-04-01 06:35:29,282 [INFO] POSPrintAgent.Tray: System tray icon started
+2026-04-01 06:35:29,363 [INFO] waitress: Serving on http://127.0.0.1:7865
+2026-04-01 06:58:08,859 [INFO] POSPrintAgent.Tray: Service stopped from tray
+2026-04-01 06:58:33,037 [INFO] POSPrintAgent.Config: Config loaded from C:\Users\Charbel\OneDrive\Escritorio\Odoo Trabajo\Odoo\odoo-19.0\v19\print_service\config.json
+2026-04-01 06:58:33,051 [INFO] POSPrintAgent: [POS] Print Agent starting on 127.0.0.1:7865
+2026-04-01 06:58:33,051 [INFO] POSPrintAgent: Dashboard: http://127.0.0.1:7865/dashboard
+2026-04-01 06:58:33,087 [INFO] POSPrintAgent.Tray: System tray icon started
+2026-04-01 06:58:33,168 [INFO] waitress: Serving on http://127.0.0.1:7865
+2026-04-01 07:00:22,512 [INFO] POSPrintAgent.Tray: Service stopped from tray
+2026-04-01 07:00:26,725 [INFO] POSPrintAgent.Config: Config loaded from C:\Users\Charbel\OneDrive\Escritorio\Odoo Trabajo\Odoo\odoo-19.0\v19\print_service\config.json
+2026-04-01 07:00:26,752 [INFO] POSPrintAgent: [POS] Print Agent starting on 127.0.0.1:7865
+2026-04-01 07:00:26,752 [INFO] POSPrintAgent: Dashboard: http://127.0.0.1:7865/dashboard
+2026-04-01 07:00:26,819 [INFO] POSPrintAgent.Tray: System tray icon started
+2026-04-01 07:00:27,048 [INFO] waitress: Serving on http://127.0.0.1:7865
+2026-04-01 07:00:58,026 [INFO] POSPrintAgent.Tray: Service stopped from tray
+2026-04-01 07:01:47,760 [INFO] POSPrintAgent.Config: Config loaded from C:\Users\Charbel\OneDrive\Escritorio\Odoo Trabajo\Odoo\odoo-19.0\v19\print_service\config.json
+2026-04-01 07:01:47,773 [INFO] POSPrintAgent: [POS] Print Agent starting on 127.0.0.1:7865
+2026-04-01 07:01:47,773 [INFO] POSPrintAgent: Dashboard: http://127.0.0.1:7865/dashboard
+2026-04-01 07:01:47,811 [INFO] POSPrintAgent.Tray: System tray icon started
+2026-04-01 07:01:47,871 [INFO] waitress: Serving on http://127.0.0.1:7865
+2026-04-01 07:07:50,679 [INFO] POSPrintAgent.Config: Printers config updated: 1 printers
+2026-04-01 07:07:55,849 [INFO] POSPrintAgent.Config: Printers config updated: 2 printers
+2026-04-01 07:08:01,310 [INFO] POSPrintAgent.Config: Printers config updated: 2 printers
+2026-04-01 07:11:24,029 [INFO] POSPrintAgent.Tray: Service stopped from tray
+2026-04-01 07:12:02,355 [INFO] POSPrintAgent.Config: Config loaded from C:\Users\Charbel\OneDrive\Escritorio\Odoo Trabajo\Odoo\odoo-19.0\v19\print_service\config.json
+2026-04-01 07:12:02,370 [INFO] POSPrintAgent: [POS] Print Agent starting on 127.0.0.1:7865
+2026-04-01 07:12:02,370 [INFO] POSPrintAgent: Dashboard: http://127.0.0.1:7865/dashboard
+2026-04-01 07:12:02,406 [INFO] POSPrintAgent.Tray: System tray icon started
+2026-04-01 07:12:02,483 [INFO] waitress: Serving on http://127.0.0.1:7865
+2026-04-01 07:12:19,044 [WARNING] POSPrintAgent: Could not open native window: The setup method 'route' can no longer be called on the application. It has already handled its first request, any changes will not be applied consistently.
+Make sure all imports, decorators, functions, etc. needed to set up the application are done before running it. — falling back to browser
+2026-04-01 07:13:29,198 [INFO] POSPrintAgent.Config: Config loaded from C:\Users\Charbel\OneDrive\Escritorio\Odoo Trabajo\Odoo\odoo-19.0\v19\print_service\config.json
+2026-04-01 07:13:29,210 [INFO] POSPrintAgent: [POS] Print Agent starting on 127.0.0.1:7865
+2026-04-01 07:13:29,211 [INFO] POSPrintAgent: Dashboard: http://127.0.0.1:7865/dashboard
+2026-04-01 07:13:29,244 [INFO] POSPrintAgent.Tray: System tray icon started
+2026-04-01 07:13:29,297 [INFO] waitress: Serving on http://127.0.0.1:7865
+2026-04-01 07:13:48,608 [INFO] POSPrintAgent.Tray: Service stopped from tray
+2026-04-01 07:16:17,465 [INFO] POSPrintAgent.Config: Config created at C:\Users\Charbel\OneDrive\Escritorio\Odoo Trabajo\Odoo\odoo-19.0\v19\print_service\config.json
+2026-04-01 07:16:17,483 [INFO] POSPrintAgent: [POS] Print Agent starting on 127.0.0.1:7865
+2026-04-01 07:16:17,483 [INFO] POSPrintAgent: Dashboard: http://127.0.0.1:7865/dashboard
+2026-04-01 07:16:17,517 [INFO] POSPrintAgent.Tray: System tray icon started
+2026-04-01 07:16:17,620 [INFO] waitress: Serving on http://127.0.0.1:7865
+2026-04-01 07:16:49,117 [INFO] POSPrintAgent.Tray: Service stopped from tray
+2026-04-01 07:16:53,285 [INFO] POSPrintAgent.Config: Config loaded from C:\Users\Charbel\OneDrive\Escritorio\Odoo Trabajo\Odoo\odoo-19.0\v19\print_service\config.json
+2026-04-01 07:16:53,298 [INFO] POSPrintAgent: [POS] Print Agent starting on 127.0.0.1:7865
+2026-04-01 07:16:53,298 [INFO] POSPrintAgent: Dashboard: http://127.0.0.1:7865/dashboard
+2026-04-01 07:16:53,334 [INFO] POSPrintAgent.Tray: System tray icon started
+2026-04-01 07:16:53,404 [INFO] waitress: Serving on http://127.0.0.1:7865
+2026-04-01 07:17:59,957 [INFO] POSPrintAgent.Tray: Service stopped from tray
+2026-04-01 07:18:04,069 [INFO] POSPrintAgent.Config: Config loaded from C:\Users\Charbel\OneDrive\Escritorio\Odoo Trabajo\Odoo\odoo-19.0\v19\print_service\config.json
+2026-04-01 07:18:04,088 [INFO] POSPrintAgent: [POS] Print Agent starting on 127.0.0.1:7865
+2026-04-01 07:18:04,088 [INFO] POSPrintAgent: Dashboard: http://127.0.0.1:7865/dashboard
+2026-04-01 07:18:04,122 [INFO] POSPrintAgent.Tray: System tray icon started
+2026-04-01 07:18:04,220 [INFO] waitress: Serving on http://127.0.0.1:7865
+2026-04-01 07:19:16,282 [INFO] POSPrintAgent.Tray: Service stopped from tray
+2026-04-01 07:19:27,909 [INFO] POSPrintAgent.Config: Config loaded from C:\Users\Charbel\OneDrive\Escritorio\Odoo Trabajo\Odoo\odoo-19.0\v19\print_service\config.json
+2026-04-01 07:19:27,926 [INFO] POSPrintAgent: [POS] Print Agent starting on 127.0.0.1:7865
+2026-04-01 07:19:27,926 [INFO] POSPrintAgent: Dashboard: http://127.0.0.1:7865/dashboard
+2026-04-01 07:19:27,960 [INFO] POSPrintAgent.Tray: System tray icon started
+2026-04-01 07:19:28,030 [INFO] waitress: Serving on http://127.0.0.1:7865
+2026-04-01 07:23:37,977 [INFO] POSPrintAgent.Tray: Service stopped from tray
+2026-04-01 07:24:25,097 [INFO] POSPrintAgent.Config: Config loaded from C:\Users\Charbel\OneDrive\Escritorio\Odoo Trabajo\Odoo\odoo-19.0\v19\print_service\config.json
+2026-04-01 07:24:25,123 [INFO] POSPrintAgent: [POS] Print Agent starting on 127.0.0.1:7865
+2026-04-01 07:24:25,123 [INFO] POSPrintAgent: Dashboard: http://127.0.0.1:7865/dashboard
+2026-04-01 07:24:25,183 [INFO] POSPrintAgent.Tray: System tray icon started
+2026-04-01 07:24:25,259 [INFO] waitress: Serving on http://127.0.0.1:7865
+2026-04-01 07:26:57,729 [INFO] POSPrintAgent.Tray: Service stopped from tray
+2026-04-01 07:43:48,122 [INFO] POSPrintAgent.Config: Config loaded from C:\Users\Charbel\OneDrive\Escritorio\Odoo Trabajo\Odoo\odoo-19.0\v19\print_service\config.json
+2026-04-01 07:43:48,137 [INFO] POSPrintAgent: [POS] Print Agent starting on 127.0.0.1:7865
+2026-04-01 07:43:48,137 [INFO] POSPrintAgent: Dashboard: http://127.0.0.1:7865/dashboard
+2026-04-01 07:43:48,175 [INFO] POSPrintAgent.Tray: System tray icon started
+2026-04-01 07:43:48,240 [INFO] waitress: Serving on http://127.0.0.1:7865
+2026-04-01 07:48:14,022 [INFO] POSPrintAgent.Tray: Service stopped from tray
+2026-04-01 07:48:32,963 [INFO] POSPrintAgent.Config: Config loaded from C:\Users\Charbel\OneDrive\Escritorio\Odoo Trabajo\Odoo\odoo-19.0\v19\print_service\config.json
+2026-04-01 07:48:32,980 [INFO] POSPrintAgent: [POS] Print Agent starting on 127.0.0.1:7865
+2026-04-01 07:48:32,981 [INFO] POSPrintAgent: Dashboard: http://127.0.0.1:7865/dashboard
+2026-04-01 07:48:33,019 [INFO] POSPrintAgent.Tray: System tray icon started
+2026-04-01 07:48:33,090 [INFO] waitress: Serving on http://127.0.0.1:7865
+2026-04-01 07:48:56,642 [INFO] POSPrintAgent: Allowed origins updated: ['*']
+2026-04-01 07:49:39,196 [INFO] POSPrintAgent.Config: Advanced settings updated: max_payload=0 MB, retain_days=0
+2026-04-01 07:49:43,050 [INFO] POSPrintAgent.Tray: Service stopped from tray
+2026-04-01 07:49:47,298 [INFO] POSPrintAgent.Config: Config loaded from C:\Users\Charbel\OneDrive\Escritorio\Odoo Trabajo\Odoo\odoo-19.0\v19\print_service\config.json
+2026-04-01 07:49:47,323 [INFO] POSPrintAgent: [POS] Print Agent starting on 127.0.0.1:7865
+2026-04-01 07:49:47,323 [INFO] POSPrintAgent: Dashboard: http://127.0.0.1:7865/dashboard
+2026-04-01 07:49:47,323 [INFO] POSPrintAgent: History auto-purge disabled (retain_days=0).
+2026-04-01 07:49:47,367 [INFO] POSPrintAgent.Tray: System tray icon started
+2026-04-01 07:49:47,430 [INFO] waitress: Serving on http://127.0.0.1:7865
+2026-04-01 07:50:01,719 [INFO] POSPrintAgent.Config: Printers config updated: 1 printers
+2026-04-01 07:50:02,203 [INFO] POSPrintAgent.Config: Printers config updated: 2 printers
+2026-04-01 08:07:23,578 [INFO] POSPrintAgent.Config: Printers config updated: 1 printers
+2026-04-01 08:07:25,841 [INFO] POSPrintAgent.Config: Printers config updated: 0 printers
+2026-04-01 08:07:41,548 [INFO] POSPrintAgent.Config: Printers config updated: 1 printers
+2026-04-01 08:07:43,513 [INFO] POSPrintAgent.Config: Printers config updated: 2 printers
+2026-04-01 08:07:46,963 [INFO] POSPrintAgent.Config: Printers config updated: 1 printers
+2026-04-01 08:07:50,627 [INFO] POSPrintAgent.Config: Printers config updated: 0 printers
+2026-04-01 08:07:52,044 [INFO] POSPrintAgent.Config: Printers config updated: 1 printers
+2026-04-01 08:08:03,434 [INFO] POSPrintAgent.Tray: Service stopped from tray
+2026-04-01 08:09:21,147 [INFO] POSPrintAgent.Config: Config loaded from C:\Users\Charbel\OneDrive\Escritorio\Odoo Trabajo\Odoo\odoo-19.0\v19\print_service\config.json
+2026-04-01 08:09:21,162 [INFO] POSPrintAgent: [POS] Print Agent starting on 127.0.0.1:7865
+2026-04-01 08:09:21,162 [INFO] POSPrintAgent: Dashboard: http://127.0.0.1:7865/dashboard
+2026-04-01 08:09:21,162 [INFO] POSPrintAgent: History auto-purge disabled (retain_days=0).
+2026-04-01 08:09:21,192 [INFO] POSPrintAgent.Tray: System tray icon started
+2026-04-01 08:09:21,257 [INFO] waitress: Serving on http://127.0.0.1:7865
+2026-04-01 08:10:36,124 [INFO] POSPrintAgent.Config: Printers config updated: 0 printers
+2026-04-01 08:10:57,413 [INFO] POSPrintAgent.Config: Printers config updated: 1 printers
+2026-04-01 08:11:21,419 [INFO] POSPrintAgent.Config: Printers config updated: 2 printers
+2026-04-01 08:11:22,819 [INFO] POSPrintAgent.Config: Printers config updated: 2 printers
+2026-04-01 08:11:40,994 [INFO] POSPrintAgent.Printer: Successfully printed to 'HP LaserJet 1018' (512x1433)
+2026-04-01 08:11:41,004 [INFO] POSPrintAgent: Printed order 22028 on 'HP LaserJet 1018' (HP LaserJet 1018)
+2026-04-01 08:15:36,708 [INFO] POSPrintAgent.Tray: Service stopped from tray

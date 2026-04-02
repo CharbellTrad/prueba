@@ -1,0 +1,127 @@
+.direct-print-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    background: var(--gray-100, #f8f9fa);
+    border: 1px solid var(--gray-300, #dee2e6);
+    border-radius: 8px;
+    margin-top: 8px;
+    margin-bottom: 8px;
+}
+
+.dp-status {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    flex-shrink: 0;
+
+    &:hover .dp-dot-circle {
+        opacity: 0.7;
+    }
+}
+
+.dp-dot-circle {
+    display: inline-block;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #adb5bd;
+    flex-shrink: 0;
+    transition: background 0.3s;
+}
+
+.dp-dot--loading .dp-dot-circle {
+    background: #f59e0b;
+    animation: dp-pulse 1.2s ease-in-out infinite;
+}
+
+.dp-dot--online .dp-dot-circle {
+    background: #22c55e;
+}
+
+.dp-dot--offline .dp-dot-circle {
+    background: #ef4444;
+}
+
+@keyframes dp-pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.3;
+    }
+}
+
+.dp-label {
+    font-size: 0.875rem;
+    color: var(--gray-600, #6c757d);
+    white-space: nowrap;
+    user-select: none;
+}
+
+.dp-select {
+    flex: 1;
+    min-width: 0;
+    height: 36px;
+    padding: 0 8px;
+    font-size: 0.945rem;
+    border: 1px solid var(--gray-300, #dee2e6);
+    border-radius: 6px;
+    background: #fff;
+    color: var(--gray-800, #343a40);
+    cursor: pointer;
+    appearance: auto;
+
+    &:disabled {
+        background: var(--gray-100, #f8f9fa);
+        color: var(--gray-500, #adb5bd);
+        cursor: not-allowed;
+    }
+
+    &:focus {
+        outline: none;
+        border-color: var(--primary, #017e84);
+        box-shadow: 0 0 0 2px rgba(1, 126, 132, 0.15);
+    }
+}
+
+.dp-toggle {
+    white-space: nowrap;
+    flex-shrink: 0;
+    width: 90px;
+    font-size: 0.945rem;
+    padding: 5px 12px;
+
+    &--locked {
+        opacity: 0.45;
+        cursor: not-allowed;
+        pointer-events: none;
+    }
+}
+
+.dp-refresh {
+    flex-shrink: 0;
+    width: 36px;
+    font-size: 0.945rem;
+    padding: 5px 0;
+    text-align: center;
+
+    &--spinning .fa-refresh {
+        animation: dp-spin 0.8s linear infinite;
+    }
+}
+
+@keyframes dp-spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
