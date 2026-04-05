@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="pos_custom_ui_payment_methods_screen_templates">
+
+    <!-- Override de PaymentScreenMethods -->
+    <t t-name="PaymentScreenMethods" t-inherit="point_of_sale.PaymentScreenMethods" t-inherit-mode="extension">
+
+        <!-- 1. Añadir clases de modo y scroll al container -->
+        <xpath expr="//div[hasclass('paymentmethods-container')]" position="attributes">
+            <attribute name="t-attf-class">pm-view-{{ paymentViewMode }} {{ paymentScrollEnabled ? 'pm-scroll-enabled' : '' }}</attribute>
+        </xpath>
+
+        <!-- 2. Insertar el header con el botón de configuración antes del contenedor de métodos -->
+        <xpath expr="//div[hasclass('paymentmethods-container')]/div[hasclass('paymentmethods')]" position="before">
+            <div class="pm-view-header d-flex align-items-center justify-content-between px-2 py-1">
+                <span class="pm-view-title text-muted">Métodos de pago</span>
+                <button class="pm-view-gear-btn btn btn-sm btn-light border-0"
+                    t-on-click="openPaymentViewModePopover"
+                    title="Cambiar vista de métodos de pago">
+                    <i class="fa fa-cog" />
+                </button>
+            </div>
+        </xpath>
+
+        <!-- Quitar clases de layout de Odoo; el CSS del módulo controla el layout vía .pm-view-X -->
+        <xpath expr="//div[hasclass('paymentmethods')]" position="attributes">
+            <attribute name="class">paymentmethods pm-methods-inner</attribute>
+            <attribute name="t-att-class">{'overflow-y-auto rounded-3 bg-300': ui.isSmall}</attribute>
+        </xpath>
+
+        <xpath expr="//div[hasclass('payment-method-display')]" position="attributes">
+            <attribute name="t-att-class">{'justify-content-center': paymentViewMode === 'icons-only'}</attribute>
+        </xpath>
+
+        <xpath expr="//img[hasclass('payment-method-icon')]" position="attributes">
+            <attribute name="t-att-class">{'d-none': paymentViewMode === 'text-only'}</attribute>
+        </xpath>
+
+        <xpath expr="//span[hasclass('payment-name')]" position="attributes">
+            <attribute name="t-att-class">{'d-none': paymentViewMode === 'icons-only'}</attribute>
+        </xpath>
+
+    </t>
+
+</templates>
