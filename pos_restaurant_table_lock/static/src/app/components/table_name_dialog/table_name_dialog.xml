@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+
+    <t t-name="pos_restaurant_table_lock.TableNameDialog">
+        <Dialog size="'md'" contentClass="'tl-name-dialog-wrapper'">
+
+            <!-- Header con icono de mesa -->
+            <t t-set-slot="header">
+                <div class="tl-name-header">
+                    <div class="tl-name-header-icon">
+                        <i class="fa fa-cutlery"/>
+                    </div>
+                    <div class="tl-name-header-info">
+                        <span class="tl-name-header-label">Nombre de la mesa</span>
+                    </div>
+                    <button type="button" class="tl-name-header-close" t-on-click="cancel">
+                        <i class="fa fa-times"/>
+                    </button>
+                </div>
+            </t>
+
+            <!-- Body: input + contador -->
+            <div class="tl-name-body">
+                <div class="tl-name-input-wrap">
+                    <input
+                        type="text"
+                        class="tl-name-input"
+                        t-ref="input"
+                        t-model="state.value"
+                        t-att-maxlength="props.maxlength"
+                        t-att-placeholder="props.placeholder"
+                        t-on-keydown="onKeydown"
+                        autocomplete="off"
+                        spellcheck="false"
+                    />
+                    <span class="tl-name-counter"
+                          t-attf-class="tl-name-counter {{ charCount >= props.maxlength ? 'tl-name-counter-max' : '' }}">
+                        <t t-esc="charCount"/>/<t t-esc="props.maxlength"/>
+                    </span>
+                </div>
+            </div>
+
+            <!-- Footer nativo -->
+            <t t-set-slot="footer">
+                <div class="d-flex flex-grow-1 justify-content-center w-100">
+                    <button class="btn btn-primary btn-lg lh-lg o-default-button me-2 flex-fill"
+                            tabindex="1"
+                            t-att-disabled="!isValid"
+                            t-on-click="confirm">
+                        Aplicar
+                    </button>
+                    <button class="btn btn-secondary btn-lg lh-lg o-default-button flex-fill"
+                            tabindex="1"
+                            t-on-click="cancel">
+                        Cancelar
+                    </button>
+                </div>
+            </t>
+
+        </Dialog>
+    </t>
+
+</templates>

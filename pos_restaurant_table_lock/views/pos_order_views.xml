@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!--
+        Agrega custom_table_name debajo de table_id en el formulario de pos.order.
+        Solo visible si tiene valor.
+    -->
+    <record id="view_pos_order_form_inherit_table_lock" model="ir.ui.view">
+        <field name="name">pos.order.form.inherit.table.lock</field>
+        <field name="model">pos.order</field>
+        <field name="inherit_id" ref="pos_restaurant.view_pos_pos_form"/>
+        <field name="arch" type="xml">
+            <field name="table_id" position="after">
+                <field name="custom_table_name"
+                       string="Nombre personalizado de la Mesa"
+                       readonly="1"
+                       invisible="not custom_table_name"/>
+            </field>
+        </field>
+    </record>
+</odoo>

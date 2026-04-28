@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!--
+        Agrega el setting "Bloquear mesa por empleado/usuario" en la sección
+        "Punto de Venta" de los ajustes globales, después del setting nativo
+        "Inicio de sesión con Empleados" (multiple_employee_session).
+        No tiene condición invisible — la validación ocurre en el backend (pos_config.py).
+    -->
+    <record id="res_config_settings_view_form_inherit_table_lock" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.table.lock</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="point_of_sale.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <setting id="multiple_employee_session" position="after">
+                <setting
+                    id="pos_restaurant_table_lock_setting"
+                    string="Bloquear mesa por empleado"
+                    help="Bloquea las mesas con órdenes activas al empleado que las creó. Otros empleados deben ingresar el NIP del dueño. Requiere Bar/Restaurante e Inicio de sesión con Empleados."
+                >
+                    <field name="pos_restaurant_table_lock"/>
+                </setting>
+            </setting>
+        </field>
+    </record>
+</odoo>

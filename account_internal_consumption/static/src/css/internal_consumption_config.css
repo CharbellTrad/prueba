@@ -1,7 +1,0 @@
-/* Oculta el botón "Agregar una línea" y "Eliminar" en las listas de empleados/contactos
-   del formulario de configuración de consumo interno.
-   Se aplica solo a los campos marcados con la clase ic-no-add-line. */
-.ic_no_add_line .o_field_x2many_list_row_add,
-.ic_no_add_line .o_list_record_remove {
-    display: none !important;
-}

@@ -1,0 +1,64 @@
+/* ================================================================
+   TableLockPinDialog — Header del diálogo de NIP
+   Solo estilos del banner de empleado; todo lo demás es Bootstrap/Odoo nativo.
+   ================================================================ */
+
+/* Banner superior que reemplaza el título nativo */
+.tl-pin-banner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 20px;
+    background: var(--bs-primary, #714b67);
+    border-radius: 0;
+    width: 100%;
+}
+
+/* Avatar circular con inicial del empleado */
+.tl-pin-banner-avatar {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    letter-spacing: 0.03em;
+    border: 2px solid rgba(255, 255, 255, 0.35);
+}
+
+/* Texto del banner */
+.tl-pin-banner-info {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    overflow: hidden;
+}
+
+.tl-pin-banner-label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.85);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.tl-pin-banner-name {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #fff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Elimina el padding del modal-header para que el banner
+   ocupe todo el espacio sin gaps ni separaciones */
+.modal-header:has(.tl-pin-banner) {
+    padding: 0;
+    border-bottom: none;
+}

@@ -1,0 +1,154 @@
+/* =============================================================
+   POS Restaurant Table Lock — Card Design
+   ============================================================= */
+
+/* ---- Barra de filtros de mesas (container) ---- */
+.tl-filter-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px 5px;
+    background: var(--bg-view, #f8f8f8);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    flex-shrink: 0;
+}
+
+/* ---- Nombre de la mesa ---- */
+.tl-name {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+    font-weight: 700;
+    font-size: 1.0rem;
+    color: rgba(0, 0, 0, 0.88);
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+    word-break: break-word;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    text-shadow: none;
+    z-index: 2;
+    pointer-events: none;
+    transition: top 0.25s cubic-bezier(.4, 0, .2, 1);
+    width: 92%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+}
+
+/* Sube cuando hay sección de empleado */
+.tl-name.has-owner {
+    top: 50%;
+    transform: translate(-50%, -50%);
+}
+
+/* ---- Sección inferior del empleado ---- */
+.tl-employee {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(0, 0, 0, 0.52);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 6px 5px;
+    z-index: 10;
+    border-radius: 0 0 3px 3px;
+    box-sizing: border-box;
+}
+
+
+
+/* ---- Animación de entrada de las cards de mesa ---- */
+/* Solo se aplica cuando JS añade .tl-animating a una card genuinamente nueva.
+   No se dispara en carga inicial ni para cards que ya eran visibles.        */
+.floor-table.tl-animating {
+    animation: tl-table-enter 0.28s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes tl-table-enter {
+    from {
+        opacity: 0;
+        transform: scale(0.88);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Nombre completo del empleado */
+.tl-empname {
+    font-size: 0.76rem;
+    font-weight: 600;
+    color: #fff !important;
+    line-height: 1.0;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    white-space: normal;
+    width: 100%;
+    text-align: center;
+    letter-spacing: 0.01em;
+    text-shadow: none;
+}
+
+/* ---- Indicador de candado (top-left) ---- */
+.tl-lock {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    z-index: 8;
+    width: 26px;
+    height: 26px;
+    min-width: 26px;
+    min-height: 26px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.32);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.88);
+    font-size: 12px;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+}
+
+/* ---- Botón renombrar (top-right) ---- */
+.tl-rename {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    z-index: 8;
+    width: 26px;
+    height: 26px;
+    min-width: 26px;
+    min-height: 26px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: rgba(255, 255, 255, 0.92);
+    font-size: 12px;
+    padding: 0;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    transition: background 0.15s, transform 0.18s cubic-bezier(.34, 1.56, .64, 1), box-shadow 0.15s;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.22);
+}
+
+.tl-rename:hover {
+    background: rgba(255, 255, 255, 0.38);
+    transform: scale(1.15);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.30);
+}
+
+.tl-rename:active {
+    transform: scale(0.92);
+    box-shadow: none;
+}

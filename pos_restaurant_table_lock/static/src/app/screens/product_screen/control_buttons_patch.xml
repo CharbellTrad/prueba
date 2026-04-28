@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+
+    <!--
+        Extiende el panel "Acciones" (⋮) del POS para agregar el botón
+        "Intercambiar Cajero de la Orden" justo antes del botón "Cancel Order".
+
+        Visible solo cuando se cumplen las 5 condiciones:
+          1. config.restaurant_table_lock  ─┐
+          2. config.module_pos_restaurant   ├─ isTableLockEnabled
+          3. config.module_pos_hr          ─┘
+          4. La orden activa tiene mesa asignada (table_id)
+          5. El cajero activo ES el propietario de la orden (employee_id)
+    -->
+    <t t-name="point_of_sale.ControlButtons"
+       t-inherit="point_of_sale.ControlButtons"
+       t-inherit-mode="extension">
+
+        <xpath expr="//button[.//i[hasclass('fa-trash')]]" position="before">
+            <t t-if="props.showRemainingButtons
+                     and this.pos.isTableLockEnabled
+                     and currentOrder?.table_id
+                     and this._tlIsOrderOwner(currentOrder)">
+                <button t-att-class="buttonClass"
+                        t-on-click="() => this.clickTransferCashier()">
+                    <i class="fa fa-exchange me-1"
+                       role="img"
+                       aria-label="Intercambiar Cajero"
+                       title="Intercambiar Cajero"/>
+                    Intercambiar Cajero
+                </button>
+            </t>
+        </xpath>
+
+    </t>
+
+</templates>

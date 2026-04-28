@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+
+    <!--
+        Card: dos secciones.
+        - Verde (nativo): nombre de la mesa centrado, sube cuando hay empleado
+        - Oscuro (inferior): nombre completo del empleado.
+          IMPORTANTE: .tl-employee es HERMANO de .info (no hijo),
+          para evitar ser clippeado por overflow:hidden del .info.
+    -->
+    <t t-name="pos_restaurant_table_lock.FloorScreen"
+       t-inherit="pos_restaurant.FloorScreen"
+       t-inherit-mode="extension">
+
+        <!-- Xpath 1: Barra de filtros antes del mapa de piso -->
+        <xpath expr="//div[@t-ref='floor-map-scroll']" position="before">
+            <t t-if="isTableLockEnabled and !pos.isEditMode">
+                <div class="tl-filter-bar">
+                    <button
+                        t-attf-class="btn btn-outline-secondary lh-lg px-3 text-nowrap {{ tlFilter.mode === 'all' ? 'active' : '' }}"
+                        t-on-click="() => this.setTableFilter('all')">
+                        <i class="fa fa-th-large fa-fw me-1"/>
+                        Todas las Mesas
+                    </button>
+                    <button
+                        t-attf-class="btn btn-outline-secondary lh-lg px-3 text-nowrap {{ tlFilter.mode === 'mine' ? 'active' : '' }}"
+                        t-on-click="() => this.setTableFilter('mine')">
+                        <i class="fa fa-user fa-fw me-1"/>
+                        Mis Mesas
+                    </button>
+                </div>
+            </t>
+        </xpath>
+
+        <!-- Xpath 2: dentro de .info — nombre, lock, rename -->
+        <xpath expr="//div[hasclass('info')]/div[hasclass('label')]" position="replace">
+
+            <t t-set="tlOwner"   t-value="this.isTableLockEnabled ? this.getTableOwnerEmployee(table) : null"/>
+            <t t-set="tlIsOwner" t-value="tlOwner and !pos.isEditMode and pos.getCashier()?.id === tlOwner.id"/>
+
+            <!-- Nombre de la mesa: sube cuando hay sección de empleado -->
+            <div t-attf-class="tl-name {{ tlOwner ? 'has-owner' : '' }}"
+                 t-esc="this.getTableDisplayName(table)"/>
+
+            <t t-if="tlOwner">
+                <!-- Lock abierto = cajero tiene acceso; cerrado = mesa de otro -->
+                <div class="tl-lock"
+                     t-att-title="tlIsOwner ? 'Tu mesa' : 'Mesa bloqueada'">
+                    <i t-attf-class="fa {{ tlIsOwner ? 'fa-unlock' : 'fa-lock' }}"/>
+                </div>
+
+                <!-- Botón renombrar solo para el dueño -->
+                <t t-if="tlIsOwner">
+                    <button class="tl-rename"
+                            t-on-click.stop="(ev) => this.renameTableForEmployee(table)"
+                            title="Renombrar mesa">
+                        <i class="fa fa-pencil"/>
+                    </button>
+                </t>
+            </t>
+
+        </xpath>
+
+        <!--
+            Xpath 3: .tl-employee se inserta DESPUÉS de .info (hermano),
+            dentro de .floor-table, para no ser clippeado por overflow:hidden del .info.
+        -->
+        <xpath expr="//div[hasclass('info')]" position="after">
+            <t t-if="this.isTableLockEnabled">
+                <t t-set="tlEmpOwner" t-value="this.getTableOwnerEmployee(table)"/>
+                <t t-if="tlEmpOwner">
+                    <div class="tl-employee" t-att-title="tlEmpOwner.name">
+                        <span class="tl-empname" t-esc="tlEmpOwner.name"/>
+                    </div>
+                </t>
+            </t>
+        </xpath>
+
+    </t>
+
+</templates>

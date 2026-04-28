@@ -1,0 +1,116 @@
+/* ================================================================
+   TableNameDialog — Diálogo de nombre de mesa
+   ================================================================ */
+
+/* Quita padding del modal-body para que el contenido llene limpiamente */
+.modal-header:has(.tl-name-header) {
+    padding: 0;
+    border-bottom: none;
+}
+
+.tl-name-dialog-wrapper {
+    padding: 0 !important;
+}
+
+/* ── Header ── */
+.tl-name-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 16px;
+    background: var(--bs-primary, #714b67);
+    width: 100%;
+}
+
+.tl-name-header-icon {
+    flex-shrink: 0;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.18);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+}
+
+.tl-name-header-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.tl-name-header-label {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #fff;
+    display: block;
+}
+
+.tl-name-header-close {
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 4px 6px;
+    border-radius: 6px;
+    transition: background 0.15s, color 0.15s;
+    line-height: 1;
+}
+
+.tl-name-header-close:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+}
+
+/* ── Body ── */
+.tl-name-body {
+    padding: 20px 20px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* ── Input wrapper con contador ── */
+.tl-name-input-wrap {
+    position: relative;
+}
+
+.tl-name-input {
+    width: 100%;
+    height: 46px;
+    padding: 0 52px 0 14px;
+    border: 1.5px solid #d0d5dd;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 500;
+    color: #1a1a2e;
+    background: #fff;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    box-sizing: border-box;
+}
+
+.tl-name-input:focus {
+    border-color: var(--bs-primary, #714b67);
+    box-shadow: 0 0 0 3px rgba(113, 75, 103, 0.12);
+}
+
+.tl-name-counter {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #9ca3af;
+    pointer-events: none;
+    white-space: nowrap;
+    transition: color 0.15s;
+}
+
+.tl-name-counter.tl-name-counter-max {
+    color: #ef4444;
+}

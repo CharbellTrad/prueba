@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+
+    <!--
+        Replica el template de point_of_sale.NumberPopup con un header
+        de empleado añadido encima del input. El resto (Numpad, buffer,
+        hotkeys, footer) es idéntico al nativo.
+    -->
+    <t t-name="pos_restaurant_table_lock.TableLockPinDialog">
+        <Dialog bodyClass="'d-flex flex-column justify-content-center p-0'" size="'sm'">
+
+            <!-- Slot header: reemplaza el título nativo con nuestro banner -->
+            <t t-set-slot="header">
+                <div class="tl-pin-banner">
+                    <div class="tl-pin-banner-avatar">
+                        <i class="fa fa-lock"/>
+                    </div>
+                    <div class="tl-pin-banner-info">
+                        <span class="tl-pin-banner-label">Mesa protegida</span>
+                        <span class="tl-pin-banner-name" t-esc="props.ownerName"/>
+                    </div>
+                </div>
+            </t>
+
+            <!-- Input nativo (idéntico al de NumberPopup) -->
+            <div class="input-symbol mb-3 px-3 pt-3">
+                <div class="popup-input value active form-control form-control-lg text-center">
+                    <span t-if="this.state.buffer || !props.placeholder"
+                          class="input-value"
+                          t-esc="props.formatDisplayedValue(this.state.buffer || '')"/>
+                    <span t-else="" class="text-muted" t-esc="props.placeholder"/>
+                </div>
+            </div>
+
+            <!-- Numpad nativo 100% -->
+            <div class="px-3 pb-1">
+                <Numpad buttons="props.buttons"/>
+            </div>
+
+            <!-- Footer nativo con textos en español -->
+            <t t-set-slot="footer">
+                <div class="d-flex flex-grow-1 justify-content-center w-100">
+                    <button t-att-disabled="!props.isValid(state.buffer)"
+                            class="btn btn-primary btn-lg lh-lg o-default-button me-2 flex-fill"
+                            tabindex="1"
+                            t-on-click="confirm">
+                        Confirmar
+                    </button>
+                    <button class="btn btn-secondary btn-lg lh-lg o-default-button flex-fill"
+                            tabindex="1"
+                            t-on-click="cancel">
+                        Cancelar
+                    </button>
+                </div>
+            </t>
+
+        </Dialog>
+    </t>
+
+</templates>
