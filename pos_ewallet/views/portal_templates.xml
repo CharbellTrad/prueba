@@ -1,0 +1,538 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Paso 1: pedir nombre de usuario -->
+    <template id="ewallet_login_step1" name="eWallet Login Paso 1">
+        <t t-call="pos_ewallet.ewallet_base_page">
+            <div class="ew-login-card">
+                <div class="ew-login-icon">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="1" y="4" width="22" height="16" rx="3"/>
+                        <line x1="1" y1="10" x2="23" y2="10"/>
+                    </svg>
+                </div>
+                <h1 class="ew-login-title">eWallet</h1>
+                <p class="ew-login-subtitle">Accede a tu monedero electrónico</p>
+
+                <t t-if="error">
+                    <div class="ew-alert ew-alert-error">
+                        <span t-out="error"/>
+                    </div>
+                </t>
+
+                <form method="POST" action="/ewallet/check-user" class="ew-form">
+                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                    <div class="ew-field">
+                        <label for="username">Usuario</label>
+                        <div class="ew-input-wrap">
+                            <svg class="ew-input-icon" width="18" height="18" viewBox="0 0 24 24"
+                                 fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
+                                <circle cx="12" cy="7" r="4"/>
+                            </svg>
+                            <input type="text" name="username" id="username"
+                                   placeholder="Tu nombre de usuario"
+                                   t-att-value="username or ''"
+                                   required="required" autocomplete="off" autofocus="autofocus"/>
+                        </div>
+                    </div>
+                    <button type="submit" class="ew-btn ew-btn-primary">
+                        Continuar
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                             stroke="currentColor" stroke-width="2">
+                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
+                    </button>
+                </form>
+            </div>
+        </t>
+    </template>
+
+    <!-- Paso 2A: ingresar contraseña (usuario existente) -->
+    <template id="ewallet_login_step2_password" name="eWallet Login Contraseña">
+        <t t-call="pos_ewallet.ewallet_base_page">
+            <div class="ew-login-card">
+                <div class="ew-login-icon ew-icon-welcome">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="11" width="18" height="11" rx="2"/>
+                        <path d="M7 11V7a5 5 0 0110 0v4"/>
+                    </svg>
+                </div>
+                <h1 class="ew-login-title">Hola, <t t-out="partner_name"/></h1>
+                <p class="ew-login-subtitle">Ingresa tu contraseña</p>
+
+                <t t-if="error">
+                    <div class="ew-alert ew-alert-error">
+                        <span t-out="error"/>
+                    </div>
+                </t>
+
+                <form method="POST" action="/ewallet/login" class="ew-form">
+                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                    <input type="hidden" name="username" t-att-value="username"/>
+                    <input type="hidden" name="action" value="login"/>
+                    <div class="ew-field">
+                        <label for="password">Contraseña</label>
+                        <div class="ew-input-wrap">
+                            <svg class="ew-input-icon" width="18" height="18" viewBox="0 0 24 24"
+                                 fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="11" width="18" height="11" rx="2"/>
+                                <path d="M7 11V7a5 5 0 0110 0v4"/>
+                            </svg>
+                            <input type="password" name="password" id="password"
+                                   placeholder="Tu contraseña"
+                                   required="required" autofocus="autofocus"/>
+                        </div>
+                    </div>
+                    <button type="submit" class="ew-btn ew-btn-primary">
+                        Iniciar sesión
+                    </button>
+                </form>
+                <a href="/ewallet" class="ew-back-link">Cambiar usuario</a>
+            </div>
+        </t>
+    </template>
+
+    <!-- Paso 2B: crear contraseña (primer acceso) -->
+    <template id="ewallet_login_step2_register" name="eWallet Login Registro">
+        <t t-call="pos_ewallet.ewallet_base_page">
+            <div class="ew-login-card">
+                <div class="ew-login-icon ew-icon-new">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+                        <circle cx="8.5" cy="7" r="4"/>
+                        <line x1="20" y1="8" x2="20" y2="14"/>
+                        <line x1="23" y1="11" x2="17" y2="11"/>
+                    </svg>
+                </div>
+                <h1 class="ew-login-title">Bienvenido, <t t-out="partner_name"/></h1>
+                <p class="ew-login-subtitle">Es tu primer acceso. Crea una contraseña.</p>
+
+                <t t-if="error">
+                    <div class="ew-alert ew-alert-error">
+                        <span t-out="error"/>
+                    </div>
+                </t>
+
+                <form method="POST" action="/ewallet/login" class="ew-form">
+                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                    <input type="hidden" name="username" t-att-value="username"/>
+                    <input type="hidden" name="action" value="register"/>
+                    <div class="ew-field">
+                        <label for="password">Nueva contraseña</label>
+                        <div class="ew-input-wrap">
+                            <svg class="ew-input-icon" width="18" height="18" viewBox="0 0 24 24"
+                                 fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="11" width="18" height="11" rx="2"/>
+                                <path d="M7 11V7a5 5 0 0110 0v4"/>
+                            </svg>
+                            <input type="password" name="password" id="password"
+                                   placeholder="Minimo 4 caracteres"
+                                   required="required" autofocus="autofocus"/>
+                        </div>
+                    </div>
+                    <div class="ew-field">
+                        <label for="password_confirm">Confirmar contraseña</label>
+                        <div class="ew-input-wrap">
+                            <svg class="ew-input-icon" width="18" height="18" viewBox="0 0 24 24"
+                                 fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/>
+                                <polyline points="22 4 12 14.01 9 11.01"/>
+                            </svg>
+                            <input type="password" name="password_confirm" id="password_confirm"
+                                   placeholder="Repite la contraseña"
+                                   required="required"/>
+                        </div>
+                    </div>
+                    <button type="submit" class="ew-btn ew-btn-primary">
+                        Crear contraseña y acceder
+                    </button>
+                </form>
+                <a href="/ewallet" class="ew-back-link">Cambiar usuario</a>
+            </div>
+        </t>
+    </template>
+
+    <!-- Dashboard: lista de monederos -->
+    <template id="ewallet_dashboard" name="eWallet Dashboard">
+        <t t-call="pos_ewallet.ewallet_base_page">
+            <nav class="ew-navbar">
+                <div class="ew-nav-brand">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="1.5"><rect x="1" y="4" width="22" height="16" rx="3"/>
+                        <line x1="1" y1="10" x2="23" y2="10"/></svg>
+                    <span>eWallet</span>
+                </div>
+                <div class="ew-nav-actions">
+                    <span class="ew-nav-user">
+                        Hola, <strong t-out="partner.name"/>
+                    </span>
+                    <a href="/ewallet/profile" class="ew-nav-link" title="Perfil">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                             stroke="currentColor" stroke-width="2">
+                            <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
+                            <circle cx="12" cy="7" r="4"/>
+                        </svg>
+                    </a>
+                    <a href="/ewallet/logout" class="ew-nav-link" title="Salir">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                             stroke="currentColor" stroke-width="2">
+                            <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
+                            <polyline points="16 17 21 12 16 7"/>
+                            <line x1="21" y1="12" x2="9" y2="12"/>
+                        </svg>
+                    </a>
+                </div>
+            </nav>
+
+            <div class="ew-container">
+                <h2 class="ew-section-title">Mis Monederos</h2>
+
+                <t t-if="not cards">
+                    <div class="ew-empty">
+                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none"
+                             stroke="currentColor" stroke-width="1" opacity="0.4">
+                            <rect x="1" y="4" width="22" height="16" rx="3"/>
+                            <line x1="1" y1="10" x2="23" y2="10"/>
+                        </svg>
+                        <h3>No tienes monederos</h3>
+                        <p>Adquiere una tarjeta eWallet en cualquier punto de venta.</p>
+                    </div>
+                </t>
+
+                <div class="ew-cards-grid" t-if="cards">
+                    <t t-foreach="cards" t-as="card">
+                        <div class="ew-flip-card" t-att-data-card-id="card.id">
+                            <div class="ew-flip-inner">
+                                <!-- Frente de la tarjeta -->
+                                <div class="ew-flip-front" t-attf-data-type="#{card.wallet_type}">
+                                    <div class="ew-wc-header">
+                                        <span class="ew-wc-brand">eWallet</span>
+                                        <span t-attf-class="ew-wc-badge ew-wc-badge-#{card.wallet_type}">
+                                            <t t-if="card.wallet_type == 'owner'">Propietario</t>
+                                            <t t-if="card.wallet_type == 'visitor'">Visitante</t>
+                                        </span>
+                                    </div>
+                                    <div class="ew-wc-chip">
+                                        <div class="ew-chip-rect"/>
+                                        <div class="ew-chip-lines">
+                                            <div/><div/><div/><div/>
+                                        </div>
+                                    </div>
+                                    <div class="ew-wc-code" t-out="card.code"/>
+                                    <div class="ew-wc-footer">
+                                        <div class="ew-wc-name" t-out="partner.name"/>
+                                        <div class="ew-wc-balance">
+                                            <span class="ew-wc-balance-label">Saldo</span>
+                                            <span class="ew-wc-balance-amount">
+                                                $<t t-out="'%.2f' % card.points"/>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="ew-wc-status">
+                                        <span t-attf-class="ew-status-dot ew-status-#{card.wallet_active and 'on' or 'off'}"/>
+                                        <t t-if="card.wallet_active">Activo</t>
+                                        <t t-else="">Inactivo</t>
+                                    </div>
+                                </div>
+                                <!-- Reverso de la tarjeta -->
+                                <div class="ew-flip-back">
+                                    <div class="ew-card-barcode">
+                                        <div class="ew-barcode-strip"/>
+                                        <div class="ew-card-code-back" t-out="card.code"/>
+                                    </div>
+                                    <div class="ew-card-actions">
+                                        <a t-attf-href="/ewallet/card/#{card.id}"
+                                           class="ew-btn ew-btn-primary ew-btn-sm">
+                                            Ver detalle
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- Detalle del monedero -->
+    <template id="ewallet_card_detail" name="eWallet Card Detail">
+        <t t-call="pos_ewallet.ewallet_base_page">
+            <nav class="ew-navbar">
+                <div class="ew-nav-brand">
+                    <a href="/ewallet/dashboard" class="ew-nav-link">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                             stroke="currentColor" stroke-width="2">
+                            <path d="M19 12H5M12 19l-7-7 7-7"/>
+                        </svg>
+                    </a>
+                    <span>Monedero</span>
+                </div>
+                <div class="ew-nav-actions">
+                    <a href="/ewallet/logout" class="ew-nav-link" title="Salir">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                             stroke="currentColor" stroke-width="2">
+                            <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
+                            <polyline points="16 17 21 12 16 7"/>
+                            <line x1="21" y1="12" x2="9" y2="12"/>
+                        </svg>
+                    </a>
+                </div>
+            </nav>
+
+            <div class="ew-container">
+                <t t-if="error">
+                    <div class="ew-alert ew-alert-error"><span t-out="error"/></div>
+                </t>
+                <t t-if="success">
+                    <div class="ew-alert ew-alert-success"><span t-out="success"/></div>
+                </t>
+
+                <!-- Resumen -->
+                <div class="ew-detail-grid">
+                    <div class="ew-detail-item">
+                        <span class="ew-detail-label">Codigo</span>
+                        <span class="ew-detail-value ew-mono" t-out="card.code"/>
+                    </div>
+                    <div class="ew-detail-item">
+                        <span class="ew-detail-label">Tipo</span>
+                        <span t-attf-class="ew-wc-badge ew-wc-badge-#{card.wallet_type}">
+                            <t t-if="card.wallet_type == 'owner'">Propietario</t>
+                            <t t-if="card.wallet_type == 'visitor'">Visitante</t>
+                        </span>
+                    </div>
+                    <div class="ew-detail-item">
+                        <span class="ew-detail-label">Estado</span>
+                        <span t-attf-class="ew-status-pill ew-status-#{card.wallet_active and 'on' or 'off'}">
+                            <t t-if="card.wallet_active">Activo</t>
+                            <t t-else="">Inactivo</t>
+                        </span>
+                    </div>
+                    <div class="ew-detail-item ew-detail-balance">
+                        <span class="ew-detail-label">Saldo</span>
+                        <span class="ew-detail-value ew-big">
+                            $<t t-out="'%.2f' % card.points"/>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Acciones -->
+                <div class="ew-actions">
+                    <t t-if="not card.wallet_active">
+                        <form method="POST" t-attf-action="/ewallet/card/#{card.id}/activate"
+                              class="ew-form ew-form-inline">
+                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                            <t t-if="not card.wallet_pin_set">
+                                <div class="ew-field">
+                                    <label>Definir PIN (min. 4 digitos)</label>
+                                    <input type="password" name="pin" required="required"
+                                           pattern="[0-9]{4,}" inputmode="numeric"
+                                           placeholder="PIN"/>
+                                </div>
+                                <div class="ew-field">
+                                    <label>Confirmar PIN</label>
+                                    <input type="password" name="pin_confirm" required="required"
+                                           pattern="[0-9]{4,}" inputmode="numeric"
+                                           placeholder="Confirmar PIN"/>
+                                </div>
+                            </t>
+                            <button type="submit" class="ew-btn ew-btn-success">Activar monedero</button>
+                        </form>
+                    </t>
+                    <t t-if="card.wallet_active">
+                        <form method="POST" t-attf-action="/ewallet/card/#{card.id}/deactivate"
+                              class="ew-form ew-form-inline">
+                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                            <button type="submit" class="ew-btn ew-btn-danger">Desactivar monedero</button>
+                        </form>
+                    </t>
+                </div>
+
+                <!-- Cambiar PIN -->
+                <t t-if="card.wallet_pin_set">
+                    <div class="ew-section">
+                        <h3 class="ew-section-title">Cambiar PIN</h3>
+                        <form method="POST" t-attf-action="/ewallet/card/#{card.id}/pin" class="ew-form">
+                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                            <div class="ew-field">
+                                <label>PIN actual</label>
+                                <input type="password" name="current_pin" required="required" inputmode="numeric"/>
+                            </div>
+                            <div class="ew-field">
+                                <label>Nuevo PIN</label>
+                                <input type="password" name="new_pin" required="required"
+                                       pattern="[0-9]{4,}" inputmode="numeric"/>
+                            </div>
+                            <div class="ew-field">
+                                <label>Confirmar nuevo PIN</label>
+                                <input type="password" name="new_pin_confirm" required="required"
+                                       pattern="[0-9]{4,}" inputmode="numeric"/>
+                            </div>
+                            <button type="submit" class="ew-btn ew-btn-primary">Guardar PIN</button>
+                        </form>
+                    </div>
+                </t>
+
+                <!-- Historial -->
+                <div class="ew-section">
+                    <h3 class="ew-section-title">Historial de movimientos</h3>
+                    <t t-if="not history_lines">
+                        <p class="ew-muted">Sin movimientos registrados.</p>
+                    </t>
+                    <t t-if="history_lines">
+                        <div class="ew-table-wrap">
+                            <table class="ew-table">
+                                <thead>
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Concepto</th>
+                                        <th class="ew-text-end">Carga</th>
+                                        <th class="ew-text-end">Consumo</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-foreach="history_lines" t-as="line">
+                                        <tr>
+                                            <td>
+                                                <t t-out="line.create_date"
+                                                   t-options='{"widget": "datetime", "format": "short"}'/>
+                                            </td>
+                                            <td t-out="line.description"/>
+                                            <td class="ew-text-end ew-positive">
+                                                <t t-if="line.issued">+$<t t-out="'%.2f' % line.issued"/></t>
+                                            </td>
+                                            <td class="ew-text-end ew-negative">
+                                                <t t-if="line.used">-$<t t-out="'%.2f' % line.used"/></t>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                </tbody>
+                            </table>
+                        </div>
+                    </t>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- Perfil del cliente -->
+    <template id="ewallet_profile" name="eWallet Profile">
+        <t t-call="pos_ewallet.ewallet_base_page">
+            <nav class="ew-navbar">
+                <div class="ew-nav-brand">
+                    <a href="/ewallet/dashboard" class="ew-nav-link">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                             stroke="currentColor" stroke-width="2">
+                            <path d="M19 12H5M12 19l-7-7 7-7"/>
+                        </svg>
+                    </a>
+                    <span>Mi Perfil</span>
+                </div>
+                <div class="ew-nav-actions">
+                    <a href="/ewallet/logout" class="ew-nav-link" title="Salir">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                             stroke="currentColor" stroke-width="2">
+                            <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
+                            <polyline points="16 17 21 12 16 7"/>
+                            <line x1="21" y1="12" x2="9" y2="12"/>
+                        </svg>
+                    </a>
+                </div>
+            </nav>
+
+            <div class="ew-container">
+                <t t-if="error">
+                    <div class="ew-alert ew-alert-error"><span t-out="error"/></div>
+                </t>
+                <t t-if="success">
+                    <div class="ew-alert ew-alert-success"><span t-out="success"/></div>
+                </t>
+
+                <div class="ew-profile-avatar">
+                    <t t-if="partner.image_128">
+                        <img t-attf-src="/web/image/res.partner/#{partner.id}/image_128"
+                             alt="Avatar" class="ew-avatar-img"/>
+                    </t>
+                    <t t-else="">
+                        <div class="ew-avatar-placeholder">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none"
+                                 stroke="currentColor" stroke-width="1.5">
+                                <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
+                                <circle cx="12" cy="7" r="4"/>
+                            </svg>
+                        </div>
+                    </t>
+                </div>
+
+                <form method="POST" action="/ewallet/profile" class="ew-form"
+                      enctype="multipart/form-data">
+                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                    <div class="ew-form-grid">
+                        <div class="ew-field">
+                            <label for="name">Nombre</label>
+                            <input type="text" name="name" id="name"
+                                   t-att-value="partner.name" required="required"/>
+                        </div>
+                        <div class="ew-field">
+                            <label for="phone">Telefono</label>
+                            <input type="tel" name="phone" id="phone"
+                                   t-att-value="partner.phone or ''"/>
+                        </div>
+                        <div class="ew-field">
+                            <label for="email">Email</label>
+                            <input type="email" name="email" id="email"
+                                   t-att-value="partner.email or ''"/>
+                        </div>
+                        <div class="ew-field">
+                            <label for="street">Calle</label>
+                            <input type="text" name="street" id="street"
+                                   t-att-value="partner.street or ''"/>
+                        </div>
+                        <div class="ew-field">
+                            <label for="city">Ciudad</label>
+                            <input type="text" name="city" id="city"
+                                   t-att-value="partner.city or ''"/>
+                        </div>
+                        <div class="ew-field">
+                            <label for="zip">Codigo Postal</label>
+                            <input type="text" name="zip" id="zip"
+                                   t-att-value="partner.zip or ''"/>
+                        </div>
+                        <div class="ew-field">
+                            <label for="image">Foto de perfil</label>
+                            <input type="file" name="image" id="image" accept="image/*"/>
+                        </div>
+                    </div>
+                    <button type="submit" class="ew-btn ew-btn-primary">Guardar cambios</button>
+                </form>
+            </div>
+        </t>
+    </template>
+
+    <!-- Template base: HTML standalone con CSS externo -->
+    <template id="ewallet_base_page" name="eWallet Base Page">
+        <html lang="es">
+        <head>
+            <meta charset="utf-8"/>
+            <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+            <title>eWallet</title>
+            <link rel="preconnect" href="https://fonts.googleapis.com"/>
+            <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous"/>
+            <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap"
+                  rel="stylesheet"/>
+            <link rel="stylesheet" href="/pos_ewallet/static/src/css/ewallet_portal.css"/>
+            <script src="/pos_ewallet/static/src/portal/ewallet_portal.js" defer="defer"></script>
+        </head>
+        <body>
+            <div class="ew-page">
+                <t t-raw="0"/>
+            </div>
+        </body>
+        </html>
+    </template>
+
+</odoo>

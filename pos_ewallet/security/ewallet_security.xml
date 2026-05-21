@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Regla de acceso: solo administradores gestionan sesiones eWallet -->
+    <record id="ewallet_session_rule_system" model="ir.rule">
+        <field name="name">eWallet Sessions: System Only</field>
+        <field name="model_id" ref="model_ewallet_session"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('base.group_system'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
+    <!-- Cron: limpieza de sesiones expiradas cada 10 minutos -->
+    <record id="ir_cron_ewallet_session_cleanup" model="ir.cron">
+        <field name="name">eWallet: Limpiar sesiones expiradas</field>
+        <field name="model_id" ref="model_ewallet_session"/>
+        <field name="state">code</field>
+        <field name="code">model.cleanup_expired_sessions()</field>
+        <field name="interval_number">10</field>
+        <field name="interval_type">minutes</field>
+        <field name="active" eval="True"/>
+    </record>
+</odoo>

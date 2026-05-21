@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Programa de lealtad: campos eWallet en formulario principal -->
+    <record id="loyalty_program_view_form_ewallet" model="ir.ui.view">
+        <field name="name">loyalty.program.form.ewallet</field>
+        <field name="model">loyalty.program</field>
+        <field name="inherit_id" ref="loyalty.loyalty_program_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='portal_point_name']" position="after">
+                <field name="is_ewallet_program" readonly="1"
+                       invisible="program_type != 'ewallet'"/>
+                <field name="owner_discount"
+                       invisible="not is_ewallet_program"
+                       widget="percentage"/>
+                <field name="visitor_discount"
+                       invisible="not is_ewallet_program"
+                       widget="percentage"/>
+                <field name="require_pin"
+                       invisible="not is_ewallet_program"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

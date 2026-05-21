@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Contacto: campos eWallet y pestaña de monederos -->
+    <record id="res_partner_view_form_ewallet" model="ir.ui.view">
+        <field name="name">res.partner.form.ewallet</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <!-- Pestaña eWallet con datos de acceso y monederos -->
+            <xpath expr="//page[@name='internal_notes']" position="after">
+                <page string="eWallet" name="ewallet_tab">
+                    <group string="Acceso al Portal eWallet">
+                        <field name="ewallet_username"/>
+                    </group>
+                    <group string="Monederos eWallet">
+                        <field name="ewallet_card_ids" nolabel="1">
+                            <list create="false" delete="false" editable="bottom">
+                                <field name="code" readonly="1"/>
+                                <field name="wallet_type" readonly="1"/>
+                                <field name="wallet_active"/>
+                                <field name="points" readonly="1" string="Saldo"/>
+                                <field name="wallet_pin_set" readonly="1"/>
+                            </list>
+                        </field>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

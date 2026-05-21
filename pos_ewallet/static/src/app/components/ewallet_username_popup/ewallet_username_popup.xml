@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+
+    <t t-name="pos_ewallet.EwalletUsernamePopup">
+        <div class="popup ewallet-username-popup">
+            <div class="modal-header drag-handle">
+                <h4 class="modal-title">
+                    <i class="fa fa-user-plus me-2"/>
+                    Usuario eWallet
+                </h4>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted mb-3">
+                    Defina un nombre de usuario para el portal eWallet del cliente
+                    <strong t-out="props.partner.name"/>.
+                </p>
+
+                <div t-if="state.error" class="alert alert-danger py-2 mb-3">
+                    <i class="fa fa-exclamation-circle me-1"/>
+                    <t t-out="state.error"/>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Nombre de usuario eWallet</label>
+                    <input type="text" class="form-control"
+                           placeholder="Ej: juan.perez"
+                           t-model="state.username"
+                           t-att-disabled="state.processing"/>
+                    <small class="text-muted">
+                        Mínimo 3 caracteres. Será usado para acceder al portal /ewallet.
+                    </small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" t-on-click="cancel"
+                        t-att-disabled="state.processing">
+                    Omitir
+                </button>
+                <button class="btn btn-primary" t-on-click="confirm"
+                        t-att-disabled="state.processing">
+                    <i t-attf-class="fa #{state.processing ? 'fa-spinner fa-spin' : 'fa-save'} me-1"/>
+                    Guardar
+                </button>
+            </div>
+        </div>
+    </t>
+
+</templates>

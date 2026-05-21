@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+
+    <t t-name="pos_ewallet.EwalletPaymentPopup">
+        <div class="popup ewallet-payment-popup">
+            <div class="modal-header drag-handle">
+                <h4 class="modal-title">
+                    <i class="fa fa-credit-card me-2"/>
+                    Pagar con eWallet
+                </h4>
+            </div>
+            <div class="modal-body">
+                <!-- Wallet info -->
+                <div class="ewallet-popup-info mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="text-muted">Monedero:</span>
+                        <span class="badge bg-primary" t-out="walletTypeLabel"/>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="text-muted">Saldo disponible:</span>
+                        <span class="fw-bold text-success"
+                              t-out="pos.env.utils.formatCurrency(walletBalance)"/>
+                    </div>
+                </div>
+
+                <!-- Order summary -->
+                <div class="ewallet-popup-summary mb-3 p-3 bg-light rounded">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span>Total de la orden:</span>
+                        <span t-out="pos.env.utils.formatCurrency(orderTotal)"/>
+                    </div>
+                    <div t-if="discountPercent > 0"
+                         class="d-flex justify-content-between mb-1 text-success">
+                        <span>Descuento (<t t-out="discountPercent"/>%):</span>
+                        <span>-<t t-out="pos.env.utils.formatCurrency(discountAmount)"/></span>
+                    </div>
+                    <hr class="my-1"/>
+                    <div class="d-flex justify-content-between fw-bold">
+                        <span>Cargo al monedero:</span>
+                        <span t-attf-class="#{hasSufficientBalance ? 'text-primary' : 'text-danger'}"
+                              t-out="pos.env.utils.formatCurrency(amountToCharge)"/>
+                    </div>
+                </div>
+
+                <!-- Error message -->
+                <div t-if="state.error" class="alert alert-danger py-2 mb-3">
+                    <i class="fa fa-exclamation-circle me-1"/>
+                    <t t-out="state.error"/>
+                </div>
+
+                <!-- Concept input -->
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Concepto de consumo *</label>
+                    <input type="text" class="form-control"
+                           placeholder="Ej: Almuerzo, Cena ejecutiva..."
+                           t-model="state.concept"
+                           t-att-disabled="state.processing"/>
+                </div>
+
+                <!-- PIN input -->
+                <div t-if="state.pinRequired" class="mb-3">
+                    <label class="form-label fw-bold">PIN del monedero *</label>
+                    <input type="password" class="form-control"
+                           placeholder="Ingrese su PIN"
+                           inputmode="numeric"
+                           t-model="state.pin"
+                           t-att-disabled="state.processing"/>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" t-on-click="cancel"
+                        t-att-disabled="state.processing">
+                    Cancelar
+                </button>
+                <button class="btn btn-primary" t-on-click="confirm"
+                        t-att-disabled="state.processing or !hasSufficientBalance">
+                    <i t-attf-class="fa #{state.processing ? 'fa-spinner fa-spin' : 'fa-check'} me-1"/>
+                    <t t-if="state.processing">Procesando...</t>
+                    <t t-else="">Confirmar pago</t>
+                </button>
+            </div>
+        </div>
+    </t>
+
+</templates>

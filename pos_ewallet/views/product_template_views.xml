@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Producto: campo is_ewallet_product en formulario -->
+    <record id="product_template_form_view_ewallet" model="ir.ui.view">
+        <field name="name">product.template.form.ewallet</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='options']" position="inside">
+                <span name="ewallet_option" class="d-inline-flex">
+                    <field name="is_ewallet_product"/>
+                    <label for="is_ewallet_product"/>
+                </span>
+            </xpath>
+        </field>
+    </record>
+</odoo>
